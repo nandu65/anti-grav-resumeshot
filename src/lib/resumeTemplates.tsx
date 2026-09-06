@@ -1915,127 +1915,157 @@ export function ResumePreview({
   );
 }
 
-
-
 /* ---------- PDF export ---------- */
 export async function downloadResumePdfFromData(rawData: ResumeData, template: TemplateId) {
   const data = normalizeResumeSkills(rawData);
   const safe = safeName(data.name);
-  
-  // Use html2canvas to capture the actual DOM for perfect visual fidelity
-  // We look for a few potential root elements to ensure we capture the right one
-  let element = document.querySelector(`[data-rs-root]`) as HTMLElement;
-  
-  if (!element) {
-    element = document.querySelector(".resume-root-container") as HTMLElement;
-  }
-  
-  if (!element) {
-    element = document.querySelector(".resume-export-target") as HTMLElement;
-  }
-  
-  // If we still don't have it, try finding the inner most div of the preview area
-  if (!element) {
-    const previewArea = document.querySelector(".flex-1.overflow-y-auto.rounded-\\[2rem\\]");
-    if (previewArea) {
-      element = previewArea.querySelector("div > div") as HTMLElement;
+
+  // 1. Locate the live preview element
+  const potentialRoots = Array.from(
+    document.querySelectorAll(`[data-rs-root], .resume-root-container, .resume-export-target`)
+  ) as HTMLElement[];
+
+  // Find the visible one (to avoid closed mobile sheets or hidden elements)
+  let visibleElement: HTMLElement | null = null;
+  for (const el of potentialRoots) {
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    if (
+      (rect.width > 50 || el.offsetWidth > 50) &&
+      (rect.height > 50 || el.offsetHeight > 50) &&
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0"
+    ) {
+      visibleElement = el;
+      break;
     }
   }
+
+  // Fallback to first matching element if none matched visibility criteria
+  const element = visibleElement || potentialRoots[0] || (document.querySelector(".resume-root-container") as HTMLElement);
 
   if (!element) {
     const msg = "Resume preview not found. Please ensure the preview is visible before exporting.";
     console.error(msg);
-    if (typeof window !== 'undefined') {
-        import('sonner').then(({ toast }) => toast.error(msg));
+    if (typeof window !== "undefined") {
+      import("sonner").then(({ toast }) => toast.error(msg));
     }
     return;
   }
 
-  // Ensure element is visible in the layout tree
-  const isVisible = (el: HTMLElement) => {
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-  };
+  // 2. Create an isolated off-screen wrapper for pixel-perfect html2canvas capture
+  const wrapper = document.createElement("div");
+  wrapper.id = "rs-pdf-export-wrapper";
+  wrapper.style.cssText = "position: fixed; left: -9999px; top: 0; width: 794px; min-height: 1123px; background: #ffffff; z-index: -99999; margin: 0; padding: 0; overflow: visible;";
 
-  if (!isVisible(element)) {
-    console.warn("Element found but not visible to user. Attempting forced visibility capture.");
+  // Clone the element so we can strip transforms, drag handles, and dashed break lines safely
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.style.cssText = "transform: none !important; margin: 0 !important; width: 794px !important; max-width: 794px !important; min-height: 1123px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;";
+
+  // Strip preview-only overlays like dashed page breaks, page badges, and toolbars
+  clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => {
+    if (el.textContent?.includes("Page") || el.querySelector(".border-dashed") || el.classList.contains("border-dashed")) {
+      el.remove();
+    }
+  });
+  clone.querySelectorAll('[data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
+
+  // Copy computed CSS custom properties
+  const pageH = element.style.getPropertyValue("--page-h");
+  if (pageH) {
+    clone.style.setProperty("--page-h", pageH);
   }
 
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
+
   try {
-    // Check if element is hidden or zero-sized (common issue with portals/tabs)
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      console.warn("Target element has zero dimensions. Attempting to clone or force visibility.");
+    // Wait for fonts & rendering
+    if (document.fonts) {
+      try {
+        await document.fonts.ready;
+      } catch (_) {}
     }
+    await new Promise(r => setTimeout(r, 150));
 
-    // Force capturing in a clean state
-    const originalStyle = {
-      height: element.style.height,
-      position: element.style.position,
-      overflow: element.style.overflow,
-      visibility: element.style.visibility,
-      display: element.style.display,
-      transform: element.style.transform,
-      width: element.style.width
-    };
+    const targetHeight = Math.max(clone.scrollHeight, 1123);
 
-    // Ensure it's captured at its natural size without scaling or overflow cuts
-    element.style.setProperty('height', 'auto', 'important');
-    element.style.setProperty('overflow', 'visible', 'important');
-    element.style.setProperty('visibility', 'visible', 'important');
-    element.style.setProperty('display', 'block', 'important');
-    element.style.setProperty('transform', 'none', 'important');
-    element.style.setProperty('width', '794px', 'important');
-    element.style.setProperty('opacity', '1', 'important');
-    
-    // Give browser a micro-tick to apply forced styles
-    await new Promise(r => setTimeout(r, 100));
-
-    const canvas = await html2canvas(element, {
-      scale: 2, 
+    const canvas = await html2canvas(clone, {
+      scale: 2,
       useCORS: true,
-      logging: true, // Enable logging for debugging
+      allowTaint: true,
       backgroundColor: "#ffffff",
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
       width: 794,
-      height: element.scrollHeight || 1123,
+      height: targetHeight,
       windowWidth: 794,
-      windowHeight: element.scrollHeight || 1123,
-      onclone: (clonedDoc) => {
-        const clonedEl = clonedDoc.querySelector(`[data-rs-root]`) as HTMLElement || 
-                         clonedDoc.querySelector(".resume-root-container") as HTMLElement;
-        if (clonedEl) {
-          clonedEl.style.height = 'auto';
-          clonedEl.style.opacity = '1';
-          clonedEl.style.visibility = 'visible';
-          clonedEl.style.display = 'block';
-        }
-      }
+      windowHeight: targetHeight,
     });
 
-    // Restore original styles
-    Object.assign(element.style, originalStyle);
-
-    const imgData = canvas.toDataURL("image/png", 1.0); // Use PNG for better quality/transparency handling
-    
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "pt",
       format: "a4",
-      compress: true
+      compress: true,
     });
 
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pdfWidth = pdf.internal.pageSize.getWidth(); // 595.28 pt
+    const pdfHeight = pdf.internal.pageSize.getHeight(); // 841.89 pt
+    const a4Ratio = pdfHeight / pdfWidth; // ~1.4142
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+    const pageCanvasHeight = canvas.width * a4Ratio;
+    const totalPages = Math.max(1, Math.ceil((canvas.height - 15) / pageCanvasHeight));
+
+    if (totalPages === 1) {
+      const imgData = canvas.toDataURL("image/png", 1.0);
+      const renderHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, renderHeight, undefined, "FAST");
+    } else {
+      // Multi-page export with clean slice per page
+      for (let i = 0; i < totalPages; i++) {
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = pageCanvasHeight;
+
+        const sliceY = i * pageCanvasHeight;
+        const remainingHeight = canvas.height - sliceY;
+        const thisSliceHeight = Math.min(pageCanvasHeight, remainingHeight);
+
+        const ctx = sliceCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0, sliceY, canvas.width, thisSliceHeight,
+            0, 0, canvas.width, thisSliceHeight
+          );
+        }
+
+        const sliceData = sliceCanvas.toDataURL("image/png", 1.0);
+        if (i > 0) {
+          pdf.addPage("a4", "portrait");
+        }
+        pdf.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+      }
+    }
+
     pdf.save(`${safe}-${template}.pdf`);
   } catch (err) {
     console.error("PDF export failed:", err);
-    if (typeof window !== 'undefined') {
-      import('sonner').then(({ toast }) => toast.error("Export failed. Please try again."));
+    if (typeof window !== "undefined") {
+      import("sonner").then(({ toast }) => toast.error("Export failed. Please try again."));
+    }
+  } finally {
+    if (wrapper.parentNode) {
+      wrapper.parentNode.removeChild(wrapper);
     }
   }
 }
+
 
 /* ---------- DOCX export (editable in Word / Google Docs) ---------- */
 
@@ -2224,11 +2254,70 @@ export function isMultiColumnTemplate(template: TemplateId) {
   return cfg ? cfg.layout !== "single-column" : MULTI_COLUMN_TEMPLATES.includes(template);
 }
 
+/** Resolves web / CSS font family names to standard universal Word fonts */
+export function resolveDocxFont(fontName?: string, defaultFont = "Calibri"): string {
+  if (!fontName) return defaultFont;
+  const clean = fontName.replace(/['"]/g, "").trim();
+  const lower = clean.toLowerCase();
+
+  if (
+    lower.includes("mono") ||
+    lower.includes("courier") ||
+    lower.includes("consolas") ||
+    lower.includes("code") ||
+    lower.includes("jetbrains")
+  ) {
+    return "Consolas";
+  }
+
+  // Check sans-serif first to avoid substring matching "serif" in "sans-serif"
+  if (
+    lower.includes("sans-serif") ||
+    lower.includes("inter") ||
+    lower.includes("roboto") ||
+    lower.includes("arial") ||
+    lower.includes("helvetica") ||
+    lower.includes("calibri") ||
+    lower.includes("system-ui") ||
+    lower.includes("jakarta") ||
+    lower.includes("aptos")
+  ) {
+    if (lower.includes("arial")) return "Arial";
+    if (lower.includes("aptos")) return "Aptos";
+    return "Calibri";
+  }
+
+  // Check serif fonts
+  if (
+    lower.includes("serif") ||
+    lower.includes("baskerville") ||
+    lower.includes("georgia") ||
+    lower.includes("times") ||
+    lower.includes("garamond") ||
+    lower.includes("merriweather") ||
+    lower.includes("playfair") ||
+    lower.includes("cambria")
+  ) {
+    if (lower.includes("times")) return "Times New Roman";
+    if (lower.includes("garamond")) return "Garamond";
+    if (lower.includes("cambria")) return "Cambria";
+    return "Georgia";
+  }
+
+  const first = clean.split(",")[0].trim();
+  if (first && first !== "sans-serif" && first !== "serif" && first !== "monospace" && first !== "system-ui") {
+    return first;
+  }
+  return "Calibri";
+}
+
+
 /** Builds the docx body children for a resume. Exported for tests. */
 export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
   const data = normalizeResumeSkills(rawData);
   const cfg = TEMPLATE_DOCX_CONFIGS[template] || TEMPLATE_DOCX_CONFIGS.modern;
-  const font = cfg.font || "Calibri";
+  const userGlobalFont = data.settings?.fontFamily;
+  const font = resolveDocxFont(userGlobalFont, cfg.font || "Calibri");
   const accent = cfg.accent || "065F46";
   const baseSize = (data.settings?.fontSize || 11) * 2; // docx uses half-points
   const secStyles = data.settings?.sections;
@@ -2250,6 +2339,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     const defaultBold = opts.bold || secStyle?.bold === true;
     const defaultItalic = opts.italic || secStyle?.italic === true;
     const fontSize = opts.size ?? (secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize);
+    const pFont = resolveDocxFont(opts.fontFamily || secStyle?.fontFamily, font);
 
     return new Paragraph({
       alignment: opts.align,
@@ -2261,24 +2351,25 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
         underline: p.underline ? {} : undefined,
         size: p.fontSize ? Math.round(p.fontSize * 2) : fontSize,
         color: opts.color,
-        font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : (opts.fontFamily || font),
+        font: p.fontFamily ? resolveDocxFont(p.fontFamily, pFont) : pFont,
       })),
     });
   };
 
   const H = (text: string, isSidebar = false) => {
+    const headFont = resolveDocxFont(secStyles?.headings?.fontFamily, font);
     const headSize = secStyles?.headings?.fontSize ? secStyles.headings.fontSize * 2 : (baseSize + 2);
     if (isSidebar && cfg.sidebarTextColor === "FFFFFF") {
       return new Paragraph({
         spacing: { before: 180, after: 60 },
         border: cfg.sidebarBorderColor ? { bottom: { color: cfg.sidebarBorderColor, size: 6, style: BorderStyle.SINGLE, space: 2 } } : undefined,
-        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(baseSize * 0.95), color: cfg.sidebarHeadingColor || "FFFFFF", font })],
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(baseSize * 0.95), color: cfg.sidebarHeadingColor || "FFFFFF", font: headFont })],
       });
     }
     return new Paragraph({
       spacing: { before: 180, after: 60 },
       border: { bottom: { color: accent, size: 8, style: BorderStyle.SINGLE, space: 2 } },
-      children: [new TextRun({ text: text.toUpperCase(), bold: true, size: headSize, color: accent, font })],
+      children: [new TextRun({ text: text.toUpperCase(), bold: true, size: headSize, color: accent, font: headFont })],
     });
   };
 
@@ -2289,12 +2380,13 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     const defaultItalic = secStyle?.italic === true;
     const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : (isSidebar ? Math.round(baseSize * 0.9) : baseSize);
     const textColor = isSidebar && cfg.sidebarTextColor === "FFFFFF" ? "FFFFFF" : undefined;
+    const bulletFont = resolveDocxFont(secStyle?.fontFamily, font);
 
     if (isSidebar) {
       return new Paragraph({
         spacing: { after: 30 },
         children: [
-          new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font }),
+          new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font: bulletFont }),
           ...parts.map(p => new TextRun({
             text: p.text,
             bold: p.bold || defaultBold,
@@ -2302,7 +2394,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
             underline: p.underline ? {} : undefined,
             size: p.fontSize ? Math.round(p.fontSize * 2) : fontSize,
             color: p.bold ? "FFFFFF" : textColor,
-            font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : font,
+            font: p.fontFamily ? resolveDocxFont(p.fontFamily, bulletFont) : bulletFont,
           })),
         ],
       });
@@ -2316,10 +2408,11 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
         italics: p.italic || defaultItalic,
         underline: p.underline ? {} : undefined,
         size: p.fontSize ? Math.round(p.fontSize * 2) : fontSize,
-        font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : font,
+        font: p.fontFamily ? resolveDocxFont(p.fontFamily, bulletFont) : bulletFont,
       })),
     });
   };
+
 
   const contactLines = [data.email, data.phone, data.location, ...(data.links?.map(l => `${l.label}: ${l.url}`) ?? [])].filter(Boolean) as string[];
 

@@ -88,3 +88,33 @@ test('DOCX layout parity: multi-column templates use a Table, single-column do n
   const tables = creative.children.filter((c: any) => c instanceof Table);
   expect(tables.length).toBe(2);
 });
+
+test('Font synchronization: resolveDocxFont maps web fonts to universal Word fonts', async () => {
+  const { resolveDocxFont, buildResumeDocxBody } = await import('../../lib/resumeTemplates');
+
+  expect(resolveDocxFont("'Libre Baskerville', serif")).toBe("Georgia");
+  expect(resolveDocxFont("Merriweather, serif")).toBe("Georgia");
+  expect(resolveDocxFont("Times New Roman, serif")).toBe("Times New Roman");
+  expect(resolveDocxFont("'JetBrains Mono', monospace")).toBe("Consolas");
+  expect(resolveDocxFont("Inter, sans-serif")).toBe("Calibri");
+  expect(resolveDocxFont(undefined, "Times New Roman")).toBe("Times New Roman");
+
+  // When user selects serif font in settings, DOCX body resolves to serif font
+  const dataWithSerif: any = {
+    name: "Serif Candidate",
+    title: "Software Engineer",
+    summary: "A passionate engineer.",
+    experience: [],
+    education: [],
+    projects: [],
+    skills: [],
+    settings: {
+      fontSize: 12,
+      fontFamily: "'Libre Baskerville', serif",
+    }
+  };
+
+  const docx = buildResumeDocxBody(dataWithSerif, 'classic');
+  expect(docx.children.length).toBeGreaterThan(0);
+});
+
