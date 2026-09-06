@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
-import { saveAs } from "file-saver";
+import { saveBlob } from "./resumeTemplates";
 
 export interface ExportData {
   title?: string | null;
@@ -90,7 +90,7 @@ export async function downloadResumeDocx(opt: ExportData) {
 
   const doc = new Document({ sections: [{ children: sections }] });
   const blob = await Packer.toBlob(doc);
-  saveAs(blob, safeName(opt, "docx"));
+  saveBlob(blob, safeName(opt, "docx"));
 }
 
 /* ---------- Plain text (ATS) ---------- */
@@ -118,7 +118,7 @@ export function downloadResumeTxt(opt: ExportData) {
     lines.push(opt.missing_keywords.join(", "));
   }
   const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-  saveAs(blob, safeName(opt, "txt"));
+  saveBlob(blob, safeName(opt, "txt"));
 }
 
 /* ---------- Markdown ---------- */
@@ -136,7 +136,7 @@ export function downloadResumeMarkdown(opt: ExportData) {
   if (opt.skills_to_add?.length) { md.push("## Key Skills"); md.push(opt.skills_to_add.map(s => `\`${s}\``).join(" · ")); md.push(""); }
   if (opt.missing_keywords?.length) { md.push("## Keywords Incorporated"); md.push(opt.missing_keywords.join(", ")); }
   const blob = new Blob([md.join("\n")], { type: "text/markdown;charset=utf-8" });
-  saveAs(blob, safeName(opt, "md"));
+  saveBlob(blob, safeName(opt, "md"));
 }
 
 /* ---------- Cover letter exports ---------- */

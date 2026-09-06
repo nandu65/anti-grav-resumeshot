@@ -6,9 +6,21 @@ import {
   BorderStyle, LevelFormat, PageBreak,
   Table, TableRow, TableCell, WidthType, ShadingType, VerticalAlign,
 } from "docx";
-import { saveAs } from "file-saver";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { MousePointer2 } from "lucide-react";
+
+export function saveBlob(blob: Blob, filename: string) {
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+}
 
 
 
@@ -2027,37 +2039,212 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
 
 /* ---------- DOCX export (editable in Word / Google Docs) ---------- */
 
+export type TemplateLayoutType = "single-column" | "sidebar-left" | "sidebar-right" | "banner-sidebar-right";
+
+export interface TemplateDocxConfig {
+  layout: TemplateLayoutType;
+  font: string;
+  accent: string;
+  sidebarWidthDXA?: number; // total printable width is 9360 DXA
+  mainWidthDXA?: number;
+  sidebarBg?: string; // hex fill for sidebar cell
+  sidebarTextColor?: string; // text color in sidebar (e.g. FFFFFF or 111111)
+  sidebarSubTextColor?: string; // e.g. D1FAE5
+  sidebarHeadingColor?: string; // e.g. A7F3D0
+  sidebarBorderColor?: string;
+  bannerBg?: string; // e.g. 4338CA for creative, 1E293B for photo-header, 0F2340 for banner-photo
+  bannerTextColor?: string;
+  namePlacement: "sidebar" | "banner" | "header-centered" | "header-split" | "header-left" | "header-executive";
+  sidebarSections?: string[];
+  mainSections?: string[];
+  skillsFormat?: "chips" | "bullets" | "categories" | "inline";
+}
+
+export const TEMPLATE_DOCX_CONFIGS: Record<TemplateId, TemplateDocxConfig> = {
+  modern: {
+    layout: "sidebar-left",
+    font: "Calibri",
+    accent: "065F46",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    sidebarBg: "065F46",
+    sidebarTextColor: "FFFFFF",
+    sidebarSubTextColor: "D1FAE5",
+    sidebarHeadingColor: "A7F3D0",
+    sidebarBorderColor: "059669",
+    namePlacement: "sidebar",
+    sidebarSections: ["skills", "certifications"],
+    mainSections: ["summary", "experience", "projects", "education"],
+    skillsFormat: "chips",
+  },
+  "teal-left": {
+    layout: "sidebar-left",
+    font: "Calibri",
+    accent: "0F766E",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    sidebarBg: "0F766E",
+    sidebarTextColor: "FFFFFF",
+    sidebarSubTextColor: "CCFBF1",
+    sidebarHeadingColor: "99F6E4",
+    sidebarBorderColor: "14B8A6",
+    namePlacement: "sidebar",
+    sidebarSections: ["skills", "certifications"],
+    mainSections: ["summary", "experience", "education", "projects"],
+    skillsFormat: "bullets",
+  },
+  "sidebar-dark": {
+    layout: "sidebar-right",
+    font: "Calibri",
+    accent: "115E59",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    sidebarBg: "115E59",
+    sidebarTextColor: "FFFFFF",
+    sidebarSubTextColor: "CCFBF1",
+    sidebarHeadingColor: "99F6E4",
+    sidebarBorderColor: "14B8A6",
+    namePlacement: "header-left",
+    sidebarSections: ["skills", "certifications"],
+    mainSections: ["summary", "experience", "education", "projects"],
+    skillsFormat: "bullets",
+  },
+  creative: {
+    layout: "banner-sidebar-right",
+    font: "Calibri",
+    accent: "4F46E5",
+    bannerBg: "4338CA",
+    bannerTextColor: "FFFFFF",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    sidebarBg: "F5F3FF",
+    sidebarTextColor: "1E1B4B",
+    sidebarHeadingColor: "4338CA",
+    namePlacement: "banner",
+    sidebarSections: ["skills", "education", "certifications"],
+    mainSections: ["summary", "experience", "projects"],
+    skillsFormat: "chips",
+  },
+  "photo-header": {
+    layout: "banner-sidebar-right",
+    font: "Calibri",
+    accent: "0284C7",
+    bannerBg: "1E293B",
+    bannerTextColor: "FFFFFF",
+    sidebarWidthDXA: 3744,
+    mainWidthDXA: 5616,
+    sidebarBg: "F8FAFC",
+    sidebarTextColor: "0F172A",
+    sidebarHeadingColor: "0369A1",
+    namePlacement: "banner",
+    sidebarSections: ["skills", "certifications"],
+    mainSections: ["summary", "experience", "education", "projects"],
+    skillsFormat: "chips",
+  },
+  "banner-photo": {
+    layout: "banner-sidebar-right",
+    font: "Calibri",
+    accent: "0F2340",
+    bannerBg: "0F2340",
+    bannerTextColor: "FFFFFF",
+    sidebarWidthDXA: 3560,
+    mainWidthDXA: 5800,
+    sidebarBg: "ECFDF5",
+    sidebarTextColor: "064E3B",
+    sidebarHeadingColor: "065F46",
+    namePlacement: "banner",
+    sidebarSections: ["skills", "certifications"],
+    mainSections: ["summary", "experience", "education", "projects"],
+    skillsFormat: "categories",
+  },
+  classic: {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "111111",
+    namePlacement: "header-centered",
+  },
+  compact: {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "1F1F1F",
+    namePlacement: "header-split",
+  },
+  executive: {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "92400E",
+    namePlacement: "header-executive",
+  },
+  minimal: {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "404040",
+    namePlacement: "header-left",
+  },
+  timeline: {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "0F766E",
+    namePlacement: "header-left",
+  },
+  elegant: {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "78350F",
+    namePlacement: "header-centered",
+  },
+  "centered-serif": {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "1E1E1E",
+    namePlacement: "header-centered",
+  },
+  "photo-grid": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "0369A1",
+    namePlacement: "header-centered",
+  },
+  "logo-boxed": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "0369A1",
+    namePlacement: "header-centered",
+  },
+};
+
 /** Templates whose React preview renders a sidebar / two-column layout. */
 export const MULTI_COLUMN_TEMPLATES: TemplateId[] = [
   "modern", "sidebar-dark", "teal-left", "creative",
-  "photo-header", "banner-photo", "photo-grid", "logo-boxed",
+  "photo-header", "banner-photo",
 ];
 
 export function isMultiColumnTemplate(template: TemplateId) {
-  return MULTI_COLUMN_TEMPLATES.includes(template);
+  const cfg = TEMPLATE_DOCX_CONFIGS[template];
+  return cfg ? cfg.layout !== "single-column" : MULTI_COLUMN_TEMPLATES.includes(template);
 }
 
 /** Builds the docx body children for a resume. Exported for tests. */
 export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
   const data = normalizeResumeSkills(rawData);
-  const serifTpls: TemplateId[] = ["classic", "executive", "elegant", "centered-serif"];
-  const font = serifTpls.includes(template) ? "Times New Roman" : "Calibri";
-  const accentMap: Record<TemplateId, string> = {
-    modern: "065F46", classic: "111111", compact: "1F1F1F",
-    executive: "92400E", creative: "4F46E5", minimal: "404040",
-    timeline: "0F766E", elegant: "78350F",
-    "sidebar-dark": "115E59", "photo-header": "1E293B",
-    "centered-serif": "1E1E1E", "banner-photo": "0F2340",
-    "teal-left": "0F766E", "photo-grid": "0369A1", "logo-boxed": "0369A1",
-  };
-  const accent = accentMap[template] ?? "111111";
-
+  const cfg = TEMPLATE_DOCX_CONFIGS[template] || TEMPLATE_DOCX_CONFIGS.modern;
+  const font = cfg.font || "Calibri";
+  const accent = cfg.accent || "065F46";
   const baseSize = (data.settings?.fontSize || 11) * 2; // docx uses half-points
   const secStyles = data.settings?.sections;
 
   const parseDocxRichText = (text: string) => parseRichSegments(text);
 
-  const P = (text: string, opts: { bold?: boolean; italic?: boolean; size?: number; color?: string; align?: any; sectionKey?: ResumeSectionKey } = {}) => {
+  const P = (text: string, opts: {
+    bold?: boolean;
+    italic?: boolean;
+    size?: number;
+    color?: string;
+    align?: any;
+    sectionKey?: ResumeSectionKey;
+    fontFamily?: string;
+    spacing?: { before?: number; after?: number };
+  } = {}) => {
     const parts = parseDocxRichText(text);
     const secStyle = opts.sectionKey ? secStyles?.[opts.sectionKey] : undefined;
     const defaultBold = opts.bold || secStyle?.bold === true;
@@ -2066,6 +2253,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
 
     return new Paragraph({
       alignment: opts.align,
+      spacing: opts.spacing,
       children: parts.map(p => new TextRun({
         text: p.text,
         bold: p.bold || defaultBold,
@@ -2073,26 +2261,52 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
         underline: p.underline ? {} : undefined,
         size: p.fontSize ? Math.round(p.fontSize * 2) : fontSize,
         color: opts.color,
-        font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : font,
+        font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : (opts.fontFamily || font),
       })),
     });
   };
 
-  const H = (text: string) => {
+  const H = (text: string, isSidebar = false) => {
     const headSize = secStyles?.headings?.fontSize ? secStyles.headings.fontSize * 2 : (baseSize + 2);
+    if (isSidebar && cfg.sidebarTextColor === "FFFFFF") {
+      return new Paragraph({
+        spacing: { before: 180, after: 60 },
+        border: cfg.sidebarBorderColor ? { bottom: { color: cfg.sidebarBorderColor, size: 6, style: BorderStyle.SINGLE, space: 2 } } : undefined,
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(baseSize * 0.95), color: cfg.sidebarHeadingColor || "FFFFFF", font })],
+      });
+    }
     return new Paragraph({
-      spacing: { before: 200, after: 80 },
+      spacing: { before: 180, after: 60 },
       border: { bottom: { color: accent, size: 8, style: BorderStyle.SINGLE, space: 2 } },
       children: [new TextRun({ text: text.toUpperCase(), bold: true, size: headSize, color: accent, font })],
     });
   };
 
-  const bullet = (text: string, sectionKey?: ResumeSectionKey) => {
+  const bullet = (text: string, isSidebar = false, sectionKey?: ResumeSectionKey) => {
     const parts = parseDocxRichText(text);
     const secStyle = sectionKey ? secStyles?.[sectionKey] : undefined;
     const defaultBold = secStyle?.bold === true;
     const defaultItalic = secStyle?.italic === true;
-    const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize;
+    const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : (isSidebar ? Math.round(baseSize * 0.9) : baseSize);
+    const textColor = isSidebar && cfg.sidebarTextColor === "FFFFFF" ? "FFFFFF" : undefined;
+
+    if (isSidebar) {
+      return new Paragraph({
+        spacing: { after: 30 },
+        children: [
+          new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font }),
+          ...parts.map(p => new TextRun({
+            text: p.text,
+            bold: p.bold || defaultBold,
+            italics: p.italic || defaultItalic,
+            underline: p.underline ? {} : undefined,
+            size: p.fontSize ? Math.round(p.fontSize * 2) : fontSize,
+            color: p.bold ? "FFFFFF" : textColor,
+            font: p.fontFamily ? p.fontFamily.split(",")[0].replace(/['"]/g, "").trim() : font,
+          })),
+        ],
+      });
+    }
 
     return new Paragraph({
       numbering: { reference: "bullets", level: 0 },
@@ -2107,90 +2321,105 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     });
   };
 
-  /* ----- header ----- */
-  const header: Paragraph[] = [];
-  header.push(P(data.name || "Your Name", { bold: true, size: (secStyles?.headings?.fontSize || 22) * 2, align: AlignmentType.CENTER, color: accent }));
-  if (data.title) header.push(P(data.title, { size: baseSize + 2, align: AlignmentType.CENTER }));
   const contactLines = [data.email, data.phone, data.location, ...(data.links?.map(l => `${l.label}: ${l.url}`) ?? [])].filter(Boolean) as string[];
-  const contact = contactLines.join("  •  ");
 
-  /* ----- per-section content ----- */
-  const sectionParagraphs = (key: ResumeSectionKey | string): Paragraph[] => {
+  /* ----- per-section content renderer ----- */
+  const sectionParagraphs = (key: ResumeSectionKey | string, isSidebar = false): Paragraph[] => {
     const out: Paragraph[] = [];
+    const secTextColor = isSidebar && cfg.sidebarTextColor === "FFFFFF" ? "FFFFFF" : undefined;
+    const secSubColor = isSidebar && cfg.sidebarSubTextColor ? cfg.sidebarSubTextColor : "666666";
+
     switch (key) {
       case "summary":
-        if (data.summary) { out.push(H("Summary")); out.push(P(data.summary, { sectionKey: "summary" })); }
+        if (data.summary) {
+          out.push(H("Summary", isSidebar));
+          out.push(P(data.summary, { sectionKey: "summary", color: secTextColor, size: isSidebar ? Math.round(baseSize * 0.95) : baseSize }));
+        }
         break;
       case "experience":
         if (data.experience?.length) {
-          out.push(H("Experience"));
+          out.push(H("Experience", isSidebar));
           const secStyle = secStyles?.experience;
           const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize;
           data.experience.forEach(e => {
             out.push(new Paragraph({
               children: [
-                new TextRun({ text: `${e.role}`, bold: true, size: fontSize, font }),
-                new TextRun({ text: ` — ${e.company}`, size: fontSize, font }),
-                e.location ? new TextRun({ text: `, ${e.location}`, size: fontSize, font }) : new TextRun({ text: "" }),
-                new TextRun({ text: `\t${e.start} – ${e.end}`, italics: true, size: fontSize - 2, color: "666666", font }),
+                new TextRun({ text: `${e.role}`, bold: true, size: fontSize, font, color: secTextColor }),
+                new TextRun({ text: ` — ${e.company}`, size: fontSize, font, color: isSidebar ? secTextColor : accent }),
+                e.location ? new TextRun({ text: `, ${e.location}`, size: fontSize, font, color: secSubColor }) : new TextRun({ text: "" }),
+                new TextRun({ text: `\t${e.start} – ${e.end}`, italics: true, size: fontSize - 2, color: secSubColor, font }),
               ],
               tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
             }));
-            e.bullets?.forEach(b => out.push(bullet(b, "experience")));
-            out.push(new Paragraph({ spacing: { after: 120 } }));
+            e.bullets?.forEach(b => out.push(bullet(b, isSidebar, "experience")));
+            out.push(new Paragraph({ spacing: { after: 100 } }));
           });
         }
         break;
       case "projects":
         if (data.projects?.length) {
-          out.push(H("Projects"));
+          out.push(H("Projects", isSidebar));
           const secStyle = secStyles?.projects;
           const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize;
           data.projects.forEach(p => {
             out.push(new Paragraph({
               children: [
-                new TextRun({ text: p.name, bold: true, size: fontSize, font }),
-                p.tech ? new TextRun({ text: ` — ${p.tech}`, italics: true, size: fontSize - 2, color: "666666", font }) : new TextRun(""),
+                new TextRun({ text: p.name, bold: true, size: fontSize, font, color: secTextColor }),
+                p.tech ? new TextRun({ text: ` — ${p.tech}`, italics: true, size: fontSize - 2, color: secSubColor, font }) : new TextRun(""),
               ],
             }));
-            p.bullets?.forEach(b => out.push(bullet(b, "projects")));
+            p.bullets?.forEach(b => out.push(bullet(b, isSidebar, "projects")));
           });
         }
         break;
       case "education":
         if (data.education?.length) {
-          out.push(H("Education"));
+          out.push(H("Education", isSidebar));
           const secStyle = secStyles?.education;
           const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize;
           data.education.forEach(e => {
             out.push(new Paragraph({
               children: [
-                new TextRun({ text: e.degree, bold: true, size: fontSize, font }),
-                new TextRun({ text: ` — ${e.school}${e.location ? `, ${e.location}` : ""}`, size: fontSize, font }),
-                new TextRun({ text: `   ${e.start} – ${e.end}`, italics: true, size: fontSize - 2, color: "666666", font }),
+                new TextRun({ text: e.degree, bold: true, size: fontSize, font, color: secTextColor }),
+                new TextRun({ text: ` — ${e.school}${e.location ? `, ${e.location}` : ""}`, size: fontSize, font, color: secTextColor }),
+                new TextRun({ text: `   ${e.start} – ${e.end}`, italics: true, size: fontSize - 2, color: secSubColor, font }),
               ],
             }));
-            if (e.details) out.push(P(e.details, { size: fontSize - 2, sectionKey: "education" }));
+            if (e.details) out.push(P(e.details, { size: fontSize - 2, sectionKey: "education", color: secSubColor }));
           });
         }
         break;
       case "skills":
         if (data.skills?.length) {
-          out.push(H("Skills"));
+          out.push(H("Skills", isSidebar));
           const secStyle = secStyles?.skills;
-          const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : baseSize;
-          data.skills.forEach(s => out.push(new Paragraph({
-            children: [
-              new TextRun({ text: isGenericSkillCategory(s.category) ? "" : `${s.category}: `, bold: true, size: fontSize, font }),
-              new TextRun({ text: s.items.join(", "), size: fontSize, font }),
-            ],
-          })));
+          const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : (isSidebar ? Math.round(baseSize * 0.9) : baseSize);
+          
+          if (isSidebar) {
+            const allItems = data.skills.flatMap(s => s.items);
+            allItems.forEach(it => {
+              out.push(new Paragraph({
+                spacing: { after: 30 },
+                children: [
+                  new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font }),
+                  new TextRun({ text: it, size: fontSize, color: secTextColor || "FFFFFF", font }),
+                ],
+              }));
+            });
+          } else {
+            data.skills.forEach(s => out.push(new Paragraph({
+              children: [
+                new TextRun({ text: isGenericSkillCategory(s.category) ? "" : `${s.category}: `, bold: true, size: fontSize, font }),
+                new TextRun({ text: s.items.join(", "), size: fontSize, font }),
+              ],
+            })));
+          }
         }
         break;
       case "certifications":
         if (data.certifications?.length) {
-          out.push(H("Certifications"));
-          data.certifications.forEach(c => out.push(bullet(c, "certifications")));
+          out.push(H("Certifications", isSidebar));
+          data.certifications.forEach(c => out.push(bullet(c, isSidebar, "certifications")));
         }
         break;
     }
@@ -2199,37 +2428,117 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
 
   const order = data.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
 
-  if (!isMultiColumnTemplate(template)) {
-    const children: (Paragraph | Table)[] = [...header];
-    if (contact) children.push(P(contact, { size: baseSize - 2, align: AlignmentType.CENTER, color: "555555" }));
-    order.forEach(key => children.push(...sectionParagraphs(key)));
+  /* =========================================================================
+   * SINGLE COLUMN LAYOUTS (classic, compact, executive, minimal, timeline, elegant, centered-serif, photo-grid, logo-boxed)
+   * ========================================================================= */
+  if (cfg.layout === "single-column") {
+    const children: (Paragraph | Table)[] = [];
+    const contact = contactLines.join("  •  ");
+
+    if (cfg.namePlacement === "header-centered") {
+      children.push(P(data.name || "Your Name", { bold: true, size: (secStyles?.headings?.fontSize || 22) * 2, align: AlignmentType.CENTER, color: accent }));
+      if (data.title) children.push(P(data.title, { size: baseSize + 2, align: AlignmentType.CENTER, italic: template === "elegant" }));
+      if (contact) children.push(P(contact, { size: baseSize - 2, align: AlignmentType.CENTER, color: "555555", spacing: { after: 120 } }));
+    } else if (cfg.namePlacement === "header-split") {
+      // Split header for compact / executive
+      children.push(new Paragraph({
+        border: { bottom: { color: accent, size: 12, style: BorderStyle.SINGLE, space: 4 } },
+        spacing: { after: 120 },
+        children: [
+          new TextRun({ text: data.name || "Your Name", bold: true, size: (secStyles?.headings?.fontSize || 20) * 2, font, color: accent }),
+          new TextRun({ text: data.title ? `\n${data.title}` : "", size: baseSize, italics: true, color: "555555", font }),
+          new TextRun({ text: `\t${contactLines.join("  |  ")}`, size: baseSize - 2, color: "666666", font }),
+        ],
+        tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
+      }));
+    } else if (cfg.namePlacement === "header-executive") {
+      children.push(new Paragraph({
+        border: { bottom: { color: "92400E", size: 16, style: BorderStyle.SINGLE, space: 4 } },
+        spacing: { after: 140 },
+        children: [
+          new TextRun({ text: data.name || "Your Name", bold: true, size: 48, font, color: "92400E" }),
+          new TextRun({ text: data.title ? `\n${data.title}` : "", size: baseSize + 2, italics: true, color: "444444", font }),
+          new TextRun({ text: `\t${contactLines.join("  •  ")}`, size: baseSize - 2, color: "666666", font }),
+        ],
+        tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
+      }));
+    } else {
+      // Left aligned (minimal, timeline)
+      children.push(P(data.name || "Your Name", { bold: true, size: (secStyles?.headings?.fontSize || 22) * 2, color: accent }));
+      if (data.title) children.push(P(data.title, { size: baseSize + 2, color: "555555" }));
+      if (contact) children.push(P(contactLines.join("   ·   "), { size: baseSize - 2, color: "777777", spacing: { after: 120 } }));
+    }
+
+    order.forEach(key => children.push(...sectionParagraphs(key, false)));
     return { layout: "single-column" as const, children };
   }
 
-  /* ----- two-column (sidebar) layout mirroring the preview ----- */
-  const SIDEBAR_KEYS = ["skills", "education", "certifications"];
-  const sidebar: Paragraph[] = [];
-  const main: Paragraph[] = [];
-
-  if (contactLines.length) {
-    sidebar.push(H("Contact"));
-    contactLines.forEach(line => sidebar.push(P(line, { size: baseSize - 2 })));
-  }
-  order.forEach(key => {
-    const paras = sectionParagraphs(key);
-    if (SIDEBAR_KEYS.includes(key as string)) sidebar.push(...paras);
-    else main.push(...paras);
-  });
-
+  /* =========================================================================
+   * TWO-COLUMN LAYOUTS (modern, teal-left, sidebar-dark, creative, photo-header, banner-photo)
+   * ========================================================================= */
   const TOTAL = 9360;
-  const LEFT = 3120;
-  const RIGHT = TOTAL - LEFT;
+  const LEFT_WIDTH = cfg.sidebarWidthDXA || 3280;
+  const RIGHT_WIDTH = TOTAL - LEFT_WIDTH;
   const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   const cellBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 
+  const sidebarSections = cfg.sidebarSections || ["skills", "certifications"];
+  const sidebarItems: Paragraph[] = [];
+  const mainItems: Paragraph[] = [];
+
+  // 1. Sidebar Header (Name, Title, Contact) for left sidebar templates (e.g. Modern, Teal-Left)
+  if (cfg.namePlacement === "sidebar") {
+    sidebarItems.push(new Paragraph({
+      spacing: { before: 40, after: 30 },
+      children: [new TextRun({ text: data.name || "Your Name", bold: true, size: Math.round(baseSize * 1.5), color: cfg.sidebarTextColor || "FFFFFF", font })],
+    }));
+    if (data.title) {
+      sidebarItems.push(new Paragraph({
+        spacing: { after: 100 },
+        children: [new TextRun({ text: data.title, size: baseSize, color: cfg.sidebarSubTextColor || "D1FAE5", font })],
+      }));
+    }
+    if (contactLines.length) {
+      contactLines.forEach(line => {
+        sidebarItems.push(new Paragraph({
+          spacing: { after: 20 },
+          children: [new TextRun({ text: line, size: Math.round(baseSize * 0.85), color: cfg.sidebarSubTextColor || "E2E8F0", font })],
+        }));
+      });
+      sidebarItems.push(new Paragraph({ spacing: { after: 80 } }));
+    }
+  }
+
+  // 2. Main Header for sidebar-dark (where Name is on the left main column)
+  if (cfg.namePlacement === "header-left") {
+    mainItems.push(P(data.name || "Your Name", { bold: true, size: (secStyles?.headings?.fontSize || 22) * 2, color: accent }));
+    if (data.title) mainItems.push(P(data.title, { size: baseSize + 2, color: accent }));
+    if (contactLines.length) {
+      mainItems.push(P(contactLines.join("  •  "), { size: baseSize - 2, color: "555555", spacing: { after: 120 } }));
+    }
+  }
+
+  // 3. Populate Sidebar and Main items based on template section distribution
+  order.forEach(key => {
+    if (sidebarSections.includes(key as string)) {
+      sidebarItems.push(...sectionParagraphs(key, true));
+    } else {
+      mainItems.push(...sectionParagraphs(key, false));
+    }
+  });
+
+  // 4. Build Table based on layout type
+  const isLeftSidebar = cfg.layout === "sidebar-left";
+  const leftCellWidth = isLeftSidebar ? LEFT_WIDTH : RIGHT_WIDTH;
+  const rightCellWidth = isLeftSidebar ? RIGHT_WIDTH : LEFT_WIDTH;
+  const leftCellChildren = isLeftSidebar ? sidebarItems : mainItems;
+  const rightCellChildren = isLeftSidebar ? mainItems : sidebarItems;
+  const leftBg = isLeftSidebar ? (cfg.sidebarBg || "065F46") : "FFFFFF";
+  const rightBg = isLeftSidebar ? "FFFFFF" : (cfg.sidebarBg || "F3F4F6");
+
   const table = new Table({
     width: { size: TOTAL, type: WidthType.DXA },
-    columnWidths: [LEFT, RIGHT],
+    columnWidths: [leftCellWidth, rightCellWidth],
     borders: {
       top: noBorder, bottom: noBorder, left: noBorder, right: noBorder,
       insideHorizontal: noBorder, insideVertical: noBorder,
@@ -2238,26 +2547,72 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
       new TableRow({
         children: [
           new TableCell({
-            width: { size: LEFT, type: WidthType.DXA },
+            width: { size: leftCellWidth, type: WidthType.DXA },
             borders: cellBorders,
-            margins: { top: 80, bottom: 80, left: 120, right: 200 },
-            shading: { fill: "F3F4F6", type: ShadingType.CLEAR, color: "auto" },
+            margins: { top: 120, bottom: 120, left: 160, right: 160 },
+            shading: { fill: leftBg, type: ShadingType.CLEAR, color: "auto" },
             verticalAlign: VerticalAlign.TOP,
-            children: sidebar.length ? sidebar : [new Paragraph({})],
+            children: leftCellChildren.length ? leftCellChildren : [new Paragraph({})],
           }),
           new TableCell({
-            width: { size: RIGHT, type: WidthType.DXA },
+            width: { size: rightCellWidth, type: WidthType.DXA },
             borders: cellBorders,
-            margins: { top: 80, bottom: 80, left: 200, right: 120 },
+            margins: { top: 120, bottom: 120, left: 200, right: 160 },
+            shading: { fill: rightBg, type: ShadingType.CLEAR, color: "auto" },
             verticalAlign: VerticalAlign.TOP,
-            children: main.length ? main : [new Paragraph({})],
+            children: rightCellChildren.length ? rightCellChildren : [new Paragraph({})],
           }),
         ],
       }),
     ],
   });
 
-  return { layout: "two-column" as const, children: [...header, table] as (Paragraph | Table)[] };
+  // 5. Top Banner for banner layouts (creative, photo-header, banner-photo)
+  if (cfg.namePlacement === "banner") {
+    const bannerItems: Paragraph[] = [];
+    bannerItems.push(new Paragraph({
+      spacing: { before: 80, after: 40 },
+      children: [new TextRun({ text: data.name || "Your Name", bold: true, size: 40, color: cfg.bannerTextColor || "FFFFFF", font })],
+    }));
+    if (data.title) {
+      bannerItems.push(new Paragraph({
+        spacing: { after: 60 },
+        children: [new TextRun({ text: data.title, size: baseSize + 2, color: "E0E7FF", font })],
+      }));
+    }
+    if (contactLines.length) {
+      bannerItems.push(new Paragraph({
+        spacing: { after: 80 },
+        children: [new TextRun({ text: contactLines.join("   ·   "), size: baseSize - 2, color: "C7D2FE", font })],
+      }));
+    }
+
+    const bannerTable = new Table({
+      width: { size: TOTAL, type: WidthType.DXA },
+      columnWidths: [TOTAL],
+      borders: {
+        top: noBorder, bottom: noBorder, left: noBorder, right: noBorder,
+        insideHorizontal: noBorder, insideVertical: noBorder,
+      },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: TOTAL, type: WidthType.DXA },
+              borders: cellBorders,
+              margins: { top: 140, bottom: 140, left: 200, right: 200 },
+              shading: { fill: cfg.bannerBg || "4338CA", type: ShadingType.CLEAR, color: "auto" },
+              children: bannerItems,
+            }),
+          ],
+        }),
+      ],
+    });
+
+    return { layout: "two-column" as const, children: [bannerTable, new Paragraph({ spacing: { after: 100 } }), table] as (Paragraph | Table)[] };
+  }
+
+  return { layout: "two-column" as const, children: [table] as (Paragraph | Table)[] };
 }
 
 export function buildResumeDocument(rawData: ResumeData, template: TemplateId) {
@@ -2281,7 +2636,7 @@ export async function downloadResumeDocxFromData(rawData: ResumeData, template: 
   const data = normalizeResumeSkills(rawData);
   const doc = buildResumeDocument(rawData, template);
   const blob = await Packer.toBlob(doc);
-  saveAs(blob, `${safeName(data.name)}-${template}-Editable.docx`);
+  saveBlob(blob, `${safeName(data.name)}-${template}-Editable.docx`);
 }
 
 /* ---------- Structured plain-text / markdown exports ---------- */
@@ -2419,12 +2774,12 @@ export function buildResumeMarkdown(rawData: ResumeData): string {
 
 export function downloadResumeTxtFromData(rawData: ResumeData) {
   const blob = new Blob([buildResumeText(rawData)], { type: "text/plain;charset=utf-8" });
-  saveAs(blob, `${safeName(rawData.name)}.txt`);
+  saveBlob(blob, `${safeName(rawData.name)}.txt`);
 }
 
 export function downloadResumeMarkdownFromData(rawData: ResumeData) {
   const blob = new Blob([buildResumeMarkdown(rawData)], { type: "text/markdown;charset=utf-8" });
-  saveAs(blob, `${safeName(rawData.name)}.md`);
+  saveBlob(blob, `${safeName(rawData.name)}.md`);
 }
 
 function safeName(name: string) {
