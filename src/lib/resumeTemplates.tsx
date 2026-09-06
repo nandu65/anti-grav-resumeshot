@@ -568,23 +568,17 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         if (r.skills?.length > 0) {
           title = "Skills";
           content = (
-            <>
-              <div className="flex flex-wrap gap-2 px-1">
-                {r.skills.flatMap(s => s.items).map((it, k) => (
-                  <span key={k} className="text-[10px] px-2 py-0.5 rounded border border-neutral-200 bg-neutral-50">{it}</span>
-                ))}
-              </div>
-              {update && (
-                <div className="mt-3 pt-2 border-t border-neutral-100 opacity-20 hover:opacity-100 transition-opacity">
-                  {r.skills.map((s, i) => {
-                    const upd = makeSkillUpdater(update, r, i);
-                    return (
-                      <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} /></div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
+            <div className="space-y-1">
+              {r.skills.map((s, i) => {
+                const upd = makeSkillUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] leading-relaxed">
+                    <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
+                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                  </div>
+                );
+              })}
+            </div>
           );
         }
         break;
@@ -609,7 +603,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             <div {...provided.dragHandleProps} className="absolute -left-7 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
               <MousePointer2 className="h-3.5 w-3.5 text-primary" />
             </div>
-            <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 mb-1 group-hover:bg-neutral-50 transition-colors">
+            <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 pb-1 mb-1.5 group-hover:bg-neutral-50 transition-colors">
               {title}
             </h3>
             <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
@@ -2361,14 +2355,14 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     const headSize = secStyles?.headings?.fontSize ? secStyles.headings.fontSize * 2 : (baseSize + 2);
     if (isSidebar && cfg.sidebarTextColor === "FFFFFF") {
       return new Paragraph({
-        spacing: { before: 180, after: 60 },
-        border: cfg.sidebarBorderColor ? { bottom: { color: cfg.sidebarBorderColor, size: 6, style: BorderStyle.SINGLE, space: 2 } } : undefined,
+        spacing: { before: 200, after: 100 },
+        border: cfg.sidebarBorderColor ? { bottom: { color: cfg.sidebarBorderColor, size: 6, style: BorderStyle.SINGLE, space: 6 } } : undefined,
         children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(baseSize * 0.95), color: cfg.sidebarHeadingColor || "FFFFFF", font: headFont })],
       });
     }
     return new Paragraph({
-      spacing: { before: 180, after: 60 },
-      border: { bottom: { color: accent, size: 8, style: BorderStyle.SINGLE, space: 2 } },
+      spacing: { before: 200, after: 100 },
+      border: { bottom: { color: accent, size: 8, style: BorderStyle.SINGLE, space: 6 } },
       children: [new TextRun({ text: text.toUpperCase(), bold: true, size: headSize, color: accent, font: headFont })],
     });
   };
@@ -2535,7 +2529,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     } else if (cfg.namePlacement === "header-split") {
       // Split header for compact / executive
       children.push(new Paragraph({
-        border: { bottom: { color: accent, size: 12, style: BorderStyle.SINGLE, space: 4 } },
+        border: { bottom: { color: accent, size: 12, style: BorderStyle.SINGLE, space: 6 } },
         spacing: { after: 120 },
         children: [
           new TextRun({ text: data.name || "Your Name", bold: true, size: (secStyles?.headings?.fontSize || 20) * 2, font, color: accent }),
@@ -2546,7 +2540,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
       }));
     } else if (cfg.namePlacement === "header-executive") {
       children.push(new Paragraph({
-        border: { bottom: { color: "92400E", size: 16, style: BorderStyle.SINGLE, space: 4 } },
+        border: { bottom: { color: "92400E", size: 16, style: BorderStyle.SINGLE, space: 6 } },
         spacing: { after: 140 },
         children: [
           new TextRun({ text: data.name || "Your Name", bold: true, size: 48, font, color: "92400E" }),
