@@ -1,0 +1,37 @@
+project_id = "ocpgrmplxlkytxwswtlf"
+
+[functions.analyze-resume]
+verify_jwt = false
+
+[functions.razorpay-create-order]
+verify_jwt = false
+
+[functions.razorpay-verify-payment]
+verify_jwt = false
+
+[functions.razorpay-create-subscription]
+verify_jwt = false
+
+[functions.razorpay-cancel-subscription]
+verify_jwt = false
+
+[functions.razorpay-change-plan]
+verify_jwt = false
+
+[functions.razorpay-webhook]
+verify_jwt = false
+
+[functions.admin-bootstrap]
+verify_jwt = false
+
+[functions.ats-score]
+verify_jwt = false
+
+[functions.admin-financial-ops]
+verify_jwt = false
+
+[functions.admin-growth-ops]
+verify_jwt = false
+
+[functions.share-view]
+verify_jwt = false

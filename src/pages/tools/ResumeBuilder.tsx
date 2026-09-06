@@ -1,0 +1,1389 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff } from "lucide-react";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
+import { History } from "lucide-react";
+
+
+import { SectionStyleControls, SectionStyles } from "@/components/SectionStyleControls";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { FormattingToolbar } from "@/components/FormattingToolbar";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
+
+import { extractTextFromFile } from "@/lib/extractText";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Navbar } from "@/components/Navbar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { Link, useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  TEMPLATES, TemplateId, ResumeData, ResumePreview,
+  downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
+  normalizeResumeSkills,
+} from "@/lib/resumeTemplates";
+import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
+import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
+import { PreferenceFilterBar, scoreTemplate } from "@/components/PreferenceFilterBar";
+
+const EMPTY_RESUME: ResumeData = {
+  name: "Harsha Naidu",
+  title: "Senior Software Engineer",
+  email: "harsha.naidu@example.com",
+  phone: "+91 98765 43210",
+  location: "Bangalore, India",
+  links: [
+    { label: "LinkedIn", url: "linkedin.com/in/harshanaidu" },
+    { label: "GitHub", url: "github.com/harshanaidu" }
+  ],
+  summary: "Experienced Software Engineer with a passion for building scalable web applications and leading high-performing teams. Proven track record of delivering high-quality software solutions in fast-paced environments.",
+  experience: [
+    {
+      company: "Tech Solutions Inc.",
+      role: "Senior Full Stack Developer",
+      location: "Bangalore",
+      start: "2021",
+      end: "Present",
+      bullets: [
+        "Led the migration of legacy architecture to modern microservices, improving system reliability by 40%.",
+        "Mentored a team of 5 junior developers, fostering a culture of clean code and rigorous testing.",
+        "Optimized frontend performance, reducing page load times by 50% across the main product suite."
+      ]
+    },
+    {
+      company: "Innovate Web Systems",
+      role: "Software Developer",
+      location: "Chennai",
+      start: "2018",
+      end: "2021",
+      bullets: [
+        "Developed and maintained critical customer-facing features using React and Node.js.",
+        "Implemented automated CI/CD pipelines, reducing deployment errors by 30%.",
+        "Collaborated with design teams to ensure pixel-perfect implementation of UI/UX requirements."
+      ]
+    }
+  ],
+  education: [
+    {
+      school: "National Institute of Technology",
+      degree: "Bachelor of Technology in Computer Science",
+      location: "India",
+      start: "2014",
+      end: "2018",
+      details: "Graduated with Honors. Specialized in Distributed Systems."
+    }
+  ],
+  projects: [
+    {
+      name: "ResumeShot AI",
+      tech: "React, Supabase, Tailwind CSS",
+      bullets: [
+        "Built a high-performance resume builder with real-time AI optimization.",
+        "Integrated multi-format export engine supporting PDF and DOCX."
+      ]
+    }
+  ],
+  skills: [
+    { category: "Languages", items: ["TypeScript", "JavaScript", "Python", "SQL"] },
+    { category: "Frameworks", items: ["React", "Node.js", "Express", "Tailwind CSS"] },
+    { category: "Tools", items: ["Docker", "AWS", "Git", "Kubernetes"] }
+  ],
+  certifications: ["AWS Certified Solutions Architect", "Google Professional Cloud Developer"],
+  settings: { fontSize: 11, fontFamily: "Inter, sans-serif", sections: {} }
+};
+
+export default function ResumeBuilder() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const requireAuth = (intent: string) => {
+    toast.info(`Sign in to ${intent}`);
+    navigate("/auth", { state: { from: "/tools/resume-builder" } });
+  };
+
+  const [resumeData, setResumeData] = useState<ResumeData>(() => {
+    const saved = localStorage.getItem("rs-current-resume");
+    const data = saved ? JSON.parse(saved) : EMPTY_RESUME;
+    return normalizeResumeSkills(data);
+  });
+  const [targetJd, setTargetJd] = useState("");
+  const [template, setTemplate] = useState<TemplateId>(() => {
+    const saved = localStorage.getItem("rs-current-template");
+    return (saved as TemplateId) || "modern";
+  });
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"ai" | "verbatim">("ai");
+  const [starter, setStarter] = useState<"choose" | "scratch" | "uploaded" | "wizard">(() => {
+    const saved = localStorage.getItem("rs-builder-starter");
+    return (saved as any) || "choose";
+  });
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [showEditHint, setShowEditHint] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem("rs-intro-seen"));
+  const [prefs, setPrefs] = useState<ResumePrefs>(DEFAULT_PREFS);
+  const [spellCheckEnabled, setSpellCheckEnabled] = useState(true);
+  const restoring = useRef(false);
+  const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
+  const [copiedFormat, setCopiedFormat] = useState<TextFormat | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showVersionDialog, setShowVersionDialog] = useState(false);
+  const [versionName, setVersionName] = useState("");
+  const [versions, setVersions] = useState<any[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+
+
+  useEffect(() => {
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed && selection.toString().trim().length > 0) {
+        setShowFormattingToolbar(true);
+      } else {
+        setShowFormattingToolbar(false);
+      }
+    };
+
+    document.addEventListener("selectionchange", handleSelection);
+    return () => document.removeEventListener("selectionchange", handleSelection);
+  }, []);
+
+  const handleFormat = (command: string, value?: string) => {
+    applyFormatToSelection(command, value);
+  };
+
+  const handleCopyFormat = () => {
+    const fmt = copyFormatFromSelection();
+    if (!fmt) return toast.error("Select some formatted text first");
+    setCopiedFormat(fmt);
+    toast.success(`Format copied — ${describeFormat(fmt)}`);
+  };
+
+  const handlePasteFormat = () => {
+    if (!copiedFormat) return;
+    pasteFormatToSelection(copiedFormat);
+    toast.success("Format applied");
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const sections = resumeData.settings?.sectionOrder || ["summary", "experience", "projects", "education", "skills", "certifications"];
+    const items = Array.from(sections);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setResumeData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        sectionOrder: items
+      }
+    }));
+  };
+
+
+
+  // Persistence & Autosave
+  useEffect(() => {
+    if (restoring.current) return;
+    if (starter !== "choose" && starter !== "wizard") {
+      localStorage.setItem("rs-builder-starter", starter);
+      localStorage.setItem("rs-current-resume", JSON.stringify(resumeData));
+      localStorage.setItem("rs-current-template", template);
+      localStorage.setItem("rs-last-edited", new Date().toISOString());
+    }
+
+    // Debounced Cloud Sync
+    if (!user || starter === "choose" || starter === "wizard") return;
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    
+    setSaveStatus("saving");
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from("resume_drafts")
+          .upsert({
+            user_id: user.id,
+            resume_data: resumeData as any,
+            template_id: template,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+
+        if (error) throw error;
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      } catch (e) {
+        console.error("Autosave failed:", e);
+        setSaveStatus("error");
+      }
+    }, 2000);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [starter, resumeData, template, user]);
+
+  // Initial Load & Cloud Sync
+  useEffect(() => {
+    if (!user) return;
+
+    const syncCloudDraft = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("resume_drafts")
+          .select("*")
+          .single();
+
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
+
+        if (data) {
+          const localLastEdited = localStorage.getItem("rs-last-edited");
+          const cloudLastEdited = data.updated_at;
+
+          // If cloud is newer OR no local data, use cloud
+          if (!localLastEdited || new Date(cloudLastEdited) > new Date(localLastEdited)) {
+            restoring.current = true;
+            setResumeData(data.resume_data as unknown as ResumeData);
+            setTemplate(data.template_id as TemplateId);
+            setStarter("uploaded"); // Assuming if there's a draft, they've started
+            setTimeout(() => { restoring.current = false; }, 0);
+            toast.success("Draft loaded from cloud");
+          } else {
+
+            // Local is newer, trigger a sync to cloud immediately
+            setSaveStatus("saving");
+            await supabase.from("resume_drafts").upsert({
+              user_id: user.id,
+              resume_data: resumeData as any,
+              template_id: template,
+              updated_at: new Date().toISOString()
+            });
+            setSaveStatus("saved");
+          }
+        }
+      } catch (e) {
+        console.error("Draft sync failed:", e);
+      }
+    };
+
+    syncCloudDraft();
+  }, [user?.id]);
+
+
+
+  const fontFamilies = [
+    { label: "Modern Sans", value: "Inter, sans-serif" },
+    { label: "Classic Serif", value: "'Libre Baskerville', serif" },
+    { label: "Clean Mono", value: "'JetBrains Mono', monospace" },
+    { label: "Professional", value: "system-ui, sans-serif" },
+  ];
+
+  const onUpload = async (file: File) => {
+    if (!user) return requireAuth("upload and parse your resume");
+    setUploading(true);
+    try {
+      const text = await extractTextFromFile(file);
+      if (!text.trim()) throw new Error("Couldn't read text from that file");
+      const { data, error } = await supabase.functions.invoke("parse-resume", { body: { text } });
+      if (error || (data as any)?.error) {
+        console.error("Parse resume error:", error || (data as any)?.error);
+        throw new Error((data as any)?.error || error?.message || "Parse failed");
+      }
+      const p = (data as any).parsed || {};
+      
+      const parsedLinks: { label: string; url: string }[] = [];
+      if (p.linkedin) parsedLinks.push({ label: "LinkedIn", url: p.linkedin });
+      if (p.github) parsedLinks.push({ label: "GitHub", url: p.github });
+      if (p.portfolio) parsedLinks.push({ label: "Portfolio", url: p.portfolio });
+      if (Array.isArray(p.links)) p.links.forEach((l: any) => l?.url && parsedLinks.push({ label: l.label || "Link", url: l.url }));
+
+      const newResume: ResumeData = {
+        ...EMPTY_RESUME,
+        name: p.name || "",
+        title: p.title || "",
+        email: p.email || "",
+        phone: p.phone || "",
+        location: p.location || "",
+        links: parsedLinks.length ? parsedLinks : [{ label: "LinkedIn", url: "" }],
+        summary: p.summary || "",
+        experience: (p.experience || []).map((e: any) => ({
+          company: e.company || "", role: e.role || "", location: e.location || "",
+          start: e.start || "", end: e.end || "", bullets: e.bullets || [],
+        })),
+        education: (p.education || []).map((e: any) => ({
+          school: e.school || "", degree: e.degree || "", location: e.location || "",
+          start: e.start || "", end: e.end || "", details: e.details || "",
+        })),
+        projects: (p.projects || []).map((x: any) => ({
+          name: x.name || "", tech: x.tech || "", bullets: x.bullets || [],
+        })),
+        skills: (p.skills || []).map((s: any) => {
+          if (typeof s === "string") return { category: "Skills", items: [s] };
+          return { category: s.category || "Skills", items: s.items || [] };
+        }),
+        certifications: p.certifications || [],
+      };
+
+      setResumeData(normalizeResumeSkills({
+        ...newResume,
+        _isPolished: false
+      }));
+      setStarter("uploaded");
+      toast.success("Resume imported — review the fields below, then generate.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to import resume");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /* ---- Undo / Redo over the whole editing state ---- */
+  const snapshot = useMemo(() => ({
+    resumeData, template, targetJd
+  }), [resumeData, template, targetJd]);
+
+  const applySnapshot = useCallback((s: typeof snapshot) => {
+    restoring.current = true;
+    setResumeData(s.resumeData);
+    setTemplate(s.template);
+    setTargetJd(s.targetJd);
+    setTimeout(() => { restoring.current = false; }, 0);
+  }, []);
+
+  const describeChange = useCallback((prev: typeof snapshot, next: typeof snapshot) => {
+    if (prev.template !== next.template) return `Template → ${next.template}`;
+    const po = JSON.stringify(prev.resumeData?.settings?.sectionOrder);
+    const no = JSON.stringify(next.resumeData?.settings?.sectionOrder);
+    if (po !== no) return "Section moved";
+    if (JSON.stringify(prev.resumeData?.settings?.sections) !== JSON.stringify(next.resumeData?.settings?.sections)) return "Formatting changed";
+    if (JSON.stringify(prev.resumeData?.skills) !== JSON.stringify(next.resumeData?.skills)) return "Skills edited";
+    if (JSON.stringify(prev.resumeData?.experience) !== JSON.stringify(next.resumeData?.experience)) return "Experience edited";
+    if (JSON.stringify(prev.resumeData?.education) !== JSON.stringify(next.resumeData?.education)) return "Education edited";
+    if (JSON.stringify(prev.resumeData?.projects) !== JSON.stringify(next.resumeData?.projects)) return "Projects edited";
+    if (prev.resumeData?.summary !== next.resumeData?.summary) return "Summary edited";
+    if (prev.targetJd !== next.targetJd) return "Job description updated";
+    return "Content edited";
+  }, []);
+
+  const { undo, redo, canUndo, canRedo, history } = useUndoRedo(snapshot, applySnapshot, { delay: 450, describe: describeChange });
+
+  const addExp = () => setResumeData(prev => ({
+    ...prev,
+    experience: [...prev.experience, { company: "", role: "", location: "", start: "", end: "", bullets: [] }]
+  }));
+  const addEdu = () => setResumeData(prev => ({
+    ...prev,
+    education: [...prev.education, { school: "", degree: "", location: "", start: "", end: "", details: "" }]
+  }));
+  const addProj = () => setResumeData(prev => ({
+    ...prev,
+    projects: [...prev.projects, { name: "", tech: "", bullets: [] }]
+  }));
+
+  const generate = async () => {
+    if (!resumeData.name.trim()) return toast.error("Add your name at minimum");
+    if (mode === "verbatim") {
+      setShowEditHint(true);
+      return;
+    }
+    if (!user) return requireAuth("use AI polish");
+    setLoading(true);
+    try {
+      const profile = {
+        ...resumeData,
+        links: resumeData.links.filter(l => l.url.trim()).map(l => ({ label: l.label.trim() || "Link", url: l.url.trim() })),
+      };
+      const { data, error } = await supabase.functions.invoke("generate-resume", { body: { profile, targetJd } });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || "Failed");
+        return;
+      }
+      const generated = (data as any).resume;
+      setResumeData(normalizeResumeSkills({
+        ...resumeData,
+        ...generated,
+        _isPolished: true,
+        settings: resumeData.settings // Preserve user settings
+      }));
+      setShowEditHint(true);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadPdf = async () => {
+    toast.loading("Preparing PDF...", { duration: 2000 });
+    // Force a small layout sync before capture
+    await new Promise(r => setTimeout(r, 100));
+    downloadResumePdfFromData(resumeData, template);
+  };
+  
+  const downloadDocx = () => {
+    toast.info("Generating Word document...");
+    downloadResumeDocxFromData(resumeData, template);
+  };
+
+  const loadVersions = useCallback(async () => {
+    if (!user) return;
+    setLoadingVersions(true);
+    try {
+      const { data, error } = await supabase
+        .from("resume_versions")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setVersions(data || []);
+    } catch (e) {
+      console.error("Failed to load versions:", e);
+    } finally {
+      setLoadingVersions(false);
+    }
+  }, [user]);
+
+  const saveVersion = async () => {
+    if (!user) return requireAuth("save a version");
+    if (!versionName.trim()) return toast.error("Enter a name for this version");
+    
+    try {
+      const { error } = await supabase.from("resume_versions").insert({
+        user_id: user.id,
+        name: versionName.trim(),
+        resume_data: resumeData as any,
+        template_id: template
+      });
+
+      if (error) throw error;
+      toast.success("Version saved");
+      setVersionName("");
+      setShowVersionDialog(false);
+      loadVersions();
+    } catch (e) {
+      toast.error("Failed to save version");
+      console.error(e);
+    }
+  };
+
+  const restoreVersion = (v: any) => {
+    setResumeData(v.resume_data);
+    setTemplate(v.template_id as TemplateId);
+    toast.success(`Restored to: ${v.name}`);
+  };
+
+  useEffect(() => {
+    if (user) loadVersions();
+  }, [user, loadVersions]);
+
+
+
+  return (
+    <div className="min-h-screen bg-background">
+      {showIntro && <BuilderIntroLoader onDone={() => { setShowIntro(false); localStorage.setItem("rs-intro-seen", "true"); }} />}
+      <TemplatePreferencesWizard
+        open={starter === "wizard"}
+        onOpenChange={(v) => {
+          if (!v) setStarter("choose");
+        }}
+        initial={prefs}
+        onDone={(p) => {
+          setPrefs(p); setStarter("scratch");
+          const ranked = [...TEMPLATES].sort((a, b) => scoreTemplate(b.id, p) - scoreTemplate(a.id, p));
+          if (ranked[0]) setTemplate(ranked[0].id);
+        }}
+      />
+      <Navbar />
+      <div className="container py-10 max-w-7xl">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-12 w-12 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
+            <Wand2 className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight">AI Resume Builder</h1>
+            <p className="text-muted-foreground text-sm mt-1">Fill in your info — AI writes polished bullets and formats it into a template.</p>
+          </div>
+        </div>
+
+        {starter === "choose" && (
+          <div className="mb-6 rounded-2xl border-2 border-border bg-gradient-card p-6 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-8">
+              <h2 className="font-display text-2xl font-bold">How would you like to start?</h2>
+              <p className="text-muted-foreground mt-2 max-w-lg mx-auto">Choose to build a fresh resume from scratch or import your existing one.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <button type="button" onClick={() => setStarter("wizard")} className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground"><FilePlus2 className="h-6 w-6" /></div>
+                <h3 className="font-display text-lg font-bold">Build from scratch</h3>
+                <p className="text-sm text-muted-foreground mt-2 text-pretty">Step-by-step guidance for a perfect professional resume.</p>
+              </button>
+              <button onClick={() => fileRef.current?.click()} className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground"><Upload className="h-6 w-6" /></div>
+                <h3 className="font-display text-lg font-bold">Upload my resume</h3>
+                <p className="text-sm text-muted-foreground mt-2">Import your existing PDF/DOCX and let AI fill everything.</p>
+              </button>
+            </div>
+            <input ref={fileRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); }} />
+            {uploading && (
+              <div className="mt-8 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-300">
+                <div className="relative">
+                  <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                  <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
+                </div>
+                <p className="mt-4 text-sm font-medium text-primary">Analyzing your resume...</p>
+                <p className="text-xs text-muted-foreground mt-1 italic">Extracting details with AI magic</p>
+              </div>
+            )}
+            {!uploading && (
+              <div className="mt-8 text-center text-xs text-muted-foreground/60">
+                Secure SSL encryption • Privacy protected • AI powered
+              </div>
+            )}
+          </div>
+        )}
+
+        {(starter === "scratch" || starter === "uploaded") && (
+          <div className="space-y-6">
+            <div className="sticky top-[70px] z-30 bg-background/95 backdrop-blur-md border-b flex items-center justify-between p-4 -mx-4 sm:mx-0 sm:rounded-xl shadow-lg gap-4 ring-1 ring-border">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
+                <div className="hidden sm:block">
+                  <h2 className="text-sm font-bold leading-none">ResumeShot AI</h2>
+                  <p className="text-[10px] text-muted-foreground">Editor</p>
+                </div>
+                <Separator orientation="vertical" className="h-6 mx-2 hidden sm:block" />
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="icon" onClick={undo} disabled={!canUndo} className="h-8 w-8" title="Undo (Ctrl+Z)"><Undo2 className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={redo} disabled={!canRedo} className="h-8 w-8" title="Redo (Ctrl+Shift+Z)"><Redo2 className="h-4 w-4" /></Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-8 w-8" title="Edit history"><History className="h-4 w-4" /></Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-64 p-0">
+                      <div className="px-3 py-2 border-b text-xs font-bold">Recent edits</div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {history.length === 0 ? (
+                          <p className="px-3 py-4 text-xs text-muted-foreground">No edits yet — changes you make will be listed here.</p>
+                        ) : history.map((h, i) => (
+                          <div key={`${h.at}-${i}`} className="px-3 py-2 text-xs flex items-center justify-between gap-2 border-b last:border-0">
+                            <span className="truncate">{h.label}</span>
+                            <span className="text-[10px] text-muted-foreground shrink-0">{new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 p-2 border-t">
+                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={undo} disabled={!canUndo}>Undo</Button>
+                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={redo} disabled={!canRedo}>Redo</Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-8 w-8" title="Resume versions"><FileText className="h-4 w-4" /></Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-80 p-0">
+                      <div className="px-3 py-2 border-b text-xs font-bold flex items-center justify-between">
+                        <span>Resume Versions</span>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1" onClick={() => setShowVersionDialog(true)}>
+                          <Plus className="h-3 w-3" /> Save Current
+                        </Button>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {loadingVersions ? (
+                          <div className="p-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+                        ) : versions.length === 0 ? (
+                          <p className="px-3 py-6 text-xs text-muted-foreground text-center italic">No named versions saved yet.</p>
+                        ) : versions.map((v) => (
+                          <div key={v.id} className="px-3 py-3 text-xs flex items-center justify-between border-b last:border-0 hover:bg-muted/30 transition-colors group">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <div className="font-bold truncate text-foreground">{v.name}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                                {new Date(v.created_at).toLocaleDateString()} {new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm" className="h-7 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => restoreVersion(v)}>Restore</Button>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {user && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 text-[10px] font-bold border border-border/50 text-muted-foreground mr-2">
+                    {saveStatus === "saving" ? (
+                      <Cloud className="h-3 w-3 animate-pulse text-primary" />
+                    ) : saveStatus === "error" ? (
+                      <CloudOff className="h-3 w-3 text-destructive" />
+                    ) : (
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {saveStatus === "saving" ? "Saving..." : saveStatus === "error" ? "Offline" : "Synced"}
+                    </span>
+                  </div>
+                )}
+
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 rounded-full gap-2 border-primary/20 hover:bg-primary/5">
+                      <Palette className="h-4 w-4 text-primary" />
+                      <span className="hidden sm:inline">Design & Layout</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                    <SheetHeader><SheetTitle>Design & Layout</SheetTitle></SheetHeader>
+                    <div className="py-6 space-y-8 overflow-y-auto max-h-[calc(100vh-100px)] px-1">
+                      <div>
+                        <Label className="text-base font-bold mb-4 block">Templates</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          {TEMPLATES.map(t => (
+                            <button 
+                              key={t.id} 
+                              onClick={() => {
+                                const newId = t.id;
+                                setTemplate(newId);
+                                // Sync current state to the new template's logic if needed
+                                // The canonical state resumeData already has everything, 
+                                // and sectionOrder is preserved in resumeData.settings.
+                              }} 
+
+                              className={`group relative rounded-xl border-2 transition-all overflow-hidden flex flex-col ${template === t.id ? "border-primary shadow-glow bg-primary/5" : "border-border hover:border-primary/40 bg-background"}`}
+                            >
+                              <div className="aspect-[1/1.4] bg-muted relative overflow-hidden flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+                                <img 
+                                  src={t.previewUrl || `https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=560&fit=crop&q=80&text=${t.name}`} 
+                                  alt={t.name}
+                                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 opacity-60 group-hover:opacity-100"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback');
+                                    if (fallback) fallback.classList.remove('hidden');
+                                  }}
+                                />
+                                <div className="fallback hidden absolute inset-0 flex flex-col items-center justify-center p-4">
+                                  <FileText className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />
+                                  <span className="text-[10px] font-bold text-center leading-tight uppercase tracking-widest opacity-40">Preview</span>
+                                </div>
+                                {template === t.id && (
+                                  <div className="absolute inset-0 bg-primary/5 border-2 border-primary z-10" />
+                                )}
+                              </div>
+                              <div className="p-2.5 bg-background border-t">
+                                <span className="text-[11px] font-bold block truncate">{t.name}</span>
+                                <span className="text-[9px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">{t.desc}</span>
+                              </div>
+                              {template === t.id && (
+                                <div className="absolute top-2 right-2 z-20 bg-primary text-primary-foreground rounded-full p-0.5 shadow-lg animate-in zoom-in">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator />
+                      <PreferenceFilterBar prefs={prefs} onChange={setPrefs} onOpenWizard={() => setStarter("wizard")} />
+                      <Separator />
+                      <div className="space-y-4">
+                        <Label className="text-base font-bold block">Global Typography</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Font Family</Label>
+                            <select className="w-full bg-background border border-border rounded-lg px-2 py-2 text-sm outline-none" value={resumeData.settings?.fontFamily} onChange={e => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontFamily: e.target.value } }))}>
+                              {fontFamilies.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Base Size ({resumeData.settings?.fontSize}px)</Label>
+                            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.max(8, (prev.settings?.fontSize || 11) - 1) } }))}>-</Button>
+                              <span className="flex-1 text-center font-bold">{resumeData.settings?.fontSize}</span>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.min(16, (prev.settings?.fontSize || 11) + 1) } }))}>+</Button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border">
+                           <div className="flex items-center gap-2">
+                              <SpellCheck className={`h-4 w-4 ${spellCheckEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <Label className="text-sm">Spell Check</Label>
+                           </div>
+                           <input type="checkbox" checked={spellCheckEnabled} onChange={e => setSpellCheckEnabled(e.target.checked)} className="h-4 w-4 accent-primary" />
+                        </div>
+                      </div>
+                      <Separator />
+                      <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button className="h-9 rounded-full bg-gradient-primary shadow-glow gap-2">
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">Export</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2" align="end">
+                    <Button variant="ghost" className="w-full justify-start gap-2" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-4 w-4" /> PDF Document</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-4 w-4" /> Word (DOCX)</Button>
+                  </PopoverContent>
+                </Popover>
+
+                <div className="lg:hidden">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full"><Eye className="h-4 w-4" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="h-[90vh] p-0">
+                            <div className="p-4 border-b flex items-center justify-between">
+                                <h3 className="font-bold">Preview</h3>
+                                <Button variant="ghost" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
+                            </div>
+                            <ScrollArea className="h-full p-6">
+                                {resumeData ? (
+                                    <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                                ) : (
+                                    <div className="text-center py-20 text-muted-foreground italic">Preview pending...</div>
+                                )}
+                            </ScrollArea>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-[1fr_55%] gap-8 items-start">
+              {/* LEFT COLUMN: EDITOR */}
+              <div className="space-y-6">
+                {/* NAVIGATION */}
+                <nav className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-[70px] z-20 bg-background/90 backdrop-blur-md py-3 px-1 -mx-1">
+                  {[
+                    { id: "basics", label: "Basics", icon: CheckCircle2 },
+                    { id: "summary", label: "Summary", icon: Sparkles },
+                    { id: "experience", label: "Experience", icon: FileText },
+                    { id: "education", label: "Education", icon: ArrowDown },
+                    { id: "skills", label: "Skills", icon: Wand },
+                    { id: "projects", label: "Projects", icon: Link2 },
+                    { id: "certs", label: "Certs", icon: CheckCircle2 },
+                  ].map((s) => (
+                    <button 
+                      key={s.id} 
+                      onClick={() => {
+                        const el = document.getElementById(`section-${s.id}`);
+                        if (el) {
+                          const yOffset = -130; 
+                          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                          window.scrollTo({top: y, behavior: 'smooth'});
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
+                    >
+                      <s.icon className="h-3 w-3" />
+                      {s.label}
+                    </button>
+                  ))}
+                </nav>
+
+
+                {/* BASICS */}
+                <div id="section-basics" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                  <div className="flex items-center gap-2 mb-6 border-b pb-4">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                    <h3 className="font-display text-lg font-bold">1. Personal Information</h3>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Full Name</Label>
+                      <Input value={resumeData.name} onChange={e => setResumeData({ ...resumeData, name: e.target.value })} placeholder="John Doe" className="rounded-xl border-border/60" name="resume-name" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Job Title</Label>
+                      <Input value={resumeData.title} onChange={e => setResumeData({ ...resumeData, title: e.target.value })} placeholder="Software Engineer" className="rounded-xl border-border/60" name="resume-title" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Email</Label>
+                      <Input value={resumeData.email} onChange={e => setResumeData({ ...resumeData, email: e.target.value })} placeholder="john@example.com" className="rounded-xl border-border/60" name="resume-email" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Phone</Label>
+                      <Input value={resumeData.phone} onChange={e => setResumeData({ ...resumeData, phone: e.target.value })} placeholder="+1 (555) 000-0000" className="rounded-xl border-border/60" name="resume-phone" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* SUMMARY */}
+                <div id="section-summary" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                   <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">2. Professional Summary</h3>
+                     </div>
+                     <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                <Settings2 className="h-4 w-4" />
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                                <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="summary" hideHeader />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                            <Wand2 className="h-3 w-3" />
+                            AI POLISH
+                        </Button>
+                     </div>
+                   </div>
+                   <Textarea 
+                     value={resumeData.summary} 
+                     onChange={e => setResumeData({ ...resumeData, summary: e.target.value })} 
+                     placeholder="A brief overview of your professional background..." 
+                     className="min-h-[120px] rounded-xl border-border/60 resize-none" 
+                     spellCheck={spellCheckEnabled} 
+                     name="resume-summary"
+                   />
+                </div>
+
+                {/* EXPERIENCE */}
+                <div id="section-experience" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                  <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">3. Work Experience</h3>
+                     </div>
+                     <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                <Settings2 className="h-4 w-4" />
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                                <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="experience" hideHeader />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" size="sm" onClick={addExp} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                            <Plus className="h-3 w-3" />
+                            <span className="text-[10px] font-bold">ADD ROLE</span>
+                        </Button>
+                     </div>
+                   </div>
+                   <div className="space-y-6">
+                      {resumeData.experience.map((exp, i) => (
+                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
+                           <Button 
+                             variant="ghost" 
+                             size="icon" 
+                             className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
+                             onClick={() => setResumeData(prev => ({ ...prev, experience: prev.experience.filter((_, j) => i !== j) }))}
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Company</Label>
+                                <Input value={exp.company} onChange={e => { const n = [...resumeData.experience]; n[i].company = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Company" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
+                                <Input value={exp.role} onChange={e => { const n = [...resumeData.experience]; n[i].role = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                           </div>
+                           <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
+                                <Input value={exp.location} onChange={e => { const n = [...resumeData.experience]; n[i].location = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Remote / City" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
+                                <Input value={exp.start} onChange={e => { const n = [...resumeData.experience]; n[i].start = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Jan 2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
+                                <Input value={exp.end} onChange={e => { const n = [...resumeData.experience]; n[i].end = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Present" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                           </div>
+                           <div className="relative space-y-1">
+                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
+                               <Textarea 
+                                 value={exp.bullets.join('\n')} 
+                                 onChange={e => { const n = [...resumeData.experience]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, experience: n }); }} 
+                                 placeholder="Bullet points describing your achievements..." 
+                                 className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none pb-10" 
+                                 spellCheck={spellCheckEnabled} 
+                               />
+                               <div className="absolute bottom-2 right-2 flex gap-1">
+                                  <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-primary hover:bg-primary/10">
+                                     <Sparkles className="h-3 w-3 mr-1" />
+                                     IMPROVE
+                                  </Button>
+                               </div>
+                           </div>
+                        </div>
+                      ))}
+                      {resumeData.experience.length === 0 && (
+                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No experience added.</div>
+                      )}
+                   </div>
+                </div>
+
+                {/* EDUCATION */}
+                <div id="section-education" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                  <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <ArrowDown className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">4. Education</h3>
+                     </div>
+                     <div className="flex gap-2">
+                         <Popover>
+                             <PopoverTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                 <Settings2 className="h-4 w-4" />
+                             </Button>
+                             </PopoverTrigger>
+                             <PopoverContent className="w-80" align="end">
+                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="education" hideHeader />
+                             </PopoverContent>
+                         </Popover>
+                         <Button variant="outline" size="sm" onClick={addEdu} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                             <Plus className="h-3 w-3" />
+                             <span className="text-[10px] font-bold">ADD SCHOOL</span>
+                         </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                       {resumeData.education.map((edu, i) => (
+                         <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
+                            <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, j) => i !== j) }))}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                               <div className="space-y-1">
+                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">School</Label>
+                                 <Input value={edu.school} onChange={e => { const n = [...resumeData.education]; n[i].school = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="University Name" className="h-9 rounded-lg border-border/60 bg-background" />
+                               </div>
+                               <div className="space-y-1">
+                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Degree</Label>
+                                 <Input value={edu.degree} onChange={e => { const n = [...resumeData.education]; n[i].degree = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="B.S. in Computer Science" className="h-9 rounded-lg border-border/60 bg-background" />
+                               </div>
+                            </div>
+                            <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                               <div className="space-y-1">
+                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
+                                 <Input value={edu.location} onChange={e => { const n = [...resumeData.education]; n[i].location = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="City, State" className="h-9 rounded-lg border-border/60 bg-background" />
+                               </div>
+                               <div className="space-y-1">
+                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
+                                 <Input value={edu.start} onChange={e => { const n = [...resumeData.education]; n[i].start = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2018" className="h-9 rounded-lg border-border/60 bg-background" />
+                               </div>
+                               <div className="space-y-1">
+                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
+                                 <Input value={edu.end} onChange={e => { const n = [...resumeData.education]; n[i].end = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                               </div>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Details / Honors</Label>
+                                <Input value={edu.details} onChange={e => { const n = [...resumeData.education]; n[i].details = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="GPA: 3.9, Dean's List..." className="h-9 rounded-lg border-border/60 bg-background" />
+                            </div>
+                         </div>
+                       ))}
+                       {resumeData.education.length === 0 && (
+                         <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No education added.</div>
+                       )}
+                   </div>
+                </div>
+
+                {/* PROJECTS */}
+                <div id="section-projects" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                  <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">5. Projects</h3>
+                     </div>
+                     <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                <Settings2 className="h-4 w-4" />
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                                <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="projects" hideHeader />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" size="sm" onClick={addProj} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                            <Plus className="h-3 w-3" />
+                            <span className="text-[10px] font-bold">ADD PROJECT</span>
+                        </Button>
+                     </div>
+                   </div>
+                   <div className="space-y-6">
+                      {resumeData.projects.map((proj, i) => (
+                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
+                           <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, projects: prev.projects.filter((_, j) => i !== j) }))}>
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Name</Label>
+                                <Input value={proj.name} onChange={e => { const n = [...resumeData.projects]; n[i].name = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="Project Alpha" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Technologies</Label>
+                                <Input value={proj.tech} onChange={e => { const n = [...resumeData.projects]; n[i].tech = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="React, Node.js, AWS" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                           </div>
+                           <div className="space-y-1">
+                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Description</Label>
+                               <Textarea value={proj.bullets.join('\n')} onChange={e => { const n = [...resumeData.projects]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, projects: n }); }} placeholder="Describe the impact and technical challenges..." className="min-h-[80px] rounded-lg border-border/60 bg-background resize-none" />
+                           </div>
+                        </div>
+                      ))}
+                      {resumeData.projects.length === 0 && (
+                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No projects added.</div>
+                      )}
+                   </div>
+                </div>
+
+                {/* SKILLS & GENERATE */}
+                <div id="section-skills" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                  <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <Wand className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">6. Skills & Optimization</h3>
+                     </div>
+                     <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                    <Settings2 className="h-4 w-4" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                                <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="skills" hideHeader />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                            <Sparkles className="h-3 w-3" />
+                            ATS OPTIMIZE
+                        </Button>
+                     </div>
+                   </div>
+                   <div className="space-y-6">
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-muted-foreground ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
+                        <Textarea 
+                          value={resumeData.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')} 
+                          onChange={e => {
+                            const lines = e.target.value.split('\n').filter(Boolean);
+                            const newSkills = lines.map(line => {
+                                const parts = line.split(':');
+                                if (parts.length > 1) {
+                                    return { category: parts[0].trim(), items: parts[1].split(',').map(i => i.trim()).filter(Boolean) };
+                                }
+                                return { category: "Other", items: line.split(',').map(i => i.trim()).filter(Boolean) };
+                            });
+                            setResumeData({ ...resumeData, skills: newSkills });
+                          }} 
+                          placeholder="Languages: TypeScript, JavaScript&#10;Frameworks: React, Node.js" 
+                          className="min-h-[120px] rounded-xl border-border/60" 
+                        />
+                        <p className="text-[10px] text-muted-foreground ml-1">Tip: Use "Category: skill1, skill2" for grouping.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-xs font-bold text-muted-foreground ml-1">Certifications</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Typography">
+                                        <Settings2 className="h-3 w-3" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80" align="end">
+                                    <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="certifications" hideHeader />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <Textarea 
+                          value={resumeData.certifications.join('\n')} 
+                          onChange={e => setResumeData({ ...resumeData, certifications: e.target.value.split('\n').filter(Boolean) })} 
+                          placeholder="AWS Certified Developer, PMP..." 
+                          className="min-h-[60px] rounded-xl border-border/60" 
+                        />
+                      </div>
+                      
+                      <Separator />
+
+
+                      
+                      <div className="p-6 rounded-2xl bg-primary/[0.03] border border-primary/10 space-y-6 relative overflow-hidden group/ai">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover/ai:opacity-20 transition-opacity">
+                          <Sparkles className="h-20 w-20 text-primary" />
+                        </div>
+                        
+                        <div className="space-y-2 relative">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <h3 className="font-display font-bold text-primary tracking-tight">✨ AI RESUME POLISH</h3>
+                          </div>
+                          <p className="text-xs text-muted-foreground ml-7">
+                            "Let AI transform your resume into stronger, job-ready content."
+                          </p>
+                        </div>
+
+                        <div className="space-y-3 relative">
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center"><Target className="h-3 w-3 text-primary" /></div>
+                            <Label className="font-bold text-sm">Target Job Description</Label>
+                          </div>
+                          <Textarea 
+                            value={targetJd} 
+                            onChange={e => setTargetJd(e.target.value)} 
+                            placeholder="Paste the job description you're applying for to optimize your resume bullets and skills..." 
+                            className="min-h-[120px] bg-background rounded-xl border-primary/10 focus:border-primary/30 text-sm leading-relaxed" 
+                          />
+                        </div>
+
+                        <div className="bg-background/50 rounded-xl p-4 border border-primary/5 space-y-3">
+                          <div className="flex items-center gap-2 text-primary">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">✨ AI will:</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                            {[
+                              "Rewrite weak bullet points",
+                              "Use stronger action verbs",
+                              "Improve professional wording",
+                              "Highlight measurable achievements",
+                              "Match relevant keywords from the job description",
+                              "Improve the professional summary",
+                              "Optimize content for ATS"
+                            ].map((text, idx) => (
+                              <div key={idx} className="flex items-start gap-2 group/item">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-primary/60 mt-0.5 shrink-0 group-hover/item:text-primary transition-colors" />
+                                <span className="text-[11px] text-muted-foreground leading-snug">✓ {text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <Button 
+                            onClick={generate} 
+                            disabled={loading} 
+                            className="w-full h-14 text-lg font-bold bg-gradient-primary shadow-glow rounded-2xl group overflow-hidden relative"
+                          >
+                            {loading ? (
+                              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                                <div className="relative">
+                                  <Loader2 className="h-5 w-5 animate-spin" />
+                                  <Sparkles className="absolute -top-1 -right-1 h-2 w-2 text-primary-foreground animate-pulse" />
+                                </div>
+                                <span className="text-base">✨ AI is polishing your resume...</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 transition-transform group-hover:scale-[1.02]">
+                                <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                                <span>✨ Generate Polished Resume with AI</span>
+                              </div>
+                            )}
+                          </Button>
+
+                          {loading && (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                              {[
+                                "Analyzing your experience",
+                                "Improving your wording",
+                                "Matching relevant keywords",
+                                "Optimizing for ATS"
+                              ].map((text, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className="flex items-center gap-2 text-[10px] text-primary/80"
+                                  style={{ animationDelay: `${idx * 150}ms` }}
+                                >
+                                  <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                  <span>{text}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                           {resumeData && resumeData.name && !loading && resumeData._isPolished && (
+                              <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95">
+                                <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-xs font-bold text-primary">✓ Resume polished successfully</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">"Your content has been improved for clarity, impact, and ATS relevance."</p>
+                                </div>
+                              </div>
+                            )}
+                         </div>
+                       </div>
+                    </div>
+                 </div>
+               </div>
+ 
+               {/* RIGHT COLUMN: STICKY PREVIEW */}
+               <div className="hidden lg:block lg:sticky lg:top-[70px] h-[calc(100vh-100px)] animate-in fade-in zoom-in-95 duration-500 delay-200">
+                 {showFormattingToolbar && (
+                   <FormattingToolbar 
+                     onFormat={handleFormat} 
+                     onClose={() => setShowFormattingToolbar(false)} 
+                     onCopyFormat={handleCopyFormat}
+                     onPasteFormat={handlePasteFormat}
+                     copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
+                   />
+                 )}
+                 <div className="h-full flex flex-col bg-muted/20 rounded-[2.5rem] border-4 border-muted/50 p-2 shadow-card overflow-hidden">
+
+                   {/* Rich Text Toolbar */}
+                   <div className="flex items-center gap-1 p-2 mb-2 bg-background/80 backdrop-blur-sm rounded-2xl border border-border/50 mx-2 mt-2">
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => handleFormat('bold')}
+                       title="Bold"
+                     >
+                       <Bold className="h-4 w-4" />
+                     </Button>
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => handleFormat('italic')}
+                       title="Italic"
+                     >
+                       <Italic className="h-4 w-4" />
+                     </Button>
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => handleFormat('underline')}
+                       title="Underline"
+                     >
+                       <Underline className="h-4 w-4" />
+                     </Button>
+                     <Separator orientation="vertical" className="h-4 mx-1" />
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => handleFormat('insertUnorderedList')}
+                       title="Bullet List"
+                     >
+                       <List className="h-4 w-4" />
+                     </Button>
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => handleFormat('insertOrderedList')}
+                       title="Numbered List"
+                     >
+                       <ListOrdered className="h-4 w-4" />
+                     </Button>
+                     <Separator orientation="vertical" className="h-4 mx-1" />
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0" 
+                       onClick={() => {
+                         const url = prompt("Enter the URL");
+                         if (url) handleFormat('createLink', url);
+                       }}
+                       title="Insert Link"
+                     >
+                       <LinkIcon className="h-4 w-4" />
+                     </Button>
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 w-8 p-0 ml-auto" 
+                       onClick={() => handleFormat('removeFormat')}
+                       title="Clear Formatting"
+                     >
+                       <Type className="h-4 w-4" />
+                     </Button>
+                   </div>
+
+                   <div className="flex-1 overflow-y-auto rounded-[2rem] bg-background scrollbar-hide relative">
+                       {resumeData ? (
+                           <div className="p-8 origin-top scale-[0.9] transform-gpu transition-transform w-[794px] mx-auto resume-export-target" style={{ backgroundColor: 'white' }}>
+                              <DragDropContext onDragEnd={onDragEnd}>
+                                <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                              </DragDropContext>
+                           </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
+                           <div className="h-20 w-20 rounded-3xl bg-muted/30 flex items-center justify-center mb-6"><Eye className="h-10 w-10 opacity-20" /></div>
+                           <h4 className="font-bold text-foreground mb-2">Live Preview</h4>
+                           <p className="text-xs max-w-[200px]">Fill in your details and click Generate to see your polished resume here.</p>
+                        </div>
+                      )}
+                      {showFormattingToolbar && (
+                        <FormattingToolbar
+                          onFormat={handleFormat}
+                          onClose={() => setShowFormattingToolbar(false)}
+                          onCopyFormat={handleCopyFormat}
+                          onPasteFormat={handlePasteFormat}
+                          copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
+                        />
+                      )}
+                   </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <Dialog open={showEditHint} onOpenChange={setShowEditHint}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Your resume is ready!</DialogTitle><DialogDescription>Click any text in the preview to edit.</DialogDescription></DialogHeader>
+          <DialogFooter><Button onClick={() => setShowEditHint(false)}>Got it</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showVersionDialog} onOpenChange={setShowVersionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Resume Version</DialogTitle>
+            <DialogDescription>Give this snapshot a name to easily roll back later.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="version-name" className="text-xs mb-1.5 block">Version Name</Label>
+            <Input 
+              id="version-name" 
+              placeholder="e.g., Before AI Polish, Post-Project Update" 
+              value={versionName} 
+              onChange={e => setVersionName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveVersion()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowVersionDialog(false)}>Cancel</Button>
+            <Button onClick={saveVersion} disabled={!versionName.trim()}>Save Version</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
