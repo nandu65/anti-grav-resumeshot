@@ -424,16 +424,26 @@ export default function ResumeBuilder() {
   };
 
   const downloadPdf = async () => {
-    toast.loading("Preparing PDF...", { duration: 2000 });
-    // Force a small layout sync before capture
-    await new Promise(r => setTimeout(r, 100));
-    downloadResumePdfFromData(resumeData, template);
+    const toastId = toast.loading("Preparing PDF...");
+    try {
+      await new Promise(r => setTimeout(r, 100));
+      await downloadResumePdfFromData(resumeData, template);
+      toast.success("PDF downloaded successfully!", { id: toastId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate PDF", { id: toastId });
+    }
   };
   
-  const downloadDocx = () => {
-    toast.info("Generating Word document...");
-    downloadResumeDocxFromData(resumeData, template);
+  const downloadDocx = async () => {
+    const toastId = toast.loading("Generating Word document...");
+    try {
+      await downloadResumeDocxFromData(resumeData, template);
+      toast.success("Word document downloaded!", { id: toastId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate Word document", { id: toastId });
+    }
   };
+
 
   const loadVersions = useCallback(async () => {
     if (!user) return;
@@ -503,18 +513,18 @@ export default function ResumeBuilder() {
         }}
       />
       <Navbar />
-      <div className="container py-10 max-w-7xl">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="h-12 w-12 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
-            <Wand2 className="h-6 w-6" />
+      {starter === "choose" ? (
+        <div className="container py-10 max-w-7xl">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-12 w-12 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
+              <Wand2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl font-bold tracking-tight">AI Resume Builder</h1>
+              <p className="text-muted-foreground text-sm mt-1">Fill in your info — AI writes polished bullets and formats it into a template.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight">AI Resume Builder</h1>
-            <p className="text-muted-foreground text-sm mt-1">Fill in your info — AI writes polished bullets and formats it into a template.</p>
-          </div>
-        </div>
 
-        {starter === "choose" && (
           <div className="mb-6 rounded-2xl border-2 border-border bg-gradient-card p-6 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-8">
               <h2 className="font-display text-2xl font-bold">How would you like to start?</h2>
@@ -549,18 +559,18 @@ export default function ResumeBuilder() {
               </div>
             )}
           </div>
-        )}
+        </div>
+      ) : (
+        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-[calc(100vh-4.25rem)] flex flex-col overflow-hidden">
+          <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
+              <div className="hidden sm:block">
+                <h2 className="text-sm font-bold leading-none">ResumeShot AI</h2>
+                <p className="text-[10px] text-muted-foreground">Editor</p>
+              </div>
+              <Separator orientation="vertical" className="h-6 mx-2 hidden sm:block" />
 
-        {(starter === "scratch" || starter === "uploaded") && (
-          <div className="space-y-6">
-            <div className="sticky top-[70px] z-30 bg-background/95 backdrop-blur-md border-b flex items-center justify-between p-4 -mx-4 sm:mx-0 sm:rounded-xl shadow-lg gap-4 ring-1 ring-border">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
-                <div className="hidden sm:block">
-                  <h2 className="text-sm font-bold leading-none">ResumeShot AI</h2>
-                  <p className="text-[10px] text-muted-foreground">Editor</p>
-                </div>
-                <Separator orientation="vertical" className="h-6 mx-2 hidden sm:block" />
                 <div className="flex items-center gap-1">
                   <Button variant="outline" size="icon" onClick={undo} disabled={!canUndo} className="h-8 w-8" title="Undo (Ctrl+Z)"><Undo2 className="h-4 w-4" /></Button>
                   <Button variant="outline" size="icon" onClick={redo} disabled={!canRedo} className="h-8 w-8" title="Redo (Ctrl+Shift+Z)"><Redo2 className="h-4 w-4" /></Button>
@@ -764,11 +774,11 @@ export default function ResumeBuilder() {
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-[1fr_55%] gap-8 items-start">
-              {/* LEFT COLUMN: EDITOR */}
-              <div className="space-y-6">
+            <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_1.18fr] gap-6 overflow-hidden">
+              {/* LEFT COLUMN: FORM EDITOR */}
+              <div className="h-full overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-6 min-h-0">
                 {/* NAVIGATION */}
-                <nav className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-[70px] z-20 bg-background/90 backdrop-blur-md py-3 px-1 -mx-1">
+                <nav className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-md py-2 px-1 -mx-1 border-b">
                   {[
                     { id: "basics", label: "Basics", icon: CheckCircle2 },
                     { id: "summary", label: "Summary", icon: Sparkles },
@@ -783,18 +793,17 @@ export default function ResumeBuilder() {
                       onClick={() => {
                         const el = document.getElementById(`section-${s.id}`);
                         if (el) {
-                          const yOffset = -130; 
-                          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                          window.scrollTo({top: y, behavior: 'smooth'});
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
                         }
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
                     >
                       <s.icon className="h-3 w-3" />
                       {s.label}
                     </button>
                   ))}
                 </nav>
+
 
 
                 {/* BASICS */}
@@ -1234,127 +1243,118 @@ export default function ResumeBuilder() {
                               </div>
                             )}
                          </div>
-                       </div>
-                    </div>
-                 </div>
-               </div>
- 
-               {/* RIGHT COLUMN: STICKY PREVIEW */}
-               <div className="hidden lg:block lg:sticky lg:top-[70px] h-[calc(100vh-100px)] animate-in fade-in zoom-in-95 duration-500 delay-200">
-                 {showFormattingToolbar && (
-                   <FormattingToolbar 
-                     onFormat={handleFormat} 
-                     onClose={() => setShowFormattingToolbar(false)} 
-                     onCopyFormat={handleCopyFormat}
-                     onPasteFormat={handlePasteFormat}
-                     copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
-                   />
-                 )}
-                 <div className="h-full flex flex-col bg-muted/20 rounded-[2.5rem] border-4 border-muted/50 p-2 shadow-card overflow-hidden">
-
-                   {/* Rich Text Toolbar */}
-                   <div className="flex items-center gap-1 p-2 mb-2 bg-background/80 backdrop-blur-sm rounded-2xl border border-border/50 mx-2 mt-2">
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => handleFormat('bold')}
-                       title="Bold"
-                     >
-                       <Bold className="h-4 w-4" />
-                     </Button>
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => handleFormat('italic')}
-                       title="Italic"
-                     >
-                       <Italic className="h-4 w-4" />
-                     </Button>
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => handleFormat('underline')}
-                       title="Underline"
-                     >
-                       <Underline className="h-4 w-4" />
-                     </Button>
-                     <Separator orientation="vertical" className="h-4 mx-1" />
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => handleFormat('insertUnorderedList')}
-                       title="Bullet List"
-                     >
-                       <List className="h-4 w-4" />
-                     </Button>
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => handleFormat('insertOrderedList')}
-                       title="Numbered List"
-                     >
-                       <ListOrdered className="h-4 w-4" />
-                     </Button>
-                     <Separator orientation="vertical" className="h-4 mx-1" />
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0" 
-                       onClick={() => {
-                         const url = prompt("Enter the URL");
-                         if (url) handleFormat('createLink', url);
-                       }}
-                       title="Insert Link"
-                     >
-                       <LinkIcon className="h-4 w-4" />
-                     </Button>
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 w-8 p-0 ml-auto" 
-                       onClick={() => handleFormat('removeFormat')}
-                       title="Clear Formatting"
-                     >
-                       <Type className="h-4 w-4" />
-                     </Button>
-                   </div>
-
-                   <div className="flex-1 overflow-y-auto rounded-[2rem] bg-background scrollbar-hide relative">
-                       {resumeData ? (
-                           <div className="p-8 origin-top scale-[0.9] transform-gpu transition-transform w-[794px] mx-auto resume-export-target" style={{ backgroundColor: 'white' }}>
-                              <DragDropContext onDragEnd={onDragEnd}>
-                                <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
-                              </DragDropContext>
-                           </div>
-                      ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
-                           <div className="h-20 w-20 rounded-3xl bg-muted/30 flex items-center justify-center mb-6"><Eye className="h-10 w-10 opacity-20" /></div>
-                           <h4 className="font-bold text-foreground mb-2">Live Preview</h4>
-                           <p className="text-xs max-w-[200px]">Fill in your details and click Generate to see your polished resume here.</p>
+                              </div>
                         </div>
-                      )}
-                      {showFormattingToolbar && (
-                        <FormattingToolbar
-                          onFormat={handleFormat}
-                          onClose={() => setShowFormattingToolbar(false)}
-                          onCopyFormat={handleCopyFormat}
-                          onPasteFormat={handlePasteFormat}
-                          copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
-                        />
-                      )}
-                   </div>
+                     </div>
+                  </div>
+                {/* RIGHT COLUMN: INDEPENDENT PREVIEW PANE */}
+                <div className="hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0">
 
+                  {showFormattingToolbar && (
+                    <FormattingToolbar 
+                      onFormat={handleFormat} 
+                      onClose={() => setShowFormattingToolbar(false)} 
+                      onCopyFormat={handleCopyFormat}
+                      onPasteFormat={handlePasteFormat}
+                      copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
+                    />
+                  )}
+
+                  {/* Rich Text Toolbar */}
+                  <div className="shrink-0 flex items-center gap-1 p-2 bg-background/80 backdrop-blur-sm border-b">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('bold')}
+                      title="Bold"
+                    >
+                      <Bold className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('italic')}
+                      title="Italic"
+                    >
+                      <Italic className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('underline')}
+                      title="Underline"
+                    >
+                      <Underline className="h-4 w-4" />
+                    </Button>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('insertUnorderedList')}
+                      title="Bullet List"
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('insertOrderedList')}
+                      title="Numbered List"
+                    >
+                      <ListOrdered className="h-4 w-4" />
+                    </Button>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => {
+                        const url = prompt("Enter the URL");
+                        if (url) handleFormat('createLink', url);
+                      }}
+                      title="Insert Link"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0 ml-auto" 
+                      onClick={() => handleFormat('removeFormat')}
+                      title="Clear Formatting"
+                    >
+                      <Type className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Independent Scrollable Preview Area with no horizontal overflow */}
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 custom-scrollbar flex justify-center items-start min-h-0">
+                    {resumeData ? (
+                      <div className="w-full max-w-[794px] min-w-0 mx-auto resume-export-target bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-200">
+                        <DragDropContext onDragEnd={onDragEnd}>
+                          <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                        </DragDropContext>
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
+                        <div className="h-20 w-20 rounded-3xl bg-muted/30 flex items-center justify-center mb-6"><Eye className="h-10 w-10 opacity-20" /></div>
+                        <h4 className="font-bold text-foreground mb-2">Live Preview</h4>
+                        <p className="text-xs max-w-[200px]">Fill in your details and click Generate to see your polished resume here.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+
+
+
       <Dialog open={showEditHint} onOpenChange={setShowEditHint}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Your resume is ready!</DialogTitle><DialogDescription>Click any text in the preview to edit.</DialogDescription></DialogHeader>
