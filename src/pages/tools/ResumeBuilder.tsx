@@ -15,6 +15,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 
 import { extractTextFromFile } from "@/lib/extractText";
+import { parseResumeTextLocally } from "@/lib/resumeParser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -288,17 +289,27 @@ export default function ResumeBuilder() {
   ];
 
   const onUpload = async (file: File) => {
-    if (!user) return requireAuth("upload and parse your resume");
     setUploading(true);
     try {
       const text = await extractTextFromFile(file);
-      if (!text.trim()) throw new Error("Couldn't read text from that file");
-      const { data, error } = await supabase.functions.invoke("parse-resume", { body: { text } });
-      if (error || (data as any)?.error) {
-        console.error("Parse resume error:", error || (data as any)?.error);
-        throw new Error((data as any)?.error || error?.message || "Parse failed");
+      if (!text.trim()) throw new Error("Could not read text from this file. Please ensure it is a valid PDF, DOCX, or TXT document.");
+      
+      let p: any = null;
+      if (user) {
+        try {
+          const { data, error } = await supabase.functions.invoke("parse-resume", { body: { text } });
+          if (!error && (data as any)?.parsed && Object.keys((data as any).parsed).length > 0) {
+            p = (data as any).parsed;
+          }
+        } catch (err) {
+          console.warn("AI parse call failed, using intelligent local parser:", err);
+        }
       }
-      const p = (data as any).parsed || {};
+      
+      // If AI parse did not return data or user is not logged in, use our local parser
+      if (!p || Object.keys(p).length === 0) {
+        p = parseResumeTextLocally(text);
+      }
       
       const parsedLinks: { label: string; url: string }[] = [];
       if (p.linkedin) parsedLinks.push({ label: "LinkedIn", url: p.linkedin });
@@ -317,20 +328,20 @@ export default function ResumeBuilder() {
         summary: p.summary || "",
         experience: (p.experience || []).map((e: any) => ({
           company: e.company || "", role: e.role || "", location: e.location || "",
-          start: e.start || "", end: e.end || "", bullets: e.bullets || [],
+          start: e.start || "", end: e.end || "", bullets: Array.isArray(e.bullets) ? e.bullets : (e.bullets ? [e.bullets] : []),
         })),
         education: (p.education || []).map((e: any) => ({
           school: e.school || "", degree: e.degree || "", location: e.location || "",
           start: e.start || "", end: e.end || "", details: e.details || "",
         })),
         projects: (p.projects || []).map((x: any) => ({
-          name: x.name || "", tech: x.tech || "", bullets: x.bullets || [],
+          name: x.name || "", tech: x.tech || "", bullets: Array.isArray(x.bullets) ? x.bullets : (x.bullets ? [x.bullets] : []),
         })),
         skills: (p.skills || []).map((s: any) => {
           if (typeof s === "string") return { category: "Skills", items: [s] };
-          return { category: s.category || "Skills", items: s.items || [] };
+          return { category: s.category || "Skills", items: Array.isArray(s.items) ? s.items : (s.items ? [s.items] : []) };
         }),
-        certifications: p.certifications || [],
+        certifications: Array.isArray(p.certifications) ? p.certifications : (p.certifications ? [p.certifications] : []),
       };
 
       setResumeData(normalizeResumeSkills({
@@ -338,8 +349,9 @@ export default function ResumeBuilder() {
         _isPolished: false
       }));
       setStarter("uploaded");
-      toast.success("Resume imported — review the fields below, then generate.");
+      toast.success("Resume imported successfully! Review the fields below and polish with AI.");
     } catch (e) {
+      console.error("Resume import error:", e);
       toast.error(e instanceof Error ? e.message : "Failed to import resume");
     } finally {
       setUploading(false);

@@ -427,7 +427,7 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             <div {...provided.dragHandleProps} className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
               <MousePointer2 className="h-3.5 w-3.5 text-primary" />
             </div>
-            <h3 className="uppercase tracking-wider text-[10px] font-bold text-emerald-800 border-b-2 border-emerald-800 pb-0.5 mb-1.5 group-hover:bg-emerald-50 transition-colors">
+            <h3 className="uppercase tracking-wider text-[10px] font-bold text-emerald-800 border-b-2 border-emerald-800 pb-1 mb-2 group-hover:bg-emerald-50 transition-colors">
               {title}
             </h3>
             <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
@@ -1519,13 +1519,13 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
         <div>
           {(r.summary || update) && (
             <section className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-0.5 mb-1.5">Summary</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">Summary</h3>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px]" />
             </section>
           )}
           {r.experience?.length > 0 && (
             <section className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-0.5 mb-1.5">Experience</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">Experience</h3>
               {r.experience.map((e, i) => {
                 const upd = makeExpUpdater(update, r, i);
                 return (
@@ -1543,7 +1543,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           )}
           {r.education?.length > 0 && (
             <section>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-0.5 mb-1.5">Education</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">Education</h3>
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
                 return (
@@ -1559,7 +1559,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
         <div>
           {r.skills?.length > 0 && (
             <section className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-0.5 mb-1.5">Skills</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2">Skills</h3>
               <div className="space-y-1">
                 {r.skills.map((s, i) => {
                   const upd = makeSkillUpdater(update, r, i);
@@ -1575,7 +1575,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           )}
           {r.certifications?.length > 0 && (
             <section>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-0.5 mb-1.5">Certifications</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2">Certifications</h3>
               <Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] whitespace-pre-wrap" />
             </section>
           )}
@@ -1704,15 +1704,15 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           {r.certifications?.length > 0 && (<div className="mt-4"><div className="uppercase tracking-widest text-[9px] font-bold border-b border-teal-400 pb-1 mb-2">Certifications</div><Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] whitespace-pre-wrap" /></div>)}
         </div>
         <div className="p-5">
-          {(r.summary || update) && (<section className="mb-3"><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-0.5 mb-1.5">Summary</h3><Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px]" /></section>)}
-          {r.experience?.length > 0 && (<section className="mb-3"><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-0.5 mb-1.5">Experience</h3>{r.experience.map((e, i) => { const upd = makeExpUpdater(update, r, i); return (
+          {(r.summary || update) && (<section className="mb-3"><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-1 mb-2">Summary</h3><Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px]" /></section>)}
+          {r.experience?.length > 0 && (<section className="mb-3"><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-1 mb-2">Experience</h3>{r.experience.map((e, i) => { const upd = makeExpUpdater(update, r, i); return (
             <div key={i} className="mb-2">
               <div className="flex justify-between"><span className="font-semibold text-[11px]"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></span><span className="text-[10px] text-neutral-600"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span></div>
               <div className="text-[10px] text-teal-700"><Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></div>
               <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5 text-[10px] space-y-0.5" />
             </div>
           ); })}</section>)}
-          {r.education?.length > 0 && (<section><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-0.5 mb-1.5">Education</h3>{r.education.map((e, i) => { const upd = makeEduUpdater(update, r, i); return (<div key={i} className="mb-1"><div className="font-semibold text-[10.5px]"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div><div className="text-[10px] text-neutral-600"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> · <Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></div></div>); })}</section>)}
+          {r.education?.length > 0 && (<section><h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-1 mb-2">Education</h3>{r.education.map((e, i) => { const upd = makeEduUpdater(update, r, i); return (<div key={i} className="mb-1"><div className="font-semibold text-[10.5px]"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div><div className="text-[10px] text-neutral-600"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> · <Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></div></div>); })}</section>)}
         </div>
       </div>
     </div>
