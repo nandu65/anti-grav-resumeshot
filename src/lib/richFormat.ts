@@ -83,6 +83,10 @@ export function applyFormatToSelection(command: string, value?: string) {
       });
     } else if (command === "fontName") {
       document.execCommand("fontName", false, value);
+    } else if (command === "hiliteColor") {
+      if (!document.execCommand("hiliteColor", false, value)) {
+        document.execCommand("backColor", false, value);
+      }
     } else {
       document.execCommand(command, false, value);
     }
@@ -99,6 +103,12 @@ export function applyFormatToSelection(command: string, value?: string) {
       case "bold": wrapAll(host, h => `<b>${h}</b>`); break;
       case "italic": wrapAll(host, h => `<i>${h}</i>`); break;
       case "underline": wrapAll(host, h => `<u>${h}</u>`); break;
+      case "strikeThrough": wrapAll(host, h => `<s>${h}</s>`); break;
+      case "foreColor": wrapAll(host, styleWrapper(`color:${value}`)); break;
+      case "hiliteColor": wrapAll(host, styleWrapper(`background-color:${value}`)); break;
+      case "justifyLeft": wrapAll(host, styleWrapper(`text-align:left`)); break;
+      case "justifyCenter": wrapAll(host, styleWrapper(`text-align:center`)); break;
+      case "justifyRight": wrapAll(host, styleWrapper(`text-align:right`)); break;
       case "removeFormat": host.innerHTML = host.innerText; break;
       case "fontSize": wrapAll(host, styleWrapper(`font-size:${size}px`)); break;
       case "fontName": wrapAll(host, styleWrapper(`font-family:${value}`)); break;

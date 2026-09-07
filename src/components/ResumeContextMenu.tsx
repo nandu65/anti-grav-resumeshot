@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Bold, Italic, Underline, Strikethrough,
-  ArrowUp, ArrowDown, Copy, Plus, Trash2,
+  ArrowUp, ArrowDown, Copy, Plus, Minus, Trash2,
   RemoveFormatting, Palette, Highlighter,
   AlignLeft, AlignCenter, AlignRight,
-  Type, MoveVertical
+  Type, MoveVertical, Paintbrush, X
 } from "lucide-react";
 
 export interface ContextMenuPosition {
@@ -15,6 +15,7 @@ export interface ContextMenuPosition {
   targetEntryType?: string;
   targetEntryIndex?: number;
   selectedText?: string;
+  savedRange?: Range | null;
 }
 
 interface ResumeContextMenuProps {
@@ -26,6 +27,9 @@ interface ResumeContextMenuProps {
   onAddLineBelow?: (lineIndex?: number) => void;
   onDeleteLine?: (lineIndex?: number) => void;
   onFormatText?: (command: string, value?: string) => void;
+  onCopyFormat?: () => void;
+  onPasteFormat?: () => void;
+  copiedFormatLabel?: string | null;
 }
 
 const PRESET_COLORS = [
@@ -57,29 +61,42 @@ export function ResumeContextMenu({
   onAddLineBelow,
   onDeleteLine,
   onFormatText,
+  onCopyFormat,
+  onPasteFormat,
+  copiedFormatLabel,
 }: ResumeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const savedRangeRef = useRef<Range | null>(null);
 
-  // Compute position keeping menu within viewport
+  // Capture selection range on open and calculate clamped position
   useEffect(() => {
     if (!position) return;
-    const menuWidth = 260;
-    const menuHeight = 360;
+    if (position.savedRange) {
+      savedRangeRef.current = position.savedRange;
+    } else {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+      }
+    }
+
+    const menuWidth = 280;
+    const menuHeight = 380;
 
     let x = position.x;
     let y = position.y;
 
-    if (x + menuWidth > window.innerWidth - 10) {
-      x = window.innerWidth - menuWidth - 10;
+    if (x + menuWidth > window.innerWidth - 12) {
+      x = window.innerWidth - menuWidth - 12;
     }
-    if (y + menuHeight > window.innerHeight - 10) {
-      y = window.innerHeight - menuHeight - 10;
+    if (y + menuHeight > window.innerHeight - 12) {
+      y = window.innerHeight - menuHeight - 12;
     }
 
-    setCoords({ x: Math.max(10, x), y: Math.max(10, y) });
+    setCoords({ x: Math.max(12, x), y: Math.max(12, y) });
   }, [position]);
 
   // Click outside or Escape to close
@@ -108,12 +125,40 @@ export function ResumeContextMenu({
 
   if (!position) return null;
 
+  const restoreSelection = () => {
+    const sel = window.getSelection();
+    if (sel && savedRangeRef.current) {
+      try {
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+      } catch (_) {}
+    }
+    const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+    if (targetEditable && document.activeElement !== targetEditable) {
+      try {
+        targetEditable.focus({ preventScroll: true });
+      } catch (_) {}
+    }
+  };
+
   const applyCommand = (command: string, value: string = "") => {
+    restoreSelection();
     try {
       if (onFormatText) {
         onFormatText(command, value);
       } else {
-        document.execCommand(command, false, value);
+        if (command === "hiliteColor") {
+          if (!document.execCommand("hiliteColor", false, value)) {
+            document.execCommand("backColor", false, value);
+          }
+        } else {
+          document.execCommand(command, false, value);
+        }
+        const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+        if (targetEditable) {
+          targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
+          targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+        }
       }
     } catch (err) {
       console.warn("Formatting command failed:", err);
@@ -121,9 +166,9 @@ export function ResumeContextMenu({
   };
 
   const transformCase = (type: "upper" | "lower" | "title") => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const selectedText = selection.toString();
+    restoreSelection();
+    const sel = window.getSelection();
+    const selectedText = sel?.toString() || position.selectedText || "";
     if (!selectedText) return;
 
     let transformed = selectedText;
@@ -135,7 +180,21 @@ export function ResumeContextMenu({
       transformed = selectedText.replace(/\b\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
     }
 
-    document.execCommand("insertText", false, transformed);
+    try {
+      const success = document.execCommand("insertText", false, transformed);
+      if (!success && savedRangeRef.current) {
+        savedRangeRef.current.deleteContents();
+        const textNode = document.createTextNode(transformed);
+        savedRangeRef.current.insertNode(textNode);
+      }
+      const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+      if (targetEditable) {
+        targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
+        targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+      }
+    } catch (err) {
+      console.warn("Case transform failed:", err);
+    }
     onClose();
   };
 
@@ -147,77 +206,146 @@ export function ResumeContextMenu({
     <div
       ref={menuRef}
       role="menu"
-      aria-label="Resume Formatting Context Menu"
+      aria-label="Unified Resume Context & Formatting Menu"
       style={{
         position: "fixed",
         left: `${coords.x}px`,
         top: `${coords.y}px`,
         zIndex: 99999,
       }}
-      className="w-64 bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-xl p-2 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none"
+      className="w-72 bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-2xl p-2 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none ring-1 ring-border/50"
       onContextMenu={e => e.preventDefault()}
+      onMouseDown={e => {
+        // Prevent clicking context menu from de-selecting or blurring editable text
+        e.preventDefault();
+      }}
     >
       {/* --- Section 1: Quick Formatting Toolbar --- */}
-      <div className="flex items-center justify-between gap-1 pb-2 mb-2 border-b border-border/70 px-1">
+      <div className="flex items-center justify-between gap-0.5 pb-2 mb-2 border-b border-border/70 px-0.5">
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => applyCommand("bold")}
+            title="Bold (Ctrl+B)"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors font-bold"
+          >
+            <Bold className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => applyCommand("italic")}
+            title="Italic (Ctrl+I)"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors italic"
+          >
+            <Italic className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => applyCommand("underline")}
+            title="Underline (Ctrl+U)"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors underline"
+          >
+            <Underline className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => applyCommand("strikeThrough")}
+            title="Strikethrough"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+          >
+            <Strikethrough className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="w-px h-4 bg-border/80 mx-0.5" />
+
+        {/* Font size +/- */}
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => applyCommand("fontSize", "decrease")}
+            title="Decrease font size"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <Type className="w-3 h-3 text-muted-foreground mx-0.5" />
+          <button
+            type="button"
+            onClick={() => applyCommand("fontSize", "increase")}
+            title="Increase font size"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="w-px h-4 bg-border/80 mx-0.5" />
+
+        {/* Text color & Highlight */}
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              setShowColorPicker(!showColorPicker);
+              setShowHighlightPicker(false);
+            }}
+            title="Text Color"
+            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showColorPicker ? "bg-accent text-primary" : "text-foreground"}`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowHighlightPicker(!showHighlightPicker);
+              setShowColorPicker(false);
+            }}
+            title="Highlight Color"
+            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showHighlightPicker ? "bg-accent text-primary" : "text-foreground"}`}
+          >
+            <Highlighter className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Format painter & Close */}
+        {(onCopyFormat || onPasteFormat) && <div className="w-px h-4 bg-border/80 mx-0.5" />}
+        {onCopyFormat && (
+          <button
+            type="button"
+            onClick={onCopyFormat}
+            title="Copy text format"
+            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {onPasteFormat && (
+          <button
+            type="button"
+            onClick={onPasteFormat}
+            disabled={!copiedFormatLabel}
+            title={copiedFormatLabel ? `Paste text format (${copiedFormatLabel})` : "Copy a format first"}
+            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${copiedFormatLabel ? "text-primary" : "text-muted-foreground/40 cursor-not-allowed"}`}
+          >
+            <Paintbrush className="w-3.5 h-3.5" />
+          </button>
+        )}
+
+        <div className="w-px h-4 bg-border/80 mx-0.5" />
         <button
           type="button"
-          onClick={() => applyCommand("bold")}
-          title="Bold (Ctrl+B)"
-          className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors font-bold"
+          onClick={onClose}
+          title="Close"
+          className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
         >
-          <Bold className="w-3.5 h-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyCommand("italic")}
-          title="Italic (Ctrl+I)"
-          className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors italic"
-        >
-          <Italic className="w-3.5 h-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyCommand("underline")}
-          title="Underline (Ctrl+U)"
-          className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors underline"
-        >
-          <Underline className="w-3.5 h-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyCommand("strikeThrough")}
-          title="Strikethrough"
-          className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
-        >
-          <Strikethrough className="w-3.5 h-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setShowColorPicker(!showColorPicker);
-            setShowHighlightPicker(false);
-          }}
-          title="Text Color"
-          className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showColorPicker ? "bg-accent text-primary" : "text-foreground"}`}
-        >
-          <Palette className="w-3.5 h-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setShowHighlightPicker(!showHighlightPicker);
-            setShowColorPicker(false);
-          }}
-          title="Highlight Color"
-          className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showHighlightPicker ? "bg-accent text-primary" : "text-foreground"}`}
-        >
-          <Highlighter className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* --- Palette dropdown (Text Color) --- */}
       {showColorPicker && (
-        <div className="p-2 mb-2 bg-muted/60 rounded-lg border border-border/60 animate-in fade-in-50 duration-75">
+        <div className="p-2 mb-2 bg-muted/60 rounded-xl border border-border/60 animate-in fade-in-50 duration-75">
           <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
             Text Color
           </div>
@@ -230,7 +358,7 @@ export function ResumeContextMenu({
                   applyCommand("foreColor", c.color);
                   setShowColorPicker(false);
                 }}
-                className="flex items-center gap-1 p-1 rounded hover:bg-background/80 transition-colors text-left"
+                className="flex items-center gap-1 p-1 rounded-lg hover:bg-background/80 transition-colors text-left"
                 title={c.label}
               >
                 <span className="w-3 h-3 rounded-full border shadow-xs inline-block shrink-0" style={{ backgroundColor: c.color }} />
@@ -243,7 +371,7 @@ export function ResumeContextMenu({
 
       {/* --- Highlight dropdown --- */}
       {showHighlightPicker && (
-        <div className="p-2 mb-2 bg-muted/60 rounded-lg border border-border/60 animate-in fade-in-50 duration-75">
+        <div className="p-2 mb-2 bg-muted/60 rounded-xl border border-border/60 animate-in fade-in-50 duration-75">
           <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
             Highlight Color
           </div>
@@ -256,7 +384,7 @@ export function ResumeContextMenu({
                   applyCommand("hiliteColor", c.color);
                   setShowHighlightPicker(false);
                 }}
-                className="flex items-center gap-1 p-1 rounded hover:bg-background/80 transition-colors text-left"
+                className="flex items-center gap-1 p-1 rounded-lg hover:bg-background/80 transition-colors text-left"
                 title={c.label}
               >
                 <span className="w-3 h-3 rounded border shadow-xs inline-block shrink-0" style={{ backgroundColor: c.color === "transparent" ? "#fff" : c.color }} />
@@ -359,7 +487,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => transformCase("upper")}
             title="UPPERCASE"
-            className="px-2 py-1 rounded bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
+            className="px-2 py-1 rounded-lg bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
           >
             ABC
           </button>
@@ -367,7 +495,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => transformCase("lower")}
             title="lowercase"
-            className="px-2 py-1 rounded bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
+            className="px-2 py-1 rounded-lg bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
           >
             abc
           </button>
@@ -375,7 +503,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => transformCase("title")}
             title="Title Case"
-            className="px-2 py-1 rounded bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
+            className="px-2 py-1 rounded-lg bg-muted/60 hover:bg-accent text-center text-[10px] font-semibold transition-colors"
           >
             Abc
           </button>
@@ -389,7 +517,7 @@ export function ResumeContextMenu({
               onClose();
             }}
             title="Align Left"
-            className="flex-1 p-1.5 rounded hover:bg-accent flex justify-center text-foreground transition-colors"
+            className="flex-1 p-1.5 rounded-lg hover:bg-accent flex justify-center text-foreground transition-colors"
           >
             <AlignLeft className="w-3.5 h-3.5" />
           </button>
@@ -400,7 +528,7 @@ export function ResumeContextMenu({
               onClose();
             }}
             title="Align Center"
-            className="flex-1 p-1.5 rounded hover:bg-accent flex justify-center text-foreground transition-colors"
+            className="flex-1 p-1.5 rounded-lg hover:bg-accent flex justify-center text-foreground transition-colors"
           >
             <AlignCenter className="w-3.5 h-3.5" />
           </button>
@@ -411,7 +539,7 @@ export function ResumeContextMenu({
               onClose();
             }}
             title="Align Right"
-            className="flex-1 p-1.5 rounded hover:bg-accent flex justify-center text-foreground transition-colors"
+            className="flex-1 p-1.5 rounded-lg hover:bg-accent flex justify-center text-foreground transition-colors"
           >
             <AlignRight className="w-3.5 h-3.5" />
           </button>
@@ -422,7 +550,7 @@ export function ResumeContextMenu({
               onClose();
             }}
             title="Clear Formatting"
-            className="flex-1 p-1.5 rounded hover:bg-accent flex justify-center text-muted-foreground hover:text-foreground transition-colors"
+            className="flex-1 p-1.5 rounded-lg hover:bg-accent flex justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <RemoveFormatting className="w-3.5 h-3.5" />
           </button>

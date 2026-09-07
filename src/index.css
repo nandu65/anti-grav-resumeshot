@@ -222,3 +222,43 @@
   background-clip: padding-box;
 }
 
+/* ==========================================================================
+   Pixel-Perfect Resume Bullets (Equal alignment in Frontend & PDF Export)
+   ========================================================================== */
+.resume-root-container ul.list-disc,
+[data-rs-root] ul.list-disc,
+.resume-export-target ul.list-disc,
+#rs-pdf-export-wrapper ul.list-disc {
+  list-style-type: none !important;
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+.resume-root-container ul.list-disc > li,
+[data-rs-root] ul.list-disc > li,
+.resume-export-target ul.list-disc > li,
+#rs-pdf-export-wrapper ul.list-disc > li {
+  position: relative !important;
+  list-style-type: none !important;
+  list-style: none !important;
+  padding-left: 0.95rem !important;
+  line-height: inherit !important;
+}
+
+.resume-root-container ul.list-disc > li::before,
+[data-rs-root] ul.list-disc > li::before,
+.resume-export-target ul.list-disc > li::before,
+#rs-pdf-export-wrapper ul.list-disc > li::before {
+  content: "•" !important;
+  position: absolute !important;
+  left: 0.1rem !important;
+  top: 0 !important;
+  line-height: inherit !important;
+  font-size: 1.1em !important;
+  color: inherit !important;
+  display: inline-block !important;
+  vertical-align: baseline !important;
+  pointer-events: none !important;
+}
+
+

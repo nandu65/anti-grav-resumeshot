@@ -8,7 +8,15 @@ import {
 } from "docx";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { MousePointer2 } from "lucide-react";
+import { toast } from "sonner";
 import { ResumeContextMenu, ContextMenuPosition } from "@/components/ResumeContextMenu";
+import {
+  applyFormatToSelection,
+  copyFormatFromSelection,
+  pasteFormatToSelection,
+  describeFormat,
+  TextFormat,
+} from "@/lib/richFormat";
 
 
 export function saveBlob(blob: Blob, filename: string) {
@@ -209,6 +217,18 @@ export function BulletsEditor({
       ref.current.innerHTML = bullets.map((b, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${b}</li>`).join("");
     }
   }, [text, bullets]);
+
+  useEffect(() => {
+    const ul = ref.current;
+    if (!ul || !onChange) return;
+    const handler = (e: CustomEvent<string[]>) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        onChange(e.detail);
+      }
+    };
+    ul.addEventListener("bullets-update", handler as EventListener);
+    return () => ul.removeEventListener("bullets-update", handler as EventListener);
+  }, [onChange]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
     if (!editable) return;
@@ -2160,9 +2180,13 @@ function tagSections(root: HTMLElement | null) {
 }
 
 function sectionCss(scope: string, settings?: ResumeSettings) {
-  if (!settings) return "";
+  const baseRules: string[] = [
+    `${scope} ul.list-disc { list-style-type: none !important; list-style: none !important; padding-left: 0 !important; }`,
+    `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
+    `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
+  ];
+  if (!settings) return baseRules.join("\n");
   const sections = settings.sections;
-  const baseRules: string[] = [];
 
   if (settings.fontFamily) {
     baseRules.push(`${scope}, ${scope} * { font-family: ${settings.fontFamily} !important; }`);
@@ -2218,6 +2242,7 @@ export function ResumePreview({
   const rootRef = useRef<HTMLDivElement>(null);
   const scopeId = React.useId().replace(/[:]/g, "");
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
+  const [copiedFormat, setCopiedFormat] = useState<TextFormat | null>(null);
 
   const inner =
     template === "modern" ? <ModernPreview r={data} update={update} /> :
@@ -2242,6 +2267,63 @@ export function ResumePreview({
     return () => clearTimeout(timer);
   }, [template, data.settings?.sectionOrder, data.experience.length, data.education.length, data.projects.length, data.skills.length]);
 
+  // Handle mouseup selection inside resume preview
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !onChange) return;
+
+    const handleMouseUp = (e: MouseEvent) => {
+      // Ignore if clicking inside the context menu itself or right-click
+      const target = e.target as HTMLElement;
+      if (e.button !== 0 || target.closest('[role="menu"]')) return;
+
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (
+          selection &&
+          !selection.isCollapsed &&
+          selection.toString().trim().length > 0 &&
+          selection.rangeCount > 0
+        ) {
+          const range = selection.getRangeAt(0);
+          if (root.contains(range.commonAncestorContainer)) {
+            const rect = range.getBoundingClientRect();
+            const targetElem = (
+              range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                ? range.commonAncestorContainer
+                : range.commonAncestorContainer.parentElement
+            ) as HTMLElement;
+
+            const li = targetElem?.closest("li");
+            let lineIdx: number | undefined = undefined;
+            if (li && li.parentElement) {
+              const lis = Array.from(li.parentElement.querySelectorAll("li"));
+              lineIdx = lis.indexOf(li);
+            }
+
+            const menuHeight = 360;
+            const y = rect.top > menuHeight + 20 ? rect.top - 10 : rect.bottom + 10;
+            const x = rect.left + rect.width / 2;
+
+            setContextMenu({
+              x,
+              y,
+              targetElement: targetElem,
+              targetLineIndex: lineIdx,
+              selectedText: selection.toString(),
+              savedRange: range.cloneRange(),
+            });
+          }
+        }
+      }, 30);
+    };
+
+    root.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      root.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [onChange]);
+
   const handleContextMenu = (e: React.MouseEvent) => {
     if (!onChange) return;
     e.preventDefault();
@@ -2255,6 +2337,10 @@ export function ResumePreview({
     }
 
     const selection = window.getSelection();
+    let savedRange: Range | null = null;
+    if (selection && selection.rangeCount > 0) {
+      savedRange = selection.getRangeAt(0).cloneRange();
+    }
     const selText = selection ? selection.toString() : "";
 
     setContextMenu({
@@ -2263,23 +2349,36 @@ export function ResumePreview({
       targetElement: target,
       targetLineIndex: lineIdx,
       selectedText: selText,
+      savedRange,
     });
+  };
+
+  const handleCopyFormat = () => {
+    const fmt = copyFormatFromSelection();
+    if (!fmt) return toast.error("Select some formatted text first");
+    setCopiedFormat(fmt);
+    toast.success(`Format copied — ${describeFormat(fmt)}`);
+  };
+
+  const handlePasteFormat = () => {
+    if (!copiedFormat) return;
+    pasteFormatToSelection(copiedFormat);
+    toast.success("Format applied");
   };
 
   const handleMoveLineUp = () => {
     if (!contextMenu?.targetElement || !onChange) return;
     const li = contextMenu.targetElement.closest("li");
-    if (li && li.parentElement) {
-      const ul = li.parentElement;
+    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
+    if (ul) {
       const lis = Array.from(ul.querySelectorAll("li"));
-      const idx = lis.indexOf(li);
-      if (idx > 0) {
-        const textArr = lis.map(l => l.innerHTML.trim());
+      const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
+      if (idx > 0 && idx < lis.length) {
+        const textArr = lis.map(l => (l.innerHTML || "").trim());
         const temp = textArr[idx];
         textArr[idx] = textArr[idx - 1];
         textArr[idx - 1] = temp;
-        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
-        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+        ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
       }
     }
   };
@@ -2287,17 +2386,16 @@ export function ResumePreview({
   const handleMoveLineDown = () => {
     if (!contextMenu?.targetElement || !onChange) return;
     const li = contextMenu.targetElement.closest("li");
-    if (li && li.parentElement) {
-      const ul = li.parentElement;
+    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
+    if (ul) {
       const lis = Array.from(ul.querySelectorAll("li"));
-      const idx = lis.indexOf(li);
+      const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
       if (idx !== -1 && idx < lis.length - 1) {
-        const textArr = lis.map(l => l.innerHTML.trim());
+        const textArr = lis.map(l => (l.innerHTML || "").trim());
         const temp = textArr[idx];
         textArr[idx] = textArr[idx + 1];
         textArr[idx + 1] = temp;
-        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
-        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+        ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
       }
     }
   };
@@ -2305,15 +2403,14 @@ export function ResumePreview({
   const handleDuplicateLine = () => {
     if (!contextMenu?.targetElement || !onChange) return;
     const li = contextMenu.targetElement.closest("li");
-    if (li && li.parentElement) {
-      const ul = li.parentElement;
+    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
+    if (ul) {
       const lis = Array.from(ul.querySelectorAll("li"));
-      const idx = lis.indexOf(li);
-      if (idx !== -1) {
-        const textArr = lis.map(l => l.innerHTML.trim());
+      const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
+      if (idx !== -1 && idx < lis.length) {
+        const textArr = lis.map(l => (l.innerHTML || "").trim());
         textArr.splice(idx + 1, 0, textArr[idx]);
-        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
-        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+        ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
       }
     }
   };
@@ -2321,38 +2418,43 @@ export function ResumePreview({
   const handleAddLineBelow = () => {
     if (!contextMenu?.targetElement || !onChange) return;
     const li = contextMenu.targetElement.closest("li");
-    if (li && li.parentElement) {
-      const ul = li.parentElement;
+    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
+    if (ul) {
       const lis = Array.from(ul.querySelectorAll("li"));
-      const idx = lis.indexOf(li);
-      const textArr = lis.map(l => l.innerHTML.trim());
+      const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
+      const textArr = lis.map(l => (l.innerHTML || "").trim());
       textArr.splice(idx !== -1 ? idx + 1 : textArr.length, 0, "New bullet point...");
-      ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
-      ul.dispatchEvent(new Event("blur", { bubbles: true }));
+      ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
     }
   };
 
   const handleDeleteLine = () => {
     if (!contextMenu?.targetElement || !onChange) return;
     const li = contextMenu.targetElement.closest("li");
-    if (li && li.parentElement) {
-      const ul = li.parentElement;
+    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
+    if (ul) {
       const lis = Array.from(ul.querySelectorAll("li"));
-      const idx = lis.indexOf(li);
-      if (idx !== -1) {
-        const textArr = lis.map(l => l.innerHTML.trim());
+      const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
+      if (idx !== -1 && idx < lis.length) {
+        const textArr = lis.map(l => (l.innerHTML || "").trim());
         textArr.splice(idx, 1);
-        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
-        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+        ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
       }
     }
   };
 
   const handleFormatText = (command: string, value: string = "") => {
-    document.execCommand(command, false, value);
+    try {
+      applyFormatToSelection(command, value);
+    } catch (e) {
+      console.warn("Formatting failed:", e);
+    }
     if (contextMenu?.targetElement) {
-      const el = contextMenu.targetElement;
-      el.dispatchEvent(new Event("blur", { bubbles: true }));
+      const el = contextMenu.targetElement.closest('[contenteditable="true"]') as HTMLElement | null;
+      if (el) {
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+      }
     }
   };
 
@@ -2367,7 +2469,7 @@ export function ResumePreview({
       <style dangerouslySetInnerHTML={{ __html: sectionCss(`[data-rs-root="${scopeId}"]`, data.settings) }} />
       <PagedSheet>{inner}</PagedSheet>
 
-      {/* Right-click formatting & line actions context menu */}
+      {/* Unified context & text formatting menu */}
       {contextMenu && (
         <ResumeContextMenu
           position={contextMenu}
@@ -2378,6 +2480,9 @@ export function ResumePreview({
           onAddLineBelow={contextMenu.targetLineIndex != null ? handleAddLineBelow : undefined}
           onDeleteLine={contextMenu.targetLineIndex != null ? handleDeleteLine : undefined}
           onFormatText={handleFormatText}
+          onCopyFormat={handleCopyFormat}
+          onPasteFormat={handlePasteFormat}
+          copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
         />
       )}
     </div>

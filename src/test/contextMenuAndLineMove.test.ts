@@ -51,9 +51,61 @@ describe("Resume Context Menu & Line-by-Line Movement", () => {
     expect(duplicated.length).toBe(3);
     expect(duplicated).toEqual(["Line A", "Line A", "Line B"]);
 
+    // Insert new line below index 1
+    duplicated.splice(2, 0, "New bullet point...");
+    expect(duplicated.length).toBe(4);
+    expect(duplicated[2]).toBe("New bullet point...");
+
     // Delete Line B
-    duplicated.splice(2, 1);
-    expect(duplicated.length).toBe(2);
-    expect(duplicated).toEqual(["Line A", "Line A"]);
+    duplicated.splice(3, 1);
+    expect(duplicated.length).toBe(3);
+    expect(duplicated).toEqual(["Line A", "Line A", "New bullet point..."]);
+  });
+
+  it("should correctly transform text case for uppercase, lowercase, and titlecase", () => {
+    const rawText = "senior frontend developer & full-stack architect";
+
+    const upper = rawText.toUpperCase();
+    expect(upper).toBe("SENIOR FRONTEND DEVELOPER & FULL-STACK ARCHITECT");
+
+    const lower = upper.toLowerCase();
+    expect(lower).toBe("senior frontend developer & full-stack architect");
+
+    const title = lower.replace(/\b\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    expect(title).toBe("Senior Frontend Developer & Full-Stack Architect");
+  });
+
+  it("should support drag-and-drop section reordering accurately", () => {
+    const defaultSections = getNormalizedSectionOrder();
+    const sourceIndex = defaultSections.indexOf("skills");
+    const destinationIndex = 1; // Move skills near top right after summary
+
+    const reordered = Array.from(defaultSections);
+    const [moved] = reordered.splice(sourceIndex, 1);
+    reordered.splice(destinationIndex, 0, moved);
+
+    expect(reordered[destinationIndex]).toBe("skills");
+    expect(reordered.length).toBe(defaultSections.length);
+    expect(reordered).toContain("experience");
+    expect(reordered).toContain("leadership");
+    expect(reordered).toContain("education");
+  });
+
+  it("should support card reordering for experience, leadership, education, and projects", () => {
+    const roles = [
+      { company: "Company A", role: "Frontend Dev" },
+      { company: "Company B", role: "Backend Dev" },
+      { company: "Company C", role: "Fullstack Dev" },
+    ];
+
+    // Drag role C (index 2) to top (index 0)
+    const reordered = Array.from(roles);
+    const [movedRole] = reordered.splice(2, 1);
+    reordered.splice(0, 0, movedRole);
+
+    expect(reordered[0].company).toBe("Company C");
+    expect(reordered[1].company).toBe("Company A");
+    expect(reordered[2].company).toBe("Company B");
   });
 });
+

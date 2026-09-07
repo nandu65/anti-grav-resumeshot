@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award } from "lucide-react";
+import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
@@ -10,7 +10,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { FormattingToolbar } from "@/components/FormattingToolbar";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 
@@ -146,7 +145,6 @@ export default function ResumeBuilder() {
   const [prefs, setPrefs] = useState<ResumePrefs>(DEFAULT_PREFS);
   const [spellCheckEnabled, setSpellCheckEnabled] = useState(true);
   const restoring = useRef(false);
-  const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
   const [copiedFormat, setCopiedFormat] = useState<TextFormat | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -154,21 +152,6 @@ export default function ResumeBuilder() {
   const [versionName, setVersionName] = useState("");
   const [versions, setVersions] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
-
-
-  useEffect(() => {
-    const handleSelection = () => {
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed && selection.toString().trim().length > 0) {
-        setShowFormattingToolbar(true);
-      } else {
-        setShowFormattingToolbar(false);
-      }
-    };
-
-    document.addEventListener("selectionchange", handleSelection);
-    return () => document.removeEventListener("selectionchange", handleSelection);
-  }, []);
 
   const handleFormat = (command: string, value?: string) => {
     applyFormatToSelection(command, value);
@@ -189,19 +172,64 @@ export default function ResumeBuilder() {
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
-    
-    const sections = resumeData.settings?.sectionOrder || ["summary", "experience", "projects", "education", "skills", "certifications"];
-    const items = Array.from(sections);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const { source, destination } = result;
 
-    setResumeData(prev => ({
-      ...prev,
-      settings: {
-        ...prev.settings,
-        sectionOrder: items
-      }
-    }));
+    // 1. Reordering resume sections
+    if (
+      result.type === "section" ||
+      source.droppableId === "section-order-list" ||
+      source.droppableId.endsWith("-content")
+    ) {
+      const sections = getNormalizedSectionOrder(resumeData.settings?.sectionOrder, resumeData);
+      const items = Array.from(sections);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+
+      setResumeData(prev => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          sectionOrder: items,
+        },
+      }));
+      return;
+    }
+
+    // 2. Reordering work experience entries
+    if (source.droppableId === "experience-list") {
+      const items = Array.from(resumeData.experience);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setResumeData(prev => ({ ...prev, experience: items }));
+      return;
+    }
+
+    // 3. Reordering leadership experience entries
+    if (source.droppableId === "leadership-list") {
+      const items = Array.from(resumeData.leadership || []);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setResumeData(prev => ({ ...prev, leadership: items }));
+      return;
+    }
+
+    // 4. Reordering education entries
+    if (source.droppableId === "education-list") {
+      const items = Array.from(resumeData.education);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setResumeData(prev => ({ ...prev, education: items }));
+      return;
+    }
+
+    // 5. Reordering project entries
+    if (source.droppableId === "projects-list") {
+      const items = Array.from(resumeData.projects);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setResumeData(prev => ({ ...prev, projects: items }));
+      return;
+    }
   };
 
 
@@ -603,6 +631,7 @@ export default function ResumeBuilder() {
           </div>
         </div>
       ) : (
+        <DragDropContext onDragEnd={onDragEnd}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-[calc(100vh-4.25rem)] flex flex-col overflow-hidden">
           <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
             <div className="flex items-center gap-2">
@@ -933,64 +962,89 @@ export default function ResumeBuilder() {
                         </Button>
                      </div>
                    </div>
-                   <div className="space-y-6">
-                      {resumeData.experience.map((exp, i) => (
-                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
-                           <Button 
-                             variant="ghost" 
-                             size="icon" 
-                             className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
-                             onClick={() => setResumeData(prev => ({ ...prev, experience: prev.experience.filter((_, j) => i !== j) }))}
-                           >
-                             <Trash2 className="h-3 w-3" />
-                           </Button>
-                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Company</Label>
-                                <Input value={exp.company} onChange={e => { const n = [...resumeData.experience]; n[i].company = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Company" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
-                                <Input value={exp.role} onChange={e => { const n = [...resumeData.experience]; n[i].role = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                           </div>
-                           <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
-                                <Input value={exp.location} onChange={e => { const n = [...resumeData.experience]; n[i].location = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Remote / City" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
-                                <Input value={exp.start} onChange={e => { const n = [...resumeData.experience]; n[i].start = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Jan 2022" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
-                                <Input value={exp.end} onChange={e => { const n = [...resumeData.experience]; n[i].end = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Present" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                           </div>
-                           <div className="relative space-y-1">
-                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
-                               <Textarea 
-                                 value={exp.bullets.join('\n')} 
-                                 onChange={e => { const n = [...resumeData.experience]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, experience: n }); }} 
-                                 placeholder="Bullet points describing your achievements..." 
-                                 className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none pb-10" 
-                                 spellCheck={spellCheckEnabled} 
-                               />
-                               <div className="absolute bottom-2 right-2 flex gap-1">
-                                  <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-primary hover:bg-primary/10">
-                                     <Sparkles className="h-3 w-3 mr-1" />
-                                     IMPROVE
-                                  </Button>
+                                 <Droppable droppableId="experience-list">
+                     {(provided) => (
+                       <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                         {resumeData.experience.map((exp, i) => (
+                           <Draggable key={`exp-${i}`} draggableId={`exp-${i}`} index={i}>
+                             {(prov, snap) => (
+                               <div
+                                 ref={prov.innerRef}
+                                 {...prov.draggableProps}
+                                 className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
+                                   snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                 }`}
+                               >
+                                 <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                   <div
+                                     {...prov.dragHandleProps}
+                                     className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                     title="Drag to reorder role"
+                                   >
+                                     <GripVertical className="h-4 w-4" />
+                                     <span>Role #{i + 1}</span>
+                                   </div>
+                                   <Button 
+                                     variant="ghost" 
+                                     size="icon" 
+                                     className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10" 
+                                     onClick={() => setResumeData(prev => ({ ...prev, experience: prev.experience.filter((_, j) => i !== j) }))}
+                                   >
+                                     <Trash2 className="h-3.5 w-3.5" />
+                                   </Button>
+                                 </div>
+                                 <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Company</Label>
+                                     <Input value={exp.company} onChange={e => { const n = [...resumeData.experience]; n[i].company = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Company" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
+                                     <Input value={exp.role} onChange={e => { const n = [...resumeData.experience]; n[i].role = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                 </div>
+                                 <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
+                                     <Input value={exp.location} onChange={e => { const n = [...resumeData.experience]; n[i].location = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Remote / City" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
+                                     <Input value={exp.start} onChange={e => { const n = [...resumeData.experience]; n[i].start = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Jan 2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
+                                     <Input value={exp.end} onChange={e => { const n = [...resumeData.experience]; n[i].end = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Present" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                 </div>
+                                 <div className="relative space-y-1">
+                                   <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
+                                   <Textarea 
+                                     value={exp.bullets.join('\n')} 
+                                     onChange={e => { const n = [...resumeData.experience]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, experience: n }); }} 
+                                     placeholder="Bullet points describing your achievements..." 
+                                     className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none pb-10" 
+                                     spellCheck={spellCheckEnabled} 
+                                   />
+                                   <div className="absolute bottom-2 right-2 flex gap-1">
+                                     <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-primary hover:bg-primary/10">
+                                       <Sparkles className="h-3 w-3 mr-1" />
+                                       IMPROVE
+                                     </Button>
+                                   </div>
+                                 </div>
                                </div>
-                           </div>
-                        </div>
-                      ))}
-                      {resumeData.experience.length === 0 && (
-                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No experience added.</div>
-                      )}
-                   </div>
-                </div>
+                             )}
+                           </Draggable>
+                         ))}
+                         {provided.placeholder}
+                         {resumeData.experience.length === 0 && (
+                           <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No experience added.</div>
+                         )}
+                       </div>
+                     )}
+                   </Droppable>
+                 </div>
 
                 {/* LEADERSHIP EXPERIENCE */}
                 <div id="section-leadership" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
@@ -1016,32 +1070,57 @@ export default function ResumeBuilder() {
                         </Button>
                      </div>
                    </div>
-                   <div className="space-y-6">
-                      {(resumeData.leadership || []).map((lead, i) => (
-                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
-                           <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, leadership: (prev.leadership || []).filter((_, j) => i !== j) }))}>
-                             <Trash2 className="h-3 w-3" />
-                           </Button>
-                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Organization</Label>
-                                <Input value={lead.organization} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].organization = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Organization" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
-                                <Input value={lead.role} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].role = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                           </div>
-                           <div className="relative space-y-1">
-                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
-                               <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none" spellCheck={spellCheckEnabled} />
-                           </div>
-                        </div>
-                      ))}
-                      {(!resumeData.leadership || resumeData.leadership.length === 0) && (
-                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No leadership added.</div>
-                      )}
-                   </div>
+                   <Droppable droppableId="leadership-list">
+                     {(provided) => (
+                       <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                         {(resumeData.leadership || []).map((lead, i) => (
+                           <Draggable key={`lead-${i}`} draggableId={`lead-${i}`} index={i}>
+                             {(prov, snap) => (
+                               <div
+                                 ref={prov.innerRef}
+                                 {...prov.draggableProps}
+                                 className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
+                                   snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                 }`}
+                               >
+                                 <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                   <div
+                                     {...prov.dragHandleProps}
+                                     className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                     title="Drag to reorder leadership role"
+                                   >
+                                     <GripVertical className="h-4 w-4" />
+                                     <span>Leadership Role #{i + 1}</span>
+                                   </div>
+                                   <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10" onClick={() => setResumeData(prev => ({ ...prev, leadership: (prev.leadership || []).filter((_, j) => i !== j) }))}>
+                                     <Trash2 className="h-3.5 w-3.5" />
+                                   </Button>
+                                 </div>
+                                 <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Organization</Label>
+                                     <Input value={lead.organization} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].organization = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Organization" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                   <div className="space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
+                                     <Input value={lead.role} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].role = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                 </div>
+                                 <div className="relative space-y-1">
+                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
+                                     <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none" spellCheck={spellCheckEnabled} />
+                                 </div>
+                               </div>
+                             )}
+                           </Draggable>
+                         ))}
+                         {provided.placeholder}
+                         {(!resumeData.leadership || resumeData.leadership.length === 0) && (
+                           <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No leadership added.</div>
+                         )}
+                       </div>
+                     )}
+                   </Droppable>
                 </div>
 
                 {/* EDUCATION */}
@@ -1068,46 +1147,71 @@ export default function ResumeBuilder() {
                          </Button>
                       </div>
                     </div>
-                    <div className="space-y-6">
-                       {resumeData.education.map((edu, i) => (
-                         <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
-                            <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, j) => i !== j) }))}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                               <div className="space-y-1">
-                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">School</Label>
-                                 <Input value={edu.school} onChange={e => { const n = [...resumeData.education]; n[i].school = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="University Name" className="h-9 rounded-lg border-border/60 bg-background" />
-                               </div>
-                               <div className="space-y-1">
-                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Degree</Label>
-                                 <Input value={edu.degree} onChange={e => { const n = [...resumeData.education]; n[i].degree = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="B.S. in Computer Science" className="h-9 rounded-lg border-border/60 bg-background" />
-                               </div>
-                            </div>
-                            <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                               <div className="space-y-1">
-                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
-                                 <Input value={edu.location} onChange={e => { const n = [...resumeData.education]; n[i].location = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="City, State" className="h-9 rounded-lg border-border/60 bg-background" />
-                               </div>
-                               <div className="space-y-1">
-                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
-                                 <Input value={edu.start} onChange={e => { const n = [...resumeData.education]; n[i].start = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2018" className="h-9 rounded-lg border-border/60 bg-background" />
-                               </div>
-                               <div className="space-y-1">
-                                 <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
-                                 <Input value={edu.end} onChange={e => { const n = [...resumeData.education]; n[i].end = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2022" className="h-9 rounded-lg border-border/60 bg-background" />
-                               </div>
-                            </div>
-                            <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Details / Honors</Label>
-                                <Input value={edu.details} onChange={e => { const n = [...resumeData.education]; n[i].details = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="GPA: 3.9, Dean's List..." className="h-9 rounded-lg border-border/60 bg-background" />
-                            </div>
+                    <Droppable droppableId="education-list">
+                       {(provided) => (
+                         <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                           {resumeData.education.map((edu, i) => (
+                             <Draggable key={`edu-${i}`} draggableId={`edu-${i}`} index={i}>
+                               {(prov, snap) => (
+                                 <div
+                                   ref={prov.innerRef}
+                                   {...prov.draggableProps}
+                                   className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
+                                     snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                   }`}
+                                 >
+                                   <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                     <div
+                                       {...prov.dragHandleProps}
+                                       className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                       title="Drag to reorder school"
+                                     >
+                                       <GripVertical className="h-4 w-4" />
+                                       <span>Education #{i + 1}</span>
+                                     </div>
+                                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10" onClick={() => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, j) => i !== j) }))}>
+                                       <Trash2 className="h-3.5 w-3.5" />
+                                     </Button>
+                                   </div>
+                                   <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                     <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">School</Label>
+                                       <Input value={edu.school} onChange={e => { const n = [...resumeData.education]; n[i].school = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="University Name" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     </div>
+                                     <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Degree</Label>
+                                       <Input value={edu.degree} onChange={e => { const n = [...resumeData.education]; n[i].degree = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="B.S. in Computer Science" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     </div>
+                                   </div>
+                                   <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                                     <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
+                                       <Input value={edu.location} onChange={e => { const n = [...resumeData.education]; n[i].location = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="City, State" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     </div>
+                                     <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
+                                       <Input value={edu.start} onChange={e => { const n = [...resumeData.education]; n[i].start = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2018" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     </div>
+                                     <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
+                                       <Input value={edu.end} onChange={e => { const n = [...resumeData.education]; n[i].end = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     </div>
+                                   </div>
+                                   <div className="space-y-1">
+                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Details / Honors</Label>
+                                       <Input value={edu.details} onChange={e => { const n = [...resumeData.education]; n[i].details = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="GPA: 3.9, Dean's List..." className="h-9 rounded-lg border-border/60 bg-background" />
+                                   </div>
+                                 </div>
+                               )}
+                             </Draggable>
+                           ))}
+                           {provided.placeholder}
+                           {resumeData.education.length === 0 && (
+                             <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No education added.</div>
+                           )}
                          </div>
-                       ))}
-                       {resumeData.education.length === 0 && (
-                         <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No education added.</div>
                        )}
-                   </div>
+                     </Droppable>
                 </div>
 
                 {/* PROJECTS */}
@@ -1134,32 +1238,57 @@ export default function ResumeBuilder() {
                         </Button>
                      </div>
                    </div>
-                   <div className="space-y-6">
-                      {resumeData.projects.map((proj, i) => (
-                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
-                           <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, projects: prev.projects.filter((_, j) => i !== j) }))}>
-                             <Trash2 className="h-3 w-3" />
-                           </Button>
-                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Name</Label>
-                                <Input value={proj.name} onChange={e => { const n = [...resumeData.projects]; n[i].name = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="Project Alpha" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Technologies</Label>
-                                <Input value={proj.tech} onChange={e => { const n = [...resumeData.projects]; n[i].tech = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="React, Node.js, AWS" className="h-9 rounded-lg border-border/60 bg-background" />
-                              </div>
-                           </div>
-                           <div className="space-y-1">
-                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Description</Label>
-                               <Textarea value={proj.bullets.join('\n')} onChange={e => { const n = [...resumeData.projects]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, projects: n }); }} placeholder="Describe the impact and technical challenges..." className="min-h-[80px] rounded-lg border-border/60 bg-background resize-none" />
-                           </div>
+                    <Droppable droppableId="projects-list">
+                      {(provided) => (
+                        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                          {resumeData.projects.map((proj, i) => (
+                            <Draggable key={`proj-${i}`} draggableId={`proj-${i}`} index={i}>
+                              {(prov, snap) => (
+                                <div
+                                  ref={prov.innerRef}
+                                  {...prov.draggableProps}
+                                  className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
+                                    snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                    <div
+                                      {...prov.dragHandleProps}
+                                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                      title="Drag to reorder project"
+                                    >
+                                      <GripVertical className="h-4 w-4" />
+                                      <span>Project #{i + 1}</span>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10" onClick={() => setResumeData(prev => ({ ...prev, projects: prev.projects.filter((_, j) => i !== j) }))}>
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                    <div className="space-y-1">
+                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Name</Label>
+                                      <Input value={proj.name} onChange={e => { const n = [...resumeData.projects]; n[i].name = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="Project Alpha" className="h-9 rounded-lg border-border/60 bg-background" />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Technologies</Label>
+                                      <Input value={proj.tech} onChange={e => { const n = [...resumeData.projects]; n[i].tech = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="React, Node.js, AWS" className="h-9 rounded-lg border-border/60 bg-background" />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Description</Label>
+                                      <Textarea value={proj.bullets.join('\n')} onChange={e => { const n = [...resumeData.projects]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, projects: n }); }} placeholder="Describe the impact and technical challenges..." className="min-h-[80px] rounded-lg border-border/60 bg-background resize-none" />
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                          {resumeData.projects.length === 0 && (
+                            <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No projects added.</div>
+                          )}
                         </div>
-                      ))}
-                      {resumeData.projects.length === 0 && (
-                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No projects added.</div>
                       )}
-                   </div>
+                    </Droppable>
                 </div>
 
                 {/* SKILLS & GENERATE */}
@@ -1345,16 +1474,6 @@ export default function ResumeBuilder() {
                 {/* RIGHT COLUMN: INDEPENDENT PREVIEW PANE */}
                 <div className="hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0">
 
-                  {showFormattingToolbar && (
-                    <FormattingToolbar 
-                      onFormat={handleFormat} 
-                      onClose={() => setShowFormattingToolbar(false)} 
-                      onCopyFormat={handleCopyFormat}
-                      onPasteFormat={handlePasteFormat}
-                      copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
-                    />
-                  )}
-
                   {/* Rich Text Toolbar */}
                   <div className="shrink-0 flex items-center gap-1 p-2 bg-background/80 backdrop-blur-sm border-b">
                     <Button 
@@ -1443,9 +1562,7 @@ export default function ResumeBuilder() {
                     <div className="flex-1 overflow-y-auto overflow-x-hidden p-1 custom-scrollbar flex justify-center items-start min-h-0">
                       {resumeData ? (
                         <div className="w-full max-w-[794px] min-w-0 mx-auto resume-export-target bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-200">
-                          <DragDropContext onDragEnd={onDragEnd}>
-                            <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
-                          </DragDropContext>
+                          <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
                         </div>
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
@@ -1459,6 +1576,7 @@ export default function ResumeBuilder() {
                 </div>
               </div>
             </div>
+        </DragDropContext>
           )}
 
 
