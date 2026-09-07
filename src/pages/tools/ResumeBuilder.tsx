@@ -35,6 +35,7 @@ import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
 import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
 import { PreferenceFilterBar, scoreTemplate } from "@/components/PreferenceFilterBar";
 import { ResumeDesignFormattingPanel } from "@/components/ResumeDesignFormattingPanel";
+import { RESUME_FONTS } from "@/lib/fonts";
 
 const EMPTY_RESUME: ResumeData = {
   name: "Harsha Naidu",

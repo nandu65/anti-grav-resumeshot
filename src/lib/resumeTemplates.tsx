@@ -377,37 +377,64 @@ export type RichSegment = { text: string; bold: boolean; italic: boolean; underl
 /** Parse inline HTML produced by the editable preview into styled segments used by PDF/DOCX export. */
 export function parseRichSegments(html: string): RichSegment[] {
   if (!html) return [{ text: "", bold: false, italic: false, underline: false }];
-  if (typeof document === "undefined" || !/[<&]/.test(html)) {
+  if (!/[<&]/.test(html)) {
     return [{ text: html, bold: false, italic: false, underline: false }];
   }
-  const root = document.createElement("div");
-  root.innerHTML = html;
+
+  if (typeof document !== "undefined") {
+    const root = document.createElement("div");
+    root.innerHTML = html;
+    const out: RichSegment[] = [];
+    const walk = (node: Node, inherited: Omit<RichSegment, "text">) => {
+      node.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE) {
+          const text = child.textContent || "";
+          if (text) out.push({ ...inherited, text });
+          return;
+        }
+        if (child.nodeType !== Node.ELEMENT_NODE) return;
+        const el = child as HTMLElement;
+        const tag = el.tagName.toLowerCase();
+        const style = el.style;
+        const next: Omit<RichSegment, "text"> = {
+          bold: inherited.bold || tag === "b" || tag === "strong" || parseInt(style.fontWeight || "0", 10) >= 600 || style.fontWeight === "bold",
+          italic: inherited.italic || tag === "i" || tag === "em" || style.fontStyle === "italic",
+          underline: inherited.underline || tag === "u" || (style.textDecoration || "").includes("underline"),
+          fontSize: style.fontSize ? parseFloat(style.fontSize) : inherited.fontSize,
+          fontFamily: style.fontFamily || inherited.fontFamily,
+        };
+        walk(el, next);
+        if (tag === "br" || tag === "div" || tag === "p" || tag === "li") out.push({ ...next, text: "\n" });
+      });
+    };
+    walk(root, { bold: false, italic: false, underline: false });
+    const merged = out.filter(s => s.text !== "");
+    return merged.length ? merged : [{ text: "", bold: false, italic: false, underline: false }];
+  }
+
+  // Fast isomorphic fallback when running in server/test environments without DOM
   const out: RichSegment[] = [];
-  const walk = (node: Node, inherited: Omit<RichSegment, "text">) => {
-    node.childNodes.forEach(child => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent || "";
-        if (text) out.push({ ...inherited, text });
-        return;
-      }
-      if (child.nodeType !== Node.ELEMENT_NODE) return;
-      const el = child as HTMLElement;
-      const tag = el.tagName.toLowerCase();
-      const style = el.style;
-      const next: Omit<RichSegment, "text"> = {
-        bold: inherited.bold || tag === "b" || tag === "strong" || parseInt(style.fontWeight || "0", 10) >= 600 || style.fontWeight === "bold",
-        italic: inherited.italic || tag === "i" || tag === "em" || style.fontStyle === "italic",
-        underline: inherited.underline || tag === "u" || (style.textDecoration || "").includes("underline"),
-        fontSize: style.fontSize ? parseFloat(style.fontSize) : inherited.fontSize,
-        fontFamily: style.fontFamily || inherited.fontFamily,
-      };
-      walk(el, next);
-      if (tag === "br" || tag === "div" || tag === "p" || tag === "li") out.push({ ...next, text: "\n" });
-    });
-  };
-  walk(root, { bold: false, italic: false, underline: false });
-  const merged = out.filter(s => s.text !== "");
-  return merged.length ? merged : [{ text: "", bold: false, italic: false, underline: false }];
+  const tokenRegex = /(<[^>]+>|[^<]+)/g;
+  let bold = false;
+  let italic = false;
+  let underline = false;
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenRegex.exec(html)) !== null) {
+    const token = match[0];
+    if (token.startsWith("<")) {
+      const lowerTag = token.toLowerCase();
+      const isClosing = lowerTag.startsWith("</");
+      const tagName = lowerTag.replace(/[</>]/g, "").trim().split(/\s+/)[0];
+      if (tagName === "b" || tagName === "strong") bold = !isClosing;
+      else if (tagName === "i" || tagName === "em") italic = !isClosing;
+      else if (tagName === "u") underline = !isClosing;
+    } else {
+      out.push({ text: token, bold, italic, underline });
+    }
+  }
+
+  return out.length ? out : [{ text: html, bold: false, italic: false, underline: false }];
 }
 
 /** Plain text of inline HTML (used where styling can't be represented). */
@@ -2837,15 +2864,27 @@ export function resolveDocxFont(fontName?: string, defaultFont = "Calibri"): str
   const clean = fontName.replace(/['"]/g, "").trim();
   const lower = clean.toLowerCase();
 
+  // Monospace
   if (
-    lower.includes("mono") ||
+    lower.includes("monospace") ||
     lower.includes("courier") ||
     lower.includes("consolas") ||
-    lower.includes("code") ||
-    lower.includes("jetbrains")
+    lower.includes("jetbrains mono") ||
+    lower.includes("fira code") ||
+    lower.includes("source code") ||
+    /\bmono\b/.test(lower)
   ) {
+    if (lower.includes("courier")) return "Courier New";
     return "Consolas";
   }
+
+  // Specific font mappings
+  if (lower.includes("century gothic") || lower.includes("quicksand")) return "Century Gothic";
+  if (lower.includes("tahoma")) return "Tahoma";
+  if (lower.includes("trebuchet")) return "Trebuchet MS";
+  if (lower.includes("verdana")) return "Verdana";
+  if (lower.includes("bodoni")) return "Bodoni MT";
+  if (lower.includes("palatino")) return "Palatino Linotype";
 
   // Check sans-serif first to avoid substring matching "serif" in "sans-serif"
   if (
@@ -2857,9 +2896,13 @@ export function resolveDocxFont(fontName?: string, defaultFont = "Calibri"): str
     lower.includes("calibri") ||
     lower.includes("system-ui") ||
     lower.includes("jakarta") ||
-    lower.includes("aptos")
+    lower.includes("aptos") ||
+    lower.includes("poppins") ||
+    lower.includes("public sans") ||
+    lower.includes("karla") ||
+    lower.includes("rubik")
   ) {
-    if (lower.includes("arial")) return "Arial";
+    if (lower.includes("arial") || lower.includes("public sans")) return "Arial";
     if (lower.includes("aptos")) return "Aptos";
     return "Calibri";
   }
@@ -2873,7 +2916,10 @@ export function resolveDocxFont(fontName?: string, defaultFont = "Calibri"): str
     lower.includes("garamond") ||
     lower.includes("merriweather") ||
     lower.includes("playfair") ||
-    lower.includes("cambria")
+    lower.includes("cambria") ||
+    lower.includes("forum") ||
+    lower.includes("noto") ||
+    lower.includes("fraunces")
   ) {
     if (lower.includes("times")) return "Times New Roman";
     if (lower.includes("garamond")) return "Garamond";

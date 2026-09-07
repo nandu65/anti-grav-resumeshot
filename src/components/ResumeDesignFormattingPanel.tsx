@@ -13,21 +13,7 @@ interface ResumeDesignFormattingPanelProps {
   className?: string;
 }
 
-const FONT_OPTIONS = [
-  { label: "Arial", value: "Arial, sans-serif" },
-  { label: "Calibri", value: "Calibri, sans-serif" },
-  { label: "Times New Roman", value: "'Times New Roman', serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Inter", value: "Inter, sans-serif" },
-  { label: "Roboto", value: "Roboto, sans-serif" },
-  { label: "Libre Baskerville", value: "'Libre Baskerville', serif" },
-  { label: "JetBrains Mono", value: "'JetBrains Mono', monospace" },
-  { label: "Garamond", value: "Garamond, serif" },
-  { label: "Cambria", value: "Cambria, serif" },
-  { label: "Verdana", value: "Verdana, sans-serif" },
-  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
-  { label: "System Default", value: "system-ui, sans-serif" },
-];
+import { RESUME_FONTS } from "@/lib/fonts";
 
 const SECTION_LABELS: Record<string, string> = {
   summary: "Summary",
@@ -152,8 +138,8 @@ export function ResumeDesignFormattingPanel({
                   onChange={(e) => updateSetting("fontFamily", e.target.value)}
                   className="w-full h-9 px-3 bg-[#1c243c] border border-white/20 rounded-xl text-xs font-medium text-white appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-400"
                 >
-                  {FONT_OPTIONS.map((f) => (
-                    <option key={f.value} value={f.value} className="bg-[#1c243c] text-white">
+                  {RESUME_FONTS.map((f) => (
+                    <option key={f.value} value={f.value} style={{ fontFamily: f.value }} className="bg-[#1c243c] text-white py-1">
                       {f.label}
                     </option>
                   ))}

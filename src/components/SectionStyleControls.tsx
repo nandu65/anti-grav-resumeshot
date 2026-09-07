@@ -1,16 +1,7 @@
 import { RESUME_SECTIONS, ResumeSectionKey, SectionStyle } from "@/lib/resumeTemplates";
 import { Button } from "@/components/ui/button";
 import { Type, RotateCcw } from "lucide-react";
-
-export type SectionStyles = Partial<Record<ResumeSectionKey, SectionStyle>>;
-
-const FONTS = [
-  { label: "Inherit", value: "" },
-  { label: "Modern Sans", value: "Inter, sans-serif" },
-  { label: "Classic Serif", value: "'Libre Baskerville', serif" },
-  { label: "Clean Mono", value: "'JetBrains Mono', monospace" },
-  { label: "Professional", value: "system-ui, sans-serif" },
-];
+import { RESUME_FONTS } from "@/lib/fonts";
 
 export function SectionStyleControls({
   value, onChange, baseSize, sectionKey, hideHeader = false
@@ -55,11 +46,16 @@ export function SectionStyleControls({
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => set(key, { fontSize: Math.min(28, size + 1) })}>+</Button>
                 </div>
                 <select
-                  className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none h-8 min-w-[100px]"
+                  className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none h-8 min-w-[120px]"
                   value={s.fontFamily || ""}
                   onChange={e => set(key, { fontFamily: e.target.value || undefined })}
                 >
-                  {FONTS.map(f => <option key={f.label} value={f.value}>{f.label}</option>)}
+                  <option value="">Inherit</option>
+                  {RESUME_FONTS.map(f => (
+                    <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>
+                      {f.label}
+                    </option>
+                  ))}
                 </select>
                 <div className="flex gap-1">
                   <Button

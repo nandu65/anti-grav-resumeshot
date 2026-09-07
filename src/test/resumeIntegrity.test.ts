@@ -114,4 +114,60 @@ describe("Resume Data Integrity", () => {
     const docx = buildResumeDocxBody(formattedData, "classic");
     expect(docx.children.length).toBeGreaterThan(0);
   });
+
+  it("should support all 20 requested fonts and resolve valid docx fonts", async () => {
+    const { RESUME_FONTS } = await import("../lib/fonts");
+    const { resolveDocxFont } = await import("../lib/resumeTemplates");
+
+    expect(RESUME_FONTS.length).toBe(20);
+
+    const expectedFontNames = [
+      "Arial",
+      "Bodoni MT",
+      "Century Gothic",
+      "Courier New",
+      "Georgia",
+      "Palatino Linotype",
+      "Tahoma",
+      "Times New Roman",
+      "Trebuchet MS",
+      "Verdana",
+      "Inter",
+      "Poppins",
+      "Quicksand",
+      "Public Sans",
+      "Karla",
+      "Rubik",
+      "Playfair Display",
+      "Forum",
+      "Noto Serif",
+      "Fraunces",
+    ];
+
+    const actualFontNames = RESUME_FONTS.map(f => f.label);
+    expectedFontNames.forEach(font => {
+      expect(actualFontNames).toContain(font);
+    });
+
+    // Test docx resolution for all 20 fonts
+    RESUME_FONTS.forEach(font => {
+      const resolved = resolveDocxFont(font.value);
+      expect(resolved).toBeTruthy();
+      expect(typeof resolved).toBe("string");
+    });
+
+    expect(resolveDocxFont("Arial, Helvetica, sans-serif")).toBe("Arial");
+    expect(resolveDocxFont("'Bodoni MT', 'Bodoni Moda', Didot, Georgia, serif")).toBe("Bodoni MT");
+    expect(resolveDocxFont("'Century Gothic', CenturyGothic, AppleGothic, sans-serif")).toBe("Century Gothic");
+    expect(resolveDocxFont("'Courier New', Courier, monospace")).toBe("Courier New");
+    expect(resolveDocxFont("'Palatino Linotype', 'Book Antiqua', Palatino, serif")).toBe("Palatino Linotype");
+    expect(resolveDocxFont("Tahoma, Geneva, sans-serif")).toBe("Tahoma");
+    expect(resolveDocxFont("'Times New Roman', Times, serif")).toBe("Times New Roman");
+    expect(resolveDocxFont("'Trebuchet MS', 'Lucida Sans Unicode', sans-serif")).toBe("Trebuchet MS");
+    expect(resolveDocxFont("Verdana, Geneva, sans-serif")).toBe("Verdana");
+    expect(resolveDocxFont("'Inter', sans-serif")).toBe("Calibri");
+    expect(resolveDocxFont("'Poppins', sans-serif")).toBe("Calibri");
+    expect(resolveDocxFont("'Quicksand', sans-serif")).toBe("Century Gothic");
+    expect(resolveDocxFont("'Public Sans', sans-serif")).toBe("Arial");
+  });
 });
