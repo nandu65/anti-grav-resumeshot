@@ -170,4 +170,23 @@ describe("Resume Data Integrity", () => {
     expect(resolveDocxFont("'Quicksand', sans-serif")).toBe("Century Gothic");
     expect(resolveDocxFont("'Public Sans', sans-serif")).toBe("Arial");
   });
+
+  it("should support all 18 templates in TEMPLATES with valid docx bodies and metadata", async () => {
+    const { TEMPLATES, buildResumeDocxBody, TEMPLATE_DOCX_CONFIGS } = await import("../lib/resumeTemplates");
+
+    expect(TEMPLATES.length).toBe(18);
+
+    TEMPLATES.forEach(t => {
+      expect(t.id).toBeTruthy();
+      expect(t.name).toBeTruthy();
+      expect(t.desc).toBeTruthy();
+
+      // Check that DOCX config exists
+      expect(TEMPLATE_DOCX_CONFIGS[t.id]).toBeDefined();
+
+      // Build docx body and ensure children exist
+      const docx = buildResumeDocxBody(sentinelData, t.id);
+      expect(docx.children.length).toBeGreaterThan(0);
+    });
+  });
 });

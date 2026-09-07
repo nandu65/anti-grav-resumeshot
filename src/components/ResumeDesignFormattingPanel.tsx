@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Palette, Type, Check, RotateCcw, LayoutList, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
-import { ResumeSettings, TemplateId, TEMPLATES, getNormalizedSectionOrder } from "@/lib/resumeTemplates";
+import { ResumeSettings, TemplateId, TEMPLATES, getNormalizedSectionOrder, TemplateMiniPreview } from "@/lib/resumeTemplates";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { RESUME_FONTS } from "@/lib/fonts";
 
 interface ResumeDesignFormattingPanelProps {
   settings: ResumeSettings;
@@ -12,8 +13,6 @@ interface ResumeDesignFormattingPanelProps {
   onChangeTemplate: (template: TemplateId) => void;
   className?: string;
 }
-
-import { RESUME_FONTS } from "@/lib/fonts";
 
 const SECTION_LABELS: Record<string, string> = {
   summary: "Summary",
@@ -388,8 +387,11 @@ export function ResumeDesignFormattingPanel({
       {/* DESIGN TAB: TEMPLATES */}
       {activeTab === "design" && (
         <div className="space-y-3">
-          <h4 className="font-bold text-sm text-white tracking-tight">Resume Template</h4>
-          <div className="grid grid-cols-1 gap-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+          <div className="flex items-center justify-between">
+            <h4 className="font-bold text-sm text-white tracking-tight">Resume Templates</h4>
+            <span className="text-[11px] text-emerald-400 font-semibold">{TEMPLATES.length} Styles</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
             {TEMPLATES.map((t) => {
               const active = template === t.id;
               return (
@@ -397,17 +399,29 @@ export function ResumeDesignFormattingPanel({
                   key={t.id}
                   type="button"
                   onClick={() => onChangeTemplate(t.id)}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                  className={`group relative flex flex-col rounded-xl border text-left transition-all overflow-hidden ${
                     active
-                      ? "bg-[#1c243c] border-emerald-400 text-white shadow-md ring-1 ring-emerald-400"
-                      : "bg-[#1c243c]/60 border-white/10 text-white/80 hover:bg-[#1c243c] hover:text-white"
+                      ? "bg-[#1c243c] border-emerald-400 text-white shadow-lg ring-2 ring-emerald-400/50"
+                      : "bg-[#1c243c]/60 border-white/10 text-white/80 hover:bg-[#1c243c] hover:border-white/30"
                   }`}
                 >
-                  <div className="min-w-0 pr-2">
-                    <p className="text-xs font-bold truncate">{t.name}</p>
-                    <p className="text-[10px] text-white/60 line-clamp-1">{t.desc}</p>
+                  <div className="aspect-[1/1.3] w-full bg-white relative overflow-hidden flex items-start justify-center p-1 border-b border-white/10">
+                    <TemplateMiniPreview template={t.id} scale={0.16} className="pointer-events-none" />
+                    {t.tag && (
+                      <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-emerald-400 text-[8px] font-bold tracking-wider uppercase border border-white/10 shadow">
+                        {t.tag}
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute top-1.5 right-1.5 z-10 bg-emerald-500 text-slate-950 rounded-full p-0.5 shadow-md">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      </div>
+                    )}
                   </div>
-                  {active && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
+                  <div className="p-2">
+                    <p className="text-[11px] font-bold truncate group-hover:text-emerald-300 transition-colors">{t.name}</p>
+                    <p className="text-[9px] text-white/50 line-clamp-1 mt-0.5">{t.desc}</p>
+                  </div>
                 </button>
               );
             })}

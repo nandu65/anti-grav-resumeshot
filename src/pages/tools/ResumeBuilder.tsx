@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import {
-  TEMPLATES, TemplateId, ResumeData, ResumePreview,
+  TEMPLATES, TemplateId, ResumeData, ResumePreview, TemplateMiniPreview, SAMPLE_RESUME_DATA,
   downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
   normalizeResumeSkills, getNormalizedSectionOrder,
 } from "@/lib/resumeTemplates";
@@ -37,83 +37,7 @@ import { PreferenceFilterBar, scoreTemplate } from "@/components/PreferenceFilte
 import { ResumeDesignFormattingPanel } from "@/components/ResumeDesignFormattingPanel";
 import { RESUME_FONTS } from "@/lib/fonts";
 
-const EMPTY_RESUME: ResumeData = {
-  name: "Harsha Naidu",
-  title: "Senior Software Engineer",
-  email: "harsha.naidu@example.com",
-  phone: "+91 98765 43210",
-  location: "Bangalore, India",
-  links: [
-    { label: "LinkedIn", url: "linkedin.com/in/harshanaidu" },
-    { label: "GitHub", url: "github.com/harshanaidu" }
-  ],
-  summary: "Experienced Software Engineer with a passion for building scalable web applications and leading high-performing teams. Proven track record of delivering high-quality software solutions in fast-paced environments.",
-  experience: [
-    {
-      company: "Tech Solutions Inc.",
-      role: "Senior Full Stack Developer",
-      location: "Bangalore",
-      start: "2021",
-      end: "Present",
-      bullets: [
-        "Led the migration of legacy architecture to modern microservices, improving system reliability by 40%.",
-        "Mentored a team of 5 junior developers, fostering a culture of clean code and rigorous testing.",
-        "Optimized frontend performance, reducing page load times by 50% across the main product suite."
-      ]
-    },
-    {
-      company: "Innovate Web Systems",
-      role: "Software Developer",
-      location: "Chennai",
-      start: "2018",
-      end: "2021",
-      bullets: [
-        "Developed and maintained critical customer-facing features using React and Node.js.",
-        "Implemented automated CI/CD pipelines, reducing deployment errors by 30%.",
-        "Collaborated with design teams to ensure pixel-perfect implementation of UI/UX requirements."
-      ]
-    }
-  ],
-  leadership: [],
-  education: [
-    {
-      school: "National Institute of Technology",
-      degree: "Bachelor of Technology in Computer Science",
-      location: "India",
-      start: "2014",
-      end: "2018",
-      details: "Graduated with Honors. Specialized in Distributed Systems."
-    }
-  ],
-  projects: [
-    {
-      name: "ResumeShot AI",
-      tech: "React, Supabase, Tailwind CSS",
-      bullets: [
-        "Built a high-performance resume builder with real-time AI optimization.",
-        "Integrated multi-format export engine supporting PDF and DOCX."
-      ]
-    }
-  ],
-  skills: [
-    { category: "Languages", items: ["TypeScript", "JavaScript", "Python", "SQL"] },
-    { category: "Frameworks", items: ["React", "Node.js", "Express", "Tailwind CSS"] },
-    { category: "Tools", items: ["Docker", "AWS", "Git", "Kubernetes"] }
-  ],
-  certifications: ["AWS Certified Solutions Architect", "Google Professional Cloud Developer"],
-  settings: {
-    fontSize: 10,
-    headingSize: 14,
-    fontFamily: "Arial, sans-serif",
-    sectionSpacing: 16,
-    paragraphSpacing: 6,
-    lineSpacing: 1.35,
-    marginTopBottom: 32,
-    marginSide: 32,
-    paragraphIndent: 0,
-    sections: {}
-  }
-};
+const EMPTY_RESUME: ResumeData = SAMPLE_RESUME_DATA;
 
 export default function ResumeBuilder() {
   const { user } = useAuth();
@@ -155,6 +79,9 @@ export default function ResumeBuilder() {
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [dragActiveStarter, setDragActiveStarter] = useState(false);
   const [dragActiveWorkspace, setDragActiveWorkspace] = useState(false);
+  const [templateFilter, setTemplateFilter] = useState<string>("all");
+  const [previewTemplateId, setPreviewTemplateId] = useState<TemplateId | null>(null);
+  const [useSampleDataInModal, setUseSampleDataInModal] = useState(false);
   const dragCounterStarter = useRef(0);
   const dragCounterWorkspace = useRef(0);
 
@@ -416,12 +343,7 @@ export default function ResumeBuilder() {
 
 
 
-  const fontFamilies = [
-    { label: "Modern Sans", value: "Inter, sans-serif" },
-    { label: "Classic Serif", value: "'Libre Baskerville', serif" },
-    { label: "Clean Mono", value: "'JetBrains Mono', monospace" },
-    { label: "Professional", value: "system-ui, sans-serif" },
-  ];
+  const fontFamilies = RESUME_FONTS;
 
   const onUpload = async (file: File) => {
     setUploading(true);
@@ -768,6 +690,108 @@ export default function ResumeBuilder() {
               </div>
             )}
           </div>
+
+          {/* TEMPLATE SHOWCASE WITH LIVE SAMPLE PREVIEW */}
+          <div className="mt-12 space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h2 className="font-display text-2xl font-bold tracking-tight">Explore 18 Professional Templates</h2>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Preview any template with live sample data or pick one to start tailoring immediately.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 bg-muted/60 p-1.5 rounded-xl border border-border">
+                {[
+                  { id: "all", label: "All (18)" },
+                  { id: "popular", label: "Most Popular" },
+                  { id: "ats", label: "ATS Friendly" },
+                  { id: "modern", label: "Modern" },
+                  { id: "executive", label: "Executive" },
+                  { id: "creative", label: "Creative" },
+                  { id: "academic", label: "Academic" },
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setTemplateFilter(cat.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      templateFilter === cat.id
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-background/80"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {TEMPLATES.filter(t => templateFilter === "all" || t.category === templateFilter || (templateFilter === "popular" && t.tag?.includes("Popular")) || (templateFilter === "ats" && t.tag?.includes("ATS"))).map(t => {
+                const isSelected = template === t.id;
+                return (
+                  <div
+                    key={t.id}
+                    className={`group relative rounded-2xl border-2 transition-all duration-300 overflow-hidden flex flex-col bg-card hover:shadow-glow hover:-translate-y-1 ${
+                      isSelected ? "border-primary shadow-glow ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="aspect-[1/1.38] w-full bg-slate-100 relative overflow-hidden flex items-start justify-center p-1.5">
+                      <TemplateMiniPreview template={t.id} scale={0.19} className="pointer-events-none" />
+                      
+                      {t.tag && (
+                        <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-slate-900/90 text-primary-foreground text-[9px] font-bold tracking-wider uppercase shadow-md border border-white/10">
+                          {t.tag}
+                        </div>
+                      )}
+
+                      {/* Hover action overlay */}
+                      <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-3 gap-2 z-20 backdrop-blur-[2px]">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="w-full h-8 text-xs font-semibold gap-1.5 shadow"
+                          onClick={() => {
+                            setPreviewTemplateId(t.id);
+                            setUseSampleDataInModal(true);
+                          }}
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Quick Preview
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="w-full h-8 text-xs font-bold gap-1.5 bg-primary text-primary-foreground shadow-glow"
+                          onClick={() => {
+                            setTemplate(t.id);
+                            setStarter("scratch");
+                          }}
+                        >
+                          <Sparkles className="h-3.5 w-3.5" /> Use Template
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-card border-t border-border flex flex-col justify-between flex-1">
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="font-display text-xs font-bold truncate text-foreground group-hover:text-primary transition-colors">
+                            {t.name}
+                          </h4>
+                          {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-tight">
+                          {t.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       ) : (
         <div 
@@ -897,49 +921,37 @@ export default function ResumeBuilder() {
                     <SheetHeader><SheetTitle>Design & Layout</SheetTitle></SheetHeader>
                     <div className="py-6 space-y-8 overflow-y-auto max-h-[calc(100vh-100px)] px-1">
                       <div>
-                        <Label className="text-base font-bold mb-4 block">Templates</Label>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label className="text-base font-bold">Templates</Label>
+                          <span className="text-xs text-primary font-semibold">{TEMPLATES.length} Styles</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
                           {TEMPLATES.map(t => (
                             <button 
                               key={t.id} 
+                              type="button"
                               onClick={() => {
-                                const newId = t.id;
-                                setTemplate(newId);
-                                // Sync current state to the new template's logic if needed
-                                // The canonical state resumeData already has everything, 
-                                // and sectionOrder is preserved in resumeData.settings.
+                                setTemplate(t.id);
                               }} 
-
-                              className={`group relative rounded-xl border-2 transition-all overflow-hidden flex flex-col ${template === t.id ? "border-primary shadow-glow bg-primary/5" : "border-border hover:border-primary/40 bg-background"}`}
+                              className={`group relative rounded-xl border-2 transition-all overflow-hidden flex flex-col text-left ${template === t.id ? "border-primary shadow-glow bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40 bg-card hover:bg-accent/40"}`}
                             >
-                              <div className="aspect-[1/1.4] bg-muted relative overflow-hidden flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                                <img 
-                                  src={t.previewUrl || `https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=560&fit=crop&q=80&text=${t.name}`} 
-                                  alt={t.name}
-                                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 opacity-60 group-hover:opacity-100"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback');
-                                    if (fallback) fallback.classList.remove('hidden');
-                                  }}
-                                />
-                                <div className="fallback hidden absolute inset-0 flex flex-col items-center justify-center p-4">
-                                  <FileText className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />
-                                  <span className="text-[10px] font-bold text-center leading-tight uppercase tracking-widest opacity-40">Preview</span>
-                                </div>
+                              <div className="aspect-[1/1.35] w-full bg-slate-100 relative overflow-hidden flex items-start justify-center p-1 border-b">
+                                <TemplateMiniPreview template={t.id} data={resumeData} scale={0.17} className="pointer-events-none" />
+                                {t.tag && (
+                                  <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-slate-900/90 text-primary-foreground text-[8px] font-bold tracking-wider uppercase border border-white/10">
+                                    {t.tag}
+                                  </div>
+                                )}
                                 {template === t.id && (
-                                  <div className="absolute inset-0 bg-primary/5 border-2 border-primary z-10" />
+                                  <div className="absolute top-1.5 right-1.5 z-20 bg-primary text-primary-foreground rounded-full p-0.5 shadow-md">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                  </div>
                                 )}
                               </div>
-                              <div className="p-2.5 bg-background border-t">
-                                <span className="text-[11px] font-bold block truncate">{t.name}</span>
+                              <div className="p-2.5 bg-background">
+                                <span className="text-[11px] font-bold block truncate group-hover:text-primary transition-colors">{t.name}</span>
                                 <span className="text-[9px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">{t.desc}</span>
                               </div>
-                              {template === t.id && (
-                                <div className="absolute top-2 right-2 z-20 bg-primary text-primary-foreground rounded-full p-0.5 shadow-lg animate-in zoom-in">
-                                  <CheckCircle2 className="h-3 w-3" />
-                                </div>
-                              )}
                             </button>
                           ))}
                         </div>
@@ -1779,6 +1791,60 @@ export default function ResumeBuilder() {
             <Button variant="outline" onClick={() => setShowVersionDialog(false)}>Cancel</Button>
             <Button onClick={saveVersion} disabled={!versionName.trim()}>Save Version</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* FULL SAMPLE RESUME PREVIEW MODAL */}
+      <Dialog open={!!previewTemplateId} onOpenChange={(open) => !open && setPreviewTemplateId(null)}>
+        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-background border-border text-foreground">
+          <DialogHeader className="p-4 border-b flex flex-row items-center justify-between shrink-0">
+            <div>
+              <DialogTitle className="text-base font-bold flex items-center gap-2">
+                {TEMPLATES.find(t => t.id === previewTemplateId)?.name}
+                {TEMPLATES.find(t => t.id === previewTemplateId)?.tag && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-semibold">
+                    {TEMPLATES.find(t => t.id === previewTemplateId)?.tag}
+                  </span>
+                )}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                {TEMPLATES.find(t => t.id === previewTemplateId)?.desc}
+              </DialogDescription>
+            </div>
+            <div className="flex items-center gap-2 pr-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUseSampleDataInModal(!useSampleDataInModal)}
+                className="h-8 text-xs font-semibold"
+              >
+                {useSampleDataInModal ? "View With My Details" : "View With Sample Details"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (previewTemplateId) {
+                    setTemplate(previewTemplateId);
+                    setStarter("scratch");
+                    setPreviewTemplateId(null);
+                  }
+                }}
+                className="h-8 text-xs bg-primary text-primary-foreground font-bold shadow-glow"
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Use This Template
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-6 bg-muted/20 flex justify-center custom-scrollbar">
+            {previewTemplateId && (
+              <div className="w-[794px] shrink-0 shadow-2xl rounded-lg overflow-hidden my-auto bg-white">
+                <ResumePreview
+                  template={previewTemplateId}
+                  data={useSampleDataInModal ? SAMPLE_RESUME_DATA : resumeData}
+                />
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

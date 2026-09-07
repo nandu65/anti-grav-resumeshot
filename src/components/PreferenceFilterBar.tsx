@@ -18,6 +18,9 @@ export const TEMPLATE_META: Record<TemplateId, { style: ResumePrefs["style"]; co
   "teal-left":     { style: "modern",    columns: 2, photoFriendly: false },
   "photo-grid":    { style: "creative",  columns: 1, photoFriendly: true  },
   "logo-boxed":    { style: "classic",   columns: 1, photoFriendly: false },
+  nordic:          { style: "minimal",   columns: 1, photoFriendly: false },
+  "ivy-league":    { style: "classic",   columns: 1, photoFriendly: false },
+  "tech-dark":     { style: "modern",    columns: 2, photoFriendly: false },
 };
 
 

@@ -95,39 +95,235 @@ export const RESUME_SECTIONS: { key: ResumeSectionKey; label: string }[] = [
 export type TemplateId =
   | "modern" | "classic" | "compact" | "executive" | "creative" | "minimal"
   | "timeline" | "elegant" | "sidebar-dark" | "photo-header"
-  | "centered-serif" | "banner-photo" | "teal-left" | "photo-grid" | "logo-boxed";
+  | "centered-serif" | "banner-photo" | "teal-left" | "photo-grid" | "logo-boxed"
+  | "nordic" | "ivy-league" | "tech-dark";
 
-export const TEMPLATES: { id: TemplateId; name: string; desc: string; previewUrl?: string }[] = [
+export interface TemplateDefinition {
+  id: TemplateId;
+  name: string;
+  desc: string;
+  tag?: string;
+  category?: "popular" | "modern" | "ats" | "executive" | "creative" | "academic";
+  previewUrl?: string;
+}
+
+export const SAMPLE_RESUME_DATA: ResumeData = {
+  name: "Harsha Naidu",
+  title: "Senior Software Engineer",
+  email: "harsha.naidu@example.com",
+  phone: "+91 98765 43210",
+  location: "Bangalore, India",
+  links: [
+    { label: "LinkedIn", url: "linkedin.com/in/harshanaidu" },
+    { label: "GitHub", url: "github.com/harshanaidu" }
+  ],
+  summary: "Results-driven Senior Software Engineer with 6+ years of experience architecting high-scale distributed systems and modern web applications. Proven track record in leading engineering teams, improving frontend latency, and shipping AI-powered platforms.",
+  experience: [
+    {
+      company: "Tech Solutions Inc.",
+      role: "Senior Full Stack Developer",
+      location: "Bangalore",
+      start: "2021",
+      end: "Present",
+      bullets: [
+        "Led the migration of legacy architecture to modern microservices, improving system reliability by 40%.",
+        "Mentored a team of 5 junior developers, fostering a culture of clean code and rigorous testing.",
+        "Optimized frontend performance, reducing page load times by 50% across the main product suite."
+      ]
+    },
+    {
+      company: "Innovate Web Systems",
+      role: "Software Developer",
+      location: "Chennai",
+      start: "2018",
+      end: "2021",
+      bullets: [
+        "Developed and maintained critical customer-facing features using React, TypeScript, and Node.js.",
+        "Implemented automated CI/CD pipelines, reducing deployment errors by 30%.",
+        "Collaborated with design teams to ensure pixel-perfect implementation of UI/UX requirements."
+      ]
+    }
+  ],
+  leadership: [
+    {
+      role: "President & Lead Organizer",
+      organization: "Cloud & Open Source Community",
+      location: "Bangalore",
+      start: "2019",
+      end: "2021",
+      bullets: [
+        "Organized national annual hackathon with 400+ participants and 20 industry tech speakers.",
+        "Conducted 12+ hands-on technical workshops on cloud architectures and DevOps."
+      ]
+    }
+  ],
+  education: [
+    {
+      school: "National Institute of Technology",
+      degree: "Bachelor of Technology in Computer Science",
+      location: "India",
+      start: "2014",
+      end: "2018",
+      details: "Graduated with Honors. Specialized in Distributed Systems."
+    }
+  ],
+  projects: [
+    {
+      name: "ResumeShot AI",
+      tech: "React, Supabase, Tailwind CSS",
+      bullets: [
+        "Built a high-performance resume builder with real-time AI optimization and instant formatting.",
+        "Integrated multi-format export engine supporting pixel-perfect PDF and DOCX."
+      ]
+    }
+  ],
+  skills: [
+    { category: "Languages", items: ["TypeScript", "JavaScript", "Python", "SQL", "Go"] },
+    { category: "Frameworks & Libraries", items: ["React", "Next.js", "Node.js", "Express", "Tailwind CSS"] },
+    { category: "Cloud & Tools", items: ["Docker", "AWS", "Git", "Kubernetes", "PostgreSQL"] }
+  ],
+  certifications: ["AWS Certified Solutions Architect", "Google Professional Cloud Developer"],
+  settings: {
+    fontSize: 11,
+    headingSize: 14,
+    fontFamily: "Arial, sans-serif",
+    sectionSpacing: 16,
+    paragraphSpacing: 6,
+    lineSpacing: 1.35,
+    marginTopBottom: 32,
+    marginSide: 32,
+    paragraphIndent: 0,
+    sections: {}
+  }
+};
+
+export const TEMPLATES: TemplateDefinition[] = [
   { 
     id: "modern", 
     name: "Modern Professional", 
     desc: "Clean sidebar layout with emerald accents, ideal for technology and design roles.",
-    previewUrl: "/__l5e/assets-v1/270ae0f4-90a9-4cce-8613-5f0c2759fea3/resume-modern.png" 
-  },
-  { 
-    id: "executive", 
-    name: "Executive Serif", 
-    desc: "Distinguished typography with amber-toned headers for senior leadership positions.",
-    previewUrl: "/__l5e/assets-v1/799a2e4f-96fe-40f9-bdc9-fb2c1276ba9d/resume-executive.png" 
-  },
-  { 
-    id: "creative", 
-    name: "Creative Indigo", 
-    desc: "Bold gradient header and two-column structure for marketing and creative professionals.",
-    previewUrl: "/__l5e/assets-v1/3af83925-7929-49ab-ba75-a80ffe563299/resume-creative.png" 
-  },
-  { 
-    id: "minimal", 
-    name: "Ultra Minimal", 
-    desc: "Sophisticated use of whitespace and light weights for a modern, airy aesthetic.",
-    previewUrl: "/__l5e/assets-v1/4a23c33e-0f60-4bca-8abc-f50a3631fdce/resume-minimal.png" 
+    tag: "Most Popular",
+    category: "popular",
   },
   { 
     id: "classic", 
     name: "Classic ATS-Optimized", 
     desc: "Single-column format designed for maximum compatibility with tracking systems.",
-    previewUrl: "/__l5e/assets-v1/bce36fa0-e17a-4422-a3b1-2201bb09f002/resume-classic.png" 
-  }
+    tag: "ATS Friendly",
+    category: "ats",
+  },
+  { 
+    id: "compact", 
+    name: "Compact Density", 
+    desc: "High-density clean single column, ideal for technical resumes and 1-page limits.",
+    tag: "Compact",
+    category: "modern",
+  },
+  { 
+    id: "executive", 
+    name: "Executive Serif", 
+    desc: "Distinguished typography with amber-toned headers for senior leadership positions.",
+    tag: "Senior Roles",
+    category: "executive",
+  },
+  { 
+    id: "creative", 
+    name: "Creative Indigo", 
+    desc: "Bold gradient header and two-column structure for marketing and creative professionals.",
+    tag: "Creative",
+    category: "creative",
+  },
+  { 
+    id: "minimal", 
+    name: "Ultra Minimal", 
+    desc: "Sophisticated use of whitespace and light weights for a modern, airy aesthetic.",
+    tag: "Minimal",
+    category: "modern",
+  },
+  { 
+    id: "timeline", 
+    name: "Timeline Rail", 
+    desc: "Left date rail with teal accents, perfect for showing clear career progression.",
+    tag: "Timeline",
+    category: "modern",
+  },
+  { 
+    id: "elegant", 
+    name: "Warm Editorial", 
+    desc: "Centered serif header with warm stone tones and refined editorial typography.",
+    tag: "Editorial",
+    category: "executive",
+  },
+  { 
+    id: "sidebar-dark", 
+    name: "Dark Sidebar Pro", 
+    desc: "Deep teal right sidebar with avatar, structured summary, and visual chips.",
+    tag: "Sidebar",
+    category: "modern",
+  },
+  { 
+    id: "photo-header", 
+    name: "Header Slate & Photo", 
+    desc: "Slate header banner with avatar circle and balanced 2-column layout.",
+    tag: "Photo Ready",
+    category: "creative",
+  },
+  { 
+    id: "centered-serif", 
+    name: "Centered Classic Serif", 
+    desc: "Alexander Taylor style with clean dividing rules and centered classic header.",
+    tag: "Traditional",
+    category: "ats",
+  },
+  { 
+    id: "banner-photo", 
+    name: "Navy Banner Modern", 
+    desc: "Navy header banner with profile initials badge and achievement highlights.",
+    tag: "Modern",
+    category: "modern",
+  },
+  { 
+    id: "teal-left", 
+    name: "Teal Split Sidebar", 
+    desc: "Solid teal left rail with achievement stars and crisp white main section.",
+    tag: "Split View",
+    category: "modern",
+  },
+  { 
+    id: "photo-grid", 
+    name: "Grid & Highlights", 
+    desc: "Centered header with 3-column key achievement boxes and clean timeline.",
+    tag: "Visual Grid",
+    category: "creative",
+  },
+  { 
+    id: "logo-boxed", 
+    name: "Brand Boxed", 
+    desc: "Centered header with company initial badges for clear brand recognition.",
+    tag: "Branded",
+    category: "ats",
+  },
+  { 
+    id: "nordic", 
+    name: "Nordic Crisp Minimal", 
+    desc: "Clean Scandinavian aesthetic with slate-gray accents, pill tags, and sleek lines.",
+    tag: "New",
+    category: "modern",
+  },
+  { 
+    id: "ivy-league", 
+    name: "Ivy League Academic", 
+    desc: "Prestigious academic serif layout with centered header and formal divider rules.",
+    tag: "Academic",
+    category: "academic",
+  },
+  { 
+    id: "tech-dark", 
+    name: "Modern Tech Lead", 
+    desc: "Dark charcoal slate header, cyan tech accents, and monospace code-styled skills.",
+    tag: "Tech Lead",
+    category: "modern",
+  },
 ];
 
 
@@ -2167,6 +2363,503 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   );
 }
 
+/* ---------- Nordic Minimal: Scandinavian aesthetic with slate-gray accents, tag pills, sleek border ---------- */
+function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const H = (t: string) => (
+    <h3 className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-slate-700 border-l-2 border-slate-700 pl-2.5 mb-2">
+      {t}
+    </h3>
+  );
+  return (
+    <div
+      className="bg-white text-slate-900 shadow-elegant rounded-lg p-8 font-sans text-[11px] leading-snug border-t-4 border-slate-700"
+      style={{
+        minHeight: "var(--page-h, auto)",
+        fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
+        fontFamily: r.settings?.fontFamily || undefined,
+      }}
+    >
+      <div className="flex justify-between items-baseline pb-4 mb-4 border-b border-slate-200">
+        <div>
+          <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-extrabold text-[24px] tracking-tight text-slate-900" />
+          <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-slate-600 text-[11px] font-medium tracking-wide mt-0.5" />
+        </div>
+        <div className="text-right text-[9.5px] text-slate-500 space-y-0.5">
+          <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
+          <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+          {r.links?.map((l, i) => (
+            <Editable key={i} as="div" value={l.url} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
+          ))}
+        </div>
+      </div>
+
+      {(r.summary || update) && (
+        <section className="mb-4">
+          {H("Summary")}
+          <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] text-slate-700 leading-relaxed whitespace-pre-wrap pl-2.5" />
+        </section>
+      )}
+
+      {r.experience?.length > 0 && (
+        <section className="mb-4">
+          {H("Experience")}
+          <div className="space-y-3 pl-2.5">
+            {r.experience.map((e, i) => {
+              const upd = makeExpUpdater(update, r, i);
+              return (
+                <div key={i} className="mb-2">
+                  <div className="flex justify-between font-bold text-[11px] text-slate-900 gap-2">
+                    <span><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /> <span className="font-normal text-slate-500">· <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span></span>
+                    <span className="text-[9.5px] font-medium text-slate-500 whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                  </div>
+                  {e.location && <div className="text-[9px] text-slate-400"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>}
+                  <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-0.5 text-slate-700" />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {r.leadership && r.leadership.length > 0 && (
+        <section className="mb-4">
+          {H("Leadership")}
+          <div className="space-y-3 pl-2.5">
+            {r.leadership.map((l, i) => {
+              const upd = makeLeadershipUpdater(update, r, i);
+              return (
+                <div key={i} className="mb-2">
+                  <div className="flex justify-between font-bold text-[11px] text-slate-900 gap-2">
+                    <span><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /> <span className="font-normal text-slate-500">· <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span></span>
+                    <span className="text-[9.5px] font-medium text-slate-500 whitespace-nowrap"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
+                  </div>
+                  {l.location && <div className="text-[9px] text-slate-400"><Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></div>}
+                  <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-0.5 text-slate-700" />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {r.education?.length > 0 && (
+        <section className="mb-4">
+          {H("Education")}
+          <div className="space-y-2 pl-2.5">
+            {r.education.map((e, i) => {
+              const upd = makeEduUpdater(update, r, i);
+              return (
+                <div key={i} className="flex justify-between text-[10.5px]">
+                  <div>
+                    <span className="font-bold text-slate-900"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></span>
+                    <span className="text-slate-600">, <Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></span>
+                    {e.details && <div className="text-[9.5px] text-slate-500"><Editable value={e.details} onChange={update && (v => upd({ details: v }))} /></div>}
+                  </div>
+                  <span className="text-[9.5px] text-slate-500 whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {r.projects?.length > 0 && (
+        <section className="mb-4">
+          {H("Projects")}
+          <div className="space-y-2 pl-2.5">
+            {r.projects.map((p, i) => {
+              const upd = makeProjUpdater(update, r, i);
+              return (
+                <div key={i} className="mb-1">
+                  <div className="font-bold text-[11px] text-slate-900"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /> <span className="font-normal text-[9.5px] text-slate-500">· <Editable value={p.tech} onChange={update && (v => upd({ tech: v }))} /></span></div>
+                  <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5 text-[10px] space-y-0.5 text-slate-700" />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {r.skills?.length > 0 && (
+        <section className="mb-4">
+          {H("Skills & Competencies")}
+          <div className="space-y-1.5 pl-2.5">
+            {r.skills.map((s, i) => {
+              const upd = makeSkillUpdater(update, r, i);
+              return (
+                <div key={i} className="flex items-start text-[10px]">
+                  <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold text-slate-800 w-36 shrink-0" colon />
+                  <div className="flex flex-wrap gap-1 flex-1">
+                    {s.items.map((it, idx) => (
+                      <span key={idx} className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[9.5px] border border-slate-200">
+                        {it}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {r.certifications?.length > 0 && (
+        <section>
+          {H("Certifications")}
+          <div className="pl-2.5 text-[10px] text-slate-700">
+            <Editable value={r.certifications.join("  •  ")} onChange={update && (v => on({ certifications: v.split("•").map(x => x.trim()).filter(Boolean) }))} />
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Ivy League Academic: Formal serif, centered header, horizontal rules ---------- */
+function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const H = (t: string) => (
+    <div className="my-3 border-b-2 border-slate-900 pb-0.5">
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-900">
+        {t}
+      </h3>
+    </div>
+  );
+  return (
+    <div
+      className="bg-white text-neutral-900 shadow-elegant rounded-lg p-10 font-serif text-[11px] leading-snug"
+      style={{
+        minHeight: "var(--page-h, auto)",
+        fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
+        fontFamily: r.settings?.fontFamily || "'Times New Roman', Times, serif",
+      }}
+    >
+      <div className="text-center pb-3 mb-2 border-b border-neutral-300">
+        <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-[28px] tracking-tight uppercase" />
+        <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="italic text-[12px] text-neutral-700 mt-0.5" />
+        <div className="text-[10px] text-neutral-600 mt-2 flex flex-wrap justify-center gap-x-3">
+          <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+          <span>•</span>
+          <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+          <span>•</span>
+          <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          {r.links?.map((l, i) => (
+            <React.Fragment key={i}>
+              <span>•</span>
+              <Editable value={l.label + ": " + l.url} onChange={update && (v => {
+                const [lbl, ...rst] = v.split(":");
+                on({ links: r.links.map((x, j) => j === i ? { label: (lbl || "").trim(), url: rst.join(":").trim() } : x) });
+              })} />
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {(r.summary || update) && (
+        <section className="mb-3">
+          {H("Professional Summary")}
+          <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] leading-relaxed text-justify whitespace-pre-wrap" />
+        </section>
+      )}
+
+      {r.education?.length > 0 && (
+        <section className="mb-3">
+          {H("Education")}
+          {r.education.map((e, i) => {
+            const upd = makeEduUpdater(update, r, i);
+            return (
+              <div key={i} className="mb-2">
+                <div className="flex justify-between font-bold text-[11.5px]">
+                  <span><Editable value={e.school} onChange={update && (v => upd({ school: v }))} />, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>
+                  <span className="font-normal text-[10px] italic"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                </div>
+                <div className="italic text-[10.5px]"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                {e.details && <div className="text-[10px] text-neutral-700 mt-0.5"><Editable value={e.details} onChange={update && (v => upd({ details: v }))} /></div>}
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {r.experience?.length > 0 && (
+        <section className="mb-3">
+          {H("Professional Experience")}
+          {r.experience.map((e, i) => {
+            const upd = makeExpUpdater(update, r, i);
+            return (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between font-bold text-[11.5px]">
+                  <span><Editable value={e.company} onChange={update && (v => upd({ company: v }))} />{e.location ? `, ` : ""}<Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>
+                  <span className="font-normal text-[10px] italic"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                </div>
+                <div className="italic text-[10.5px] font-semibold text-neutral-800"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></div>
+                <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-5 mt-1 text-[10.5px] space-y-0.5 leading-relaxed" />
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {r.leadership && r.leadership.length > 0 && (
+        <section className="mb-3">
+          {H("Leadership & Service")}
+          {r.leadership.map((l, i) => {
+            const upd = makeLeadershipUpdater(update, r, i);
+            return (
+              <div key={i} className="mb-2">
+                <div className="flex justify-between font-bold text-[11.5px]">
+                  <span><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? `, ` : ""}<Editable value={l.location || ""} onChange={update && (v => upd({ location: v }))} /></span>
+                  <span className="font-normal text-[10px] italic"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
+                </div>
+                <div className="italic text-[10.5px]"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></div>
+                <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-5 mt-0.5 text-[10.5px] space-y-0.5 leading-relaxed" />
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {r.projects?.length > 0 && (
+        <section className="mb-3">
+          {H("Selected Projects & Publications")}
+          {r.projects.map((p, i) => {
+            const upd = makeProjUpdater(update, r, i);
+            return (
+              <div key={i} className="mb-2">
+                <div className="font-bold text-[11px]"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /> <span className="font-normal italic text-[10px]">· <Editable value={p.tech} onChange={update && (v => upd({ tech: v }))} /></span></div>
+                <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-5 mt-0.5 text-[10.5px]" />
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {r.skills?.length > 0 && (
+        <section className="mb-3">
+          {H("Skills & Certifications")}
+          <div className="space-y-1 text-[10.5px] leading-relaxed">
+            {r.skills.map((s, i) => {
+              const upd = makeSkillUpdater(update, r, i);
+              return (
+                <div key={i}>
+                  <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
+                  <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                </div>
+              );
+            })}
+            {r.certifications?.length > 0 && (
+              <div>
+                <span className="font-bold">Certifications: </span>
+                <Editable value={r.certifications.join(", ")} onChange={update && (v => on({ certifications: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Modern Tech Lead: Charcoal slate header, cyan accents, monospace skills ---------- */
+function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  return (
+    <div
+      className="bg-white text-slate-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug"
+      style={{
+        minHeight: "var(--page-h, auto)",
+        fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
+        fontFamily: r.settings?.fontFamily || undefined,
+      }}
+    >
+      <div className="bg-slate-950 text-white p-6 border-b-2 border-cyan-500">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2">
+              <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-black text-2xl tracking-tight text-white" />
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-500/40">TECH LEAD</span>
+            </div>
+            <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-cyan-400 font-mono text-[11px] mt-0.5" />
+          </div>
+          <div className="text-right text-[9.5px] font-mono text-slate-300 space-y-0.5">
+            <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
+            <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
+            <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+          </div>
+        </div>
+        {r.links?.length > 0 && (
+          <div className="mt-3 pt-2 border-t border-slate-800 flex flex-wrap gap-x-4 text-[9.5px] font-mono text-slate-400">
+            {r.links.map((l, i) => (
+              <Editable key={i} value={`${l.label}: ${l.url}`} onChange={update && (v => {
+                const [lbl, ...rst] = v.split(":");
+                on({ links: r.links.map((x, j) => j === i ? { label: (lbl || "").trim(), url: rst.join(":").trim() } : x) });
+              })} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-[65%_35%] gap-5 p-6">
+        <div>
+          {(r.summary || update) && (
+            <section className="mb-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">//</span> Summary
+              </h3>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] text-slate-700 leading-relaxed whitespace-pre-wrap" />
+            </section>
+          )}
+
+          {r.experience?.length > 0 && (
+            <section className="mb-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">//</span> Experience
+              </h3>
+              {r.experience.map((e, i) => {
+                const upd = makeExpUpdater(update, r, i);
+                return (
+                  <div key={i} className="mb-3">
+                    <div className="flex justify-between font-bold text-[11px] text-slate-900">
+                      <span><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></span>
+                      <span className="text-[9.5px] font-mono text-slate-500 whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                    </div>
+                    <div className="text-[10px] text-cyan-700 font-medium"><Editable value={e.company} onChange={update && (v => upd({ company: v }))} />{e.location ? ` · ` : ""}<Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-0.5 text-slate-700" />
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {r.leadership && r.leadership.length > 0 && (
+            <section className="mb-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">//</span> Leadership
+              </h3>
+              {r.leadership.map((l, i) => {
+                const upd = makeLeadershipUpdater(update, r, i);
+                return (
+                  <div key={i} className="mb-3">
+                    <div className="flex justify-between font-bold text-[11px] text-slate-900">
+                      <span><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></span>
+                      <span className="text-[9.5px] font-mono text-slate-500 whitespace-nowrap"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
+                    </div>
+                    <div className="text-[10px] text-cyan-700 font-medium"><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></div>
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-0.5 text-slate-700" />
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {r.projects?.length > 0 && (
+            <section className="mb-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">//</span> Featured Projects
+              </h3>
+              {r.projects.map((p, i) => {
+                const upd = makeProjUpdater(update, r, i);
+                return (
+                  <div key={i} className="mb-2">
+                    <div className="font-bold text-[11px] text-slate-900"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /> <span className="font-mono text-[9px] text-cyan-600 font-normal">[ <Editable value={p.tech} onChange={update && (v => upd({ tech: v }))} /> ]</span></div>
+                    <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5 text-[10px] text-slate-700" />
+                  </div>
+                );
+              })}
+            </section>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {r.skills?.length > 0 && (
+            <section className="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">#</span> Tech Stack
+              </h3>
+              <div className="space-y-2.5">
+                {r.skills.map((s, i) => {
+                  const upd = makeSkillUpdater(update, r, i);
+                  return (
+                    <div key={i}>
+                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-mono font-bold text-[9.5px] text-slate-700 mb-1" />
+                      <div className="flex flex-wrap gap-1">
+                        {s.items.map((it, idx) => (
+                          <span key={idx} className="bg-white font-mono text-[9px] text-slate-800 px-1.5 py-0.5 rounded border border-slate-300">
+                            {it}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {r.education?.length > 0 && (
+            <section className="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">#</span> Education
+              </h3>
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="mb-1 text-[10px]">
+                    <div className="font-bold text-slate-900"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-slate-600"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></div>
+                    <div className="font-mono text-[9px] text-slate-400"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {r.certifications?.length > 0 && (
+            <section className="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
+                <span className="text-cyan-600">#</span> Certifications
+              </h3>
+              <Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] font-mono text-slate-700 whitespace-pre-wrap leading-relaxed" />
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Scaled mini preview component for template pickers and cards */
+export function TemplateMiniPreview({
+  template,
+  data,
+  className = "",
+  scale = 0.25,
+}: {
+  template: TemplateId;
+  data?: ResumeData;
+  className?: string;
+  scale?: number;
+}) {
+  const resume = data || SAMPLE_RESUME_DATA;
+  return (
+    <div className={`relative w-full h-full overflow-hidden bg-white select-none pointer-events-none rounded flex items-start justify-center ${className}`}>
+      <div
+        className="shrink-0"
+        style={{
+          width: "794px",
+          minHeight: "1123px",
+          transform: `scale(${scale})`,
+          transformOrigin: "top center",
+        }}
+      >
+        <ResumePreview template={template} data={resume} />
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Per-section styling (works across every template) ---------- */
 const SECTION_MATCHERS: { key: ResumeSectionKey; re: RegExp }[] = [
   { key: "summary", re: /^(summary|profile|about|professional summary)$/i },
@@ -2286,6 +2979,9 @@ export function ResumePreview({
     template === "teal-left" ? <TealLeftPreview r={data} update={update} /> :
     template === "photo-grid" ? <PhotoGridPreview r={data} update={update} /> :
     template === "logo-boxed" ? <LogoBoxedPreview r={data} update={update} /> :
+    template === "nordic" ? <NordicPreview r={data} update={update} /> :
+    template === "ivy-league" ? <IvyLeaguePreview r={data} update={update} /> :
+    template === "tech-dark" ? <TechDarkPreview r={data} update={update} /> :
     <ClassicPreview r={data} update={update} />;
 
   useEffect(() => {
@@ -2845,12 +3541,40 @@ export const TEMPLATE_DOCX_CONFIGS: Record<TemplateId, TemplateDocxConfig> = {
     accent: "0369A1",
     namePlacement: "header-centered",
   },
+  nordic: {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "334155",
+    namePlacement: "header-left",
+  },
+  "ivy-league": {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "0F172A",
+    namePlacement: "header-centered",
+  },
+  "tech-dark": {
+    layout: "banner-sidebar-right",
+    font: "Calibri",
+    accent: "0284C7",
+    bannerBg: "020617",
+    bannerTextColor: "FFFFFF",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    sidebarBg: "F8FAFC",
+    sidebarTextColor: "0F172A",
+    sidebarHeadingColor: "0284C7",
+    namePlacement: "banner",
+    sidebarSections: ["skills", "education", "certifications"],
+    mainSections: ["summary", "experience", "leadership", "projects"],
+    skillsFormat: "chips",
+  },
 };
 
 /** Templates whose React preview renders a sidebar / two-column layout. */
 export const MULTI_COLUMN_TEMPLATES: TemplateId[] = [
   "modern", "sidebar-dark", "teal-left", "creative",
-  "photo-header", "banner-photo",
+  "photo-header", "banner-photo", "tech-dark",
 ];
 
 export function isMultiColumnTemplate(template: TemplateId) {
