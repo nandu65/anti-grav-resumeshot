@@ -446,6 +446,7 @@ export default function ResumeBuilder() {
       setResumeData(normalizeResumeSkills({
         ...resumeData,
         ...generated,
+        leadership: (generated.leadership && generated.leadership.length > 0) ? generated.leadership : (resumeData.leadership || []),
         _isPolished: true,
         settings: resumeData.settings // Preserve user settings
       }));

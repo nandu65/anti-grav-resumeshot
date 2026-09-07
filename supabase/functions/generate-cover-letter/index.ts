@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { logAiUsage, estimateTokens } from "../_shared/aiUsage.ts";
+import { logAiUsage } from "../_shared/aiUsage.ts";
+import { callAi } from "../_shared/aiClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,12 +15,10 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -30,66 +29,65 @@ serve(async (req) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { optimizationId, tone = "professional" } = await req.json();
     if (!optimizationId) {
       return new Response(JSON.stringify({ error: "optimizationId required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { data: opt, error: optErr } = await supabase
-      .from("optimizations").select("*").eq("id", optimizationId).maybeSingle();
+      .from("optimizations")
+      .select("*")
+      .eq("id", optimizationId)
+      .maybeSingle();
     if (optErr || !opt) throw new Error("Optimization not found");
 
     const startedAt = Date.now();
-    const model = "google/gemini-2.5-flash";
     const sysMsg = `You write tailored cover letters that hiring managers love. Tone: ${tone}. Use 3-4 short paragraphs. Open with hook, body shows fit using specific resume points + JD keywords, close with confident call to action. Plain prose, no markdown, no placeholders like [Company].`;
-    const userMsg = `RESUME:\n${opt.resume_text}\n\nJOB DESCRIPTION:\n${opt.job_description}\n\nCompany: ${opt.company || "the company"}\nRole: ${opt.role || "this role"}\n\nWrite the cover letter.`;
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: sysMsg },
-          { role: "user", content: userMsg },
-        ],
-      }),
+    const userMsg = `RESUME:\n${opt.resume_text}\n\nJOB DESCRIPTION:\n${opt.job_description}\n\nCompany: ${
+      opt.company || "the company"
+    }\nRole: ${opt.role || "this role"}\n\nWrite the cover letter.`;
+
+    const aiResult = await callAi({
+      systemPrompt: sysMsg,
+      userPrompt: userMsg,
+      jsonMode: false,
+      model: "gemini-2.5-flash",
     });
 
-    if (!aiResp.ok) {
-      if (aiResp.status === 429) return new Response(JSON.stringify({ error: "Rate limit reached, try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (aiResp.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      throw new Error("AI request failed");
-    }
-
-    const aiData = await aiResp.json();
-    const coverLetter = aiData.choices?.[0]?.message?.content?.trim();
+    const coverLetter = aiResult.content;
     if (!coverLetter) throw new Error("No cover letter returned");
-    const usage = aiData?.usage ?? {};
+
     logAiUsage({
       userId: userData.user.id,
       feature: "cover-letter",
-      model,
-      inputTokens: usage.prompt_tokens ?? estimateTokens(sysMsg + userMsg),
-      outputTokens: usage.completion_tokens ?? estimateTokens(coverLetter),
-      tokenSource: usage.prompt_tokens != null ? "exact" : "estimated",
+      model: aiResult.model,
+      inputTokens: aiResult.inputTokens,
+      outputTokens: aiResult.outputTokens,
+      tokenSource: "exact",
       durationMs: Date.now() - startedAt,
     });
 
-    await supabase.from("optimizations").update({ cover_letter: coverLetter }).eq("id", optimizationId);
+    await supabase
+      .from("optimizations")
+      .update({ cover_letter: coverLetter })
+      .eq("id", optimizationId);
 
-    return new Response(JSON.stringify({ cover_letter: coverLetter }), {
+    return new Response(JSON.stringify({ coverLetter }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("generate-cover-letter error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
