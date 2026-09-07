@@ -29,6 +29,8 @@ import Applications from "./pages/Applications.tsx";
 import Notifications from "./pages/Notifications.tsx";
 import { usePresence } from "./hooks/usePresence";
 
+import { Navigate } from "react-router-dom";
+
 function AppRoutes() {
   usePresence();
   return (
@@ -40,14 +42,45 @@ function AppRoutes() {
       <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
       <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
-      <Route path="/tools/cover-letter" element={<CoverLetterTool />} />
-      <Route path="/tools/company-brief" element={<CompanyBriefTool />} />
-      <Route path="/tools/skill-gap" element={<SkillGapTool />} />
-      <Route path="/tools/keyword-density" element={<KeywordDensityTool />} />
-      <Route path="/tools/diff" element={<DiffTool />} />
+
+      {/* Resume Builder & Aliases */}
       <Route path="/tools/resume-builder" element={<ResumeBuilder />} />
+      <Route path="/resume-builder" element={<ResumeBuilder />} />
+      <Route path="/resume_builder" element={<ResumeBuilder />} />
+      <Route path="/resumebuilder" element={<ResumeBuilder />} />
+      <Route path="/resume/builder" element={<ResumeBuilder />} />
+      <Route path="/builder" element={<ResumeBuilder />} />
+      <Route path="/resume" element={<ResumeBuilder />} />
+      <Route path="/resume builder" element={<ResumeBuilder />} />
+      <Route path="/resume%20builder" element={<ResumeBuilder />} />
+      <Route path="/tools/resumebuilder" element={<ResumeBuilder />} />
+      <Route path="/tools/resume_builder" element={<ResumeBuilder />} />
+      <Route path="/tools/builder" element={<ResumeBuilder />} />
+      <Route path="/tools/resume" element={<ResumeBuilder />} />
+
+      {/* Other Tools & Aliases */}
+      <Route path="/tools/cover-letter" element={<CoverLetterTool />} />
+      <Route path="/cover-letter" element={<CoverLetterTool />} />
+      <Route path="/coverletter" element={<CoverLetterTool />} />
+
+      <Route path="/tools/company-brief" element={<CompanyBriefTool />} />
+      <Route path="/company-brief" element={<CompanyBriefTool />} />
+
+      <Route path="/tools/skill-gap" element={<SkillGapTool />} />
+      <Route path="/skill-gap" element={<SkillGapTool />} />
+
+      <Route path="/tools/keyword-density" element={<KeywordDensityTool />} />
+      <Route path="/keyword-density" element={<KeywordDensityTool />} />
+
+      <Route path="/tools/diff" element={<DiffTool />} />
+      <Route path="/diff" element={<DiffTool />} />
+
       <Route path="/tools/ats-compare" element={<AtsCompareTool />} />
+      <Route path="/ats-compare" element={<AtsCompareTool />} />
+
       <Route path="/tools/recruiter-view" element={<RecruiterViewTool />} />
+      <Route path="/recruiter-view" element={<RecruiterViewTool />} />
+
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/terms-of-service" element={<Terms />} />
