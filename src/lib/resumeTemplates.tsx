@@ -1347,12 +1347,12 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
           <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
           <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-          {r.links?.map((l, i) => (
-            <Editable key={i} value={l.url} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
+          {r.links?.filter(l => l && (l.url || l.label)).map((l, i) => (
+            <Editable key={i} value={l.url || l.label} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-[65%_35%] gap-4 p-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_230px] gap-4 p-5">
         <div>
           {(r.summary || update) && (
             <section className="mb-3">
@@ -1617,17 +1617,19 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
  *  - overlays dashed "Page 2 / 3 / ..." break lines when content overflows one page
  *    so users can visually confirm content spilling onto additional pages.
  */
-function PagedSheet({ children }: { children: React.ReactNode }) {
+function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode; isMini?: boolean; isExport?: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [pageH, setPageH] = React.useState(0);
+  const [pageH, setPageH] = React.useState(1123);
   const [totalH, setTotalH] = React.useState(0);
 
   React.useLayoutEffect(() => {
+    if (isMini || isExport) return;
     const el = wrapRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
-      const w = el.clientWidth;
-      const ph = w * (11 / 8.5);
+      const w = el.clientWidth || 794;
+      // Standard ISO A4 aspect ratio: 297mm / 210mm = 1.4142857 (exactly 1123px at 794px width)
+      const ph = Math.round(w * (297 / 210));
       setPageH(ph);
       setTotalH(el.scrollHeight);
       el.style.setProperty("--page-h", `${ph}px`);
@@ -1636,14 +1638,19 @@ function PagedSheet({ children }: { children: React.ReactNode }) {
     // observe children growth too
     if (el.firstElementChild) ro.observe(el.firstElementChild as Element);
     return () => ro.disconnect();
-  }, []);
+  }, [isMini, isExport]);
 
-  const pageCount = pageH > 0 ? Math.max(1, Math.ceil(totalH / pageH)) : 1;
+  if (isMini || isExport) {
+    return <div ref={wrapRef} className="relative w-full">{children}</div>;
+  }
+
+  // 25px buffer tolerance prevents sub-pixel rounding or margin collapse from prematurely creating a 2nd page
+  const pageCount = pageH > 0 ? Math.max(1, Math.ceil((totalH - 25) / pageH)) : 1;
   const breaks: number[] = [];
   for (let i = 1; i < pageCount; i++) breaks.push(i * pageH);
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative w-full">
       {children}
       {breaks.map((top, i) => (
         <div
@@ -1882,7 +1889,7 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   return (
     <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="grid grid-cols-[65%_35%] h-full">
+      <div className="grid grid-cols-[minmax(0,1fr)_240px] h-full">
         <div className="p-6">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-2xl tracking-tight" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-teal-700 text-[11px] font-medium mt-0.5" />
@@ -1952,10 +1959,10 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-teal-600 flex items-center justify-center text-xl font-bold text-white ring-2 ring-teal-300/40">
             {initials(r.name)}
           </div>
-          {r.links?.length > 0 && (
+          {r.links?.filter(l => l && (l.url || l.label))?.length > 0 && (
             <div className="text-[10px] space-y-1 break-words mb-4">
-              {r.links.map((l, i) => (
-                <Editable key={i} as="div" value={`${l.label}: ${l.url}`} onChange={update && (v => {
+              {r.links.filter(l => l && (l.url || l.label)).map((l, i) => (
+                <Editable key={i} as="div" value={l.label && l.url ? `${l.label}: ${l.url}` : (l.url || l.label)} onChange={update && (v => {
                   const [label, ...rest] = v.split(":");
                   on({ links: r.links.map((x, j) => j === i ? { label: (label || "").trim(), url: rest.join(":").trim() } : x) });
                 })} />
@@ -2005,8 +2012,8 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
             <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
             <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
             <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-            {r.links?.map((l, i) => (
-              <Editable key={i} value={l.url} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
+            {r.links?.filter(l => l && (l.url || l.label)).map((l, i) => (
+              <Editable key={i} value={l.url || l.label} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
             ))}
           </div>
         </div>
@@ -2014,7 +2021,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           {initials(r.name)}
         </div>
       </div>
-      <div className="grid grid-cols-[60%_40%] gap-5 p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-5 p-6">
         <div>
           {(r.summary || update) && (
             <section className="mb-3">
@@ -2125,7 +2132,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
         <div className="text-[10px] text-neutral-600 mt-1 flex flex-wrap gap-x-3 justify-center">
           <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
           <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
-          {r.links?.map((l, i) => (<Editable key={i} value={l.label} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, label: v } : x) }))} />))}
+          {r.links?.filter(l => l && (l.label || l.url)).map((l, i) => (<Editable key={i} value={l.label || l.url} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, label: v } : x) }))} />))}
           <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
         </div>
       </div>
@@ -2187,11 +2194,14 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
             <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
             <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
             <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+            {r.links?.filter(l => l && (l.url || l.label)).map((l, i) => (
+              <Editable key={i} value={l.url || l.label} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
+            ))}
           </div>
         </div>
         <div className="h-20 w-20 rounded-full bg-white/10 ring-4 ring-white/30 flex items-center justify-center text-xl font-bold shrink-0">{initials(r.name)}</div>
       </div>
-      <div className="grid grid-cols-[62%_38%] gap-5 p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-5 p-6">
         <div>
           {(r.summary || update) && (<section className="mb-3"><h3 className="text-[10px] font-bold uppercase tracking-widest text-[#0f2340] mb-1">Summary</h3><Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px]" /></section>)}
           {r.experience?.length > 0 && (<section className="mb-3"><h3 className="text-[10px] font-bold uppercase tracking-widest text-[#0f2340] border-b border-slate-300 pb-0.5 mb-1.5">Experience</h3>{r.experience.map((e, i) => { const upd = makeExpUpdater(update, r, i); return (
@@ -2224,7 +2234,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   return (
     <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="grid grid-cols-[35%_65%] h-full">
+      <div className="grid grid-cols-[240px_minmax(0,1fr)] h-full">
         <div className="bg-teal-700 text-teal-50 p-5">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-lg leading-tight uppercase" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-teal-100 text-[10px] mt-1" />
@@ -2232,7 +2242,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
             <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
             <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
-            {r.links?.map((l, i) => (<Editable key={i} as="div" value={l.label + ": " + l.url} onChange={update && (v => { const [label, ...rest] = v.split(":"); on({ links: r.links.map((x, j) => j === i ? { label: (label || "").trim(), url: rest.join(":").trim() } : x) }); })} />))}
+            {r.links?.filter(l => l && (l.label || l.url)).map((l, i) => (<Editable key={i} as="div" value={l.label && l.url ? l.label + ": " + l.url : (l.url || l.label)} onChange={update && (v => { const [label, ...rest] = v.split(":"); on({ links: r.links.map((x, j) => j === i ? { label: (label || "").trim(), url: rest.join(":").trim() } : x) }); })} />))}
           </div>
           {r.skills?.length > 0 && (<div className="mt-5"><div className="uppercase tracking-widest text-[9px] font-bold border-b border-teal-400 pb-1 mb-2">Key Skills & Achievements</div>{r.skills.map((s, i) => { const upd = makeSkillUpdater(update, r, i); return (<div key={i} className="mb-3 flex gap-2"><div className="h-6 w-6 rounded-full bg-teal-500/30 border border-teal-300 flex items-center justify-center text-[10px] font-bold shrink-0">★</div><div className="flex-1"><SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" /><Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-teal-100 leading-snug" /></div></div>); })}</div>)}
           {r.certifications?.length > 0 && (<div className="mt-4"><div className="uppercase tracking-widest text-[9px] font-bold border-b border-teal-400 pb-1 mb-2">Certifications</div><Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] whitespace-pre-wrap" /></div>)}
@@ -2389,8 +2399,8 @@ function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
           <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
           <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
-          {r.links?.map((l, i) => (
-            <Editable key={i} as="div" value={l.url} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
+          {r.links?.filter(l => l && (l.url || l.label)).map((l, i) => (
+            <Editable key={i} as="div" value={l.url || l.label} onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))} />
           ))}
         </div>
       </div>
@@ -2545,10 +2555,10 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
           <span>•</span>
           <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-          {r.links?.map((l, i) => (
+          {r.links?.filter(l => l && (l.url || l.label)).map((l, i) => (
             <React.Fragment key={i}>
               <span>•</span>
-              <Editable value={l.label + ": " + l.url} onChange={update && (v => {
+              <Editable value={l.label && l.url ? l.label + ": " + l.url : (l.url || l.label)} onChange={update && (v => {
                 const [lbl, ...rst] = v.split(":");
                 on({ links: r.links.map((x, j) => j === i ? { label: (lbl || "").trim(), url: rst.join(":").trim() } : x) });
               })} />
@@ -2667,7 +2677,7 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   return (
     <div
-      className="bg-white text-slate-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug"
+      className="bg-white text-slate-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug w-full"
       style={{
         minHeight: "var(--page-h, auto)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
@@ -2689,10 +2699,10 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
           </div>
         </div>
-        {r.links?.length > 0 && (
+        {r.links?.filter(l => l && (l.url || l.label))?.length > 0 && (
           <div className="mt-3 pt-2 border-t border-slate-800 flex flex-wrap gap-x-4 text-[9.5px] font-mono text-slate-400">
-            {r.links.map((l, i) => (
-              <Editable key={i} value={`${l.label}: ${l.url}`} onChange={update && (v => {
+            {r.links.filter(l => l && (l.url || l.label)).map((l, i) => (
+              <Editable key={i} value={l.label && l.url ? `${l.label}: ${l.url}` : (l.url || l.label)} onChange={update && (v => {
                 const [lbl, ...rst] = v.split(":");
                 on({ links: r.links.map((x, j) => j === i ? { label: (lbl || "").trim(), url: rst.join(":").trim() } : x) });
               })} />
@@ -2701,7 +2711,7 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         )}
       </div>
 
-      <div className="grid grid-cols-[65%_35%] gap-5 p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_250px] gap-5 p-6">
         <div>
           {(r.summary || update) && (
             <section className="mb-4">
@@ -2854,7 +2864,7 @@ export function TemplateMiniPreview({
           transformOrigin: "top center",
         }}
       >
-        <ResumePreview template={template} data={resume} />
+        <ResumePreview template={template} data={resume} isMini={true} />
       </div>
     </div>
   );
@@ -2956,9 +2966,15 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
 }
 
 export function ResumePreview({
-  template, data, onChange,
-}: { template: TemplateId; data: ResumeData; onChange?: (data: ResumeData) => void }) {
-  const update: UpdateFn = onChange ? (patch) => onChange({ ...data, ...patch }) : undefined;
+  template, data, onChange, isMini = false, isExport = false,
+}: {
+  template: TemplateId;
+  data: ResumeData;
+  onChange?: (data: ResumeData) => void;
+  isMini?: boolean;
+  isExport?: boolean;
+}) {
+  const update: UpdateFn = (!isMini && !isExport && onChange) ? (patch) => onChange({ ...data, ...patch }) : undefined;
   const rootRef = useRef<HTMLDivElement>(null);
   const scopeId = React.useId().replace(/[:]/g, "");
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
@@ -2985,15 +3001,16 @@ export function ResumePreview({
     <ClassicPreview r={data} update={update} />;
 
   useEffect(() => {
+    if (isMini) return;
     // Add small delay to ensure DOM is ready for tagging
     const timer = setTimeout(() => tagSections(rootRef.current), 50);
     return () => clearTimeout(timer);
-  }, [template, data.settings?.sectionOrder, data.experience.length, data.education.length, data.projects.length, data.skills.length]);
+  }, [isMini, template, data.settings?.sectionOrder, data.experience.length, data.education.length, data.projects.length, data.skills.length]);
 
   // Handle mouseup selection inside resume preview
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || !onChange) return;
+    if (!root || !onChange || isMini || isExport) return;
 
     const handleMouseUp = (e: MouseEvent) => {
       // Ignore if clicking inside the context menu itself or right-click
@@ -3045,10 +3062,10 @@ export function ResumePreview({
     return () => {
       root.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [onChange]);
+  }, [onChange, isMini, isExport]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    if (!onChange) return;
+    if (!onChange || isMini || isExport) return;
     e.preventDefault();
 
     const target = e.target as HTMLElement;
@@ -3184,16 +3201,19 @@ export function ResumePreview({
   return (
     <div
       ref={rootRef}
-      data-rs-root={scopeId}
+      data-rs-root={isMini ? undefined : scopeId}
+      data-rs-mini={isMini ? "true" : undefined}
+      data-rs-export={isExport ? "true" : undefined}
+      data-main-resume-preview={!isMini && !isExport ? "true" : undefined}
       data-rs-template={template}
-      className="resume-root-container relative"
+      className={`resume-root-container relative w-full ${isMini ? "pointer-events-none" : ""}`}
       onContextMenu={handleContextMenu}
     >
-      <style dangerouslySetInnerHTML={{ __html: sectionCss(`[data-rs-root="${scopeId}"]`, data.settings) }} />
-      <PagedSheet>{inner}</PagedSheet>
+      <style dangerouslySetInnerHTML={{ __html: sectionCss(isMini ? `[data-rs-mini="true"]` : `[data-rs-root="${scopeId}"]`, data.settings) }} />
+      <PagedSheet isMini={isMini} isExport={isExport}>{inner}</PagedSheet>
 
       {/* Unified context & text formatting menu */}
-      {contextMenu && (
+      {!isMini && !isExport && contextMenu && (
         <ResumeContextMenu
           position={contextMenu}
           onClose={() => setContextMenu(null)}
@@ -3218,80 +3238,33 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   const data = normalizeResumeSkills(rawData);
   const safe = safeName(data.name);
 
-  // 1. Locate the live preview element
-  const potentialRoots = Array.from(
-    document.querySelectorAll(`[data-rs-root], .resume-root-container, .resume-export-target`)
-  ) as HTMLElement[];
-
-  // Find the visible one (to avoid closed mobile sheets or hidden elements)
-  let visibleElement: HTMLElement | null = null;
-  for (const el of potentialRoots) {
-    const rect = el.getBoundingClientRect();
-    const style = window.getComputedStyle(el);
-    if (
-      (rect.width > 50 || el.offsetWidth > 50) &&
-      (rect.height > 50 || el.offsetHeight > 50) &&
-      style.display !== "none" &&
-      style.visibility !== "hidden" &&
-      style.opacity !== "0"
-    ) {
-      visibleElement = el;
-      break;
-    }
-  }
-
-  // Fallback to first matching element if none matched visibility criteria
-  const element = visibleElement || potentialRoots[0] || (document.querySelector(".resume-root-container") as HTMLElement);
-
-  if (!element) {
-    const msg = "Resume preview not found. Please ensure the preview is visible before exporting.";
-    console.error(msg);
-    if (typeof window !== "undefined") {
-      import("sonner").then(({ toast }) => toast.error(msg));
-    }
-    return;
-  }
-
-  // 2. Create an isolated off-screen wrapper for pixel-perfect html2canvas capture
+  // 1. Create an isolated off-screen export container to render exact data without interference from DOM previews
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper";
-  wrapper.style.cssText = "position: fixed; left: -9999px; top: 0; width: 794px; min-height: 1123px; background: #ffffff; z-index: -99999; margin: 0; padding: 0; overflow: visible;";
-
-  // Clone the element so we can strip transforms, drag handles, and dashed break lines safely
-  const clone = element.cloneNode(true) as HTMLElement;
-  clone.style.cssText = "transform: none !important; margin: 0 !important; width: 794px !important; max-width: 794px !important; min-height: 1123px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;";
-
-  // Strip preview-only overlays like dashed page breaks, page badges, and toolbars
-  clone.querySelectorAll('[data-page-badge], [data-page-indicator], .preview-only-badge, [data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
-  clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => el.remove());
-  clone.querySelectorAll('*').forEach(el => {
-    const txt = (el.textContent || "").trim();
-    if (/^\d+\s*pages?$/i.test(txt) || /^Page\s*\d+$/i.test(txt) || el.classList.contains("border-dashed") || el.querySelector(".border-dashed")) {
-      el.remove();
-    }
-  });
-
-  // Copy computed CSS custom properties
-  const pageH = element.style.getPropertyValue("--page-h");
-  if (pageH) {
-    clone.style.setProperty("--page-h", pageH);
-  }
-
-  wrapper.appendChild(clone);
+  wrapper.style.cssText = "position: fixed; left: -9999px; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -99999; margin: 0; padding: 0; overflow: visible;";
   document.body.appendChild(wrapper);
 
+  let root: any = null;
   try {
-    // Wait for fonts & rendering
+    const { createRoot } = await import("react-dom/client");
+    root = createRoot(wrapper);
+    root.render(
+      <React.StrictMode>
+        <ResumePreview template={template} data={data} isExport={true} />
+      </React.StrictMode>
+    );
+
+    // Wait for fonts & layout rendering to settle
     if (document.fonts) {
       try {
         await document.fonts.ready;
       } catch (_) {}
     }
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 250));
 
-    const targetHeight = Math.max(clone.scrollHeight, 1123);
+    const targetHeight = Math.max(wrapper.scrollHeight, 1123);
 
-    const canvas = await html2canvas(clone, {
+    const canvas = await html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -3314,10 +3287,10 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
 
     const pdfWidth = pdf.internal.pageSize.getWidth(); // 595.28 pt
     const pdfHeight = pdf.internal.pageSize.getHeight(); // 841.89 pt
-    const a4Ratio = pdfHeight / pdfWidth; // ~1.4142
+    const a4Ratio = 297 / 210; // 1.4142857
 
     const pageCanvasHeight = canvas.width * a4Ratio;
-    const totalPages = Math.max(1, Math.ceil((canvas.height - 15) / pageCanvasHeight));
+    const totalPages = Math.max(1, Math.ceil((canvas.height - 25) / pageCanvasHeight));
 
     if (totalPages === 1) {
       const imgData = canvas.toDataURL("image/png", 1.0);
@@ -3360,6 +3333,11 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       import("sonner").then(({ toast }) => toast.error("Export failed. Please try again."));
     }
   } finally {
+    if (root) {
+      try {
+        root.unmount();
+      } catch (_) {}
+    }
     if (wrapper.parentNode) {
       wrapper.parentNode.removeChild(wrapper);
     }
