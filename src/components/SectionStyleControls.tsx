@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Type, RotateCcw } from "lucide-react";
 import { RESUME_FONTS } from "@/lib/fonts";
 
+export type SectionStyles = Partial<Record<ResumeSectionKey, SectionStyle>>;
+
 export function SectionStyleControls({
   value, onChange, baseSize, sectionKey, hideHeader = false
 }: { 
