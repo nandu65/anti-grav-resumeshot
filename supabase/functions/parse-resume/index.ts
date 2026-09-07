@@ -48,8 +48,10 @@ Rules:
 - Preserve the user's own wording for bullets and summary — do NOT rewrite or invent content.
 - If a field isn't present, use "" or [].
 - Split multi-line responsibilities into separate bullet strings.
-- STRICT LEADERSHIP SEPARATION: Any entries under "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Positions of Responsibility", "Activities", "Extracurriculars", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
-- "experience" must ONLY contain formal professional employment, jobs, or corporate internships.
+- STRICT LEADERSHIP SEPARATION:
+  1. Any entries under sections named "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Positions of Responsibility", "Activities", "Extracurriculars", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
+  2. CRITICAL: Even if an entry is listed under "WORK EXPERIENCE" or "EXPERIENCE" in the raw resume, if the role or organization represents a student leadership role, club, committee, representative, band, house captain, or volunteer role (e.g. "Placement Coordinator", "Volunteer", "Class Representative", "School Band", "Captain / House Captain", "President", "Secretary", "Student Council", "NSS", "NCC", "NGO Volunteer"), you MUST EXTRACT IT OUT of "experience" and place it into the "leadership" array!
+  3. "experience" must ONLY contain formal professional employment, jobs, corporate internships, or freelancing.
 - Shape:
 {
  "name": string, "title": string, "email": string, "phone": string, "location": string,
@@ -62,6 +64,7 @@ Rules:
  "skills": string[],
  "certifications": string[]
 }`;
+
     const userMsg = `RAW RESUME TEXT:\n${trimmed}\n\nReturn the JSON now.`;
 
     const aiResult = await callAi({

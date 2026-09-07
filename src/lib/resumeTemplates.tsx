@@ -348,10 +348,32 @@ export function richToPlain(html: string) {
   return parseRichSegments(html).map(s => s.text).join("").replace(/\s+/g, " ").trim();
 }
 
+export function getNormalizedSectionOrder(order?: string[], r?: ResumeData): string[] {
+  const baseOrder = Array.isArray(order) && order.length > 0 
+    ? [...order] 
+    : ["summary", "experience", "leadership", "projects", "education", "skills", "certifications"];
+  
+  if (!baseOrder.includes("leadership")) {
+    const expIdx = baseOrder.indexOf("experience");
+    if (expIdx !== -1) {
+      baseOrder.splice(expIdx + 1, 0, "leadership");
+    } else {
+      const eduIdx = baseOrder.indexOf("education");
+      if (eduIdx !== -1) {
+        baseOrder.splice(eduIdx, 0, "leadership");
+      } else {
+        baseOrder.push("leadership");
+      }
+    }
+  }
+  return baseOrder;
+}
+
 /* ---------- HTML Preview components ---------- */
 function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const sectionOrder = r.settings?.sectionOrder || ["summary", "experience", "projects", "education", "skills", "certifications"];
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -546,7 +568,8 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
 function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const sectionOrder = r.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -713,7 +736,8 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
 function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const sectionOrder = r.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -870,7 +894,8 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 /* ---------- Executive: elegant serif, right-aligned metadata ---------- */
 function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const sectionOrder = r.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -1137,7 +1162,8 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 /* ---------- Minimal: airy, mono-weight, generous whitespace ---------- */
 function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const sectionOrder = r.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -2810,7 +2836,8 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     return out;
   };
 
-  const order = data.settings?.sectionOrder || ["summary", "experience", "education", "projects", "skills", "certifications"];
+  const order = getNormalizedSectionOrder(data.settings?.sectionOrder, data);
+
 
   /* =========================================================================
    * SINGLE COLUMN LAYOUTS (classic, compact, executive, minimal, timeline, elegant, centered-serif, photo-grid, logo-boxed)

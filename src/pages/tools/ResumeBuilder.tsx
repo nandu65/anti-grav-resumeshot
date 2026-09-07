@@ -15,7 +15,8 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 
 import { extractTextFromFile } from "@/lib/extractText";
-import { parseResumeTextLocally } from "@/lib/resumeParser";
+import { parseResumeTextLocally, separateExperienceAndLeadership } from "@/lib/resumeParser";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -330,6 +331,17 @@ export default function ResumeBuilder() {
       if (p.portfolio) parsedLinks.push({ label: "Portfolio", url: p.portfolio });
       if (Array.isArray(p.links)) p.links.forEach((l: any) => l?.url && parsedLinks.push({ label: l.label || "Link", url: l.url }));
 
+      const rawExp = (p.experience || []).map((e: any) => ({
+        company: e.company || "", role: e.role || "", location: e.location || "",
+        start: e.start || "", end: e.end || "", bullets: Array.isArray(e.bullets) ? e.bullets : (e.bullets ? [e.bullets] : []),
+      }));
+      const rawLead = (p.leadership || []).map((l: any) => ({
+        organization: l.organization || "", role: l.role || "", location: l.location || "",
+        start: l.start || "", end: l.end || "", bullets: Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : []),
+      }));
+
+      const { experience, leadership } = separateExperienceAndLeadership(rawExp, rawLead);
+
       const newResume: ResumeData = {
         ...EMPTY_RESUME,
         name: p.name || "",
@@ -339,14 +351,8 @@ export default function ResumeBuilder() {
         location: p.location || "",
         links: parsedLinks.length ? parsedLinks : [{ label: "LinkedIn", url: "" }],
         summary: p.summary || "",
-        experience: (p.experience || []).map((e: any) => ({
-          company: e.company || "", role: e.role || "", location: e.location || "",
-          start: e.start || "", end: e.end || "", bullets: Array.isArray(e.bullets) ? e.bullets : (e.bullets ? [e.bullets] : []),
-        })),
-        leadership: (p.leadership || []).map((l: any) => ({
-          role: l.role || "", organization: l.organization || "", location: l.location || "",
-          start: l.start || "", end: l.end || "", bullets: Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : []),
-        })),
+        experience,
+        leadership,
         education: (p.education || []).map((e: any) => ({
           school: e.school || "", degree: e.degree || "", location: e.location || "",
           start: e.start || "", end: e.end || "", details: e.details || "",
@@ -360,6 +366,7 @@ export default function ResumeBuilder() {
         }),
         certifications: Array.isArray(p.certifications) ? p.certifications : (p.certifications ? [p.certifications] : []),
       };
+
 
       setResumeData(normalizeResumeSkills({
         ...newResume,
