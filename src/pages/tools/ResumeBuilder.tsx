@@ -152,6 +152,98 @@ export default function ResumeBuilder() {
   const [versionName, setVersionName] = useState("");
   const [versions, setVersions] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
+  const [dragActiveStarter, setDragActiveStarter] = useState(false);
+  const [dragActiveWorkspace, setDragActiveWorkspace] = useState(false);
+  const dragCounterStarter = useRef(0);
+  const dragCounterWorkspace = useRef(0);
+
+  const handleStarterDragEnter = (e: React.DragEvent) => {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterStarter.current += 1;
+      setDragActiveStarter(true);
+    }
+  };
+
+  const handleStarterDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActiveStarter(true);
+    }
+  };
+
+  const handleStarterDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterStarter.current -= 1;
+    if (dragCounterStarter.current <= 0) {
+      dragCounterStarter.current = 0;
+      setDragActiveStarter(false);
+    }
+  };
+
+  const handleStarterDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterStarter.current = 0;
+    setDragActiveStarter(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+      if (![".pdf", ".docx", ".txt"].includes(ext)) {
+        toast.error("Please drop a valid resume file (.pdf, .docx, or .txt)");
+        return;
+      }
+      onUpload(file);
+    }
+  };
+
+  const handleWorkspaceDragEnter = (e: React.DragEvent) => {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterWorkspace.current += 1;
+      setDragActiveWorkspace(true);
+    }
+  };
+
+  const handleWorkspaceDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActiveWorkspace(true);
+    }
+  };
+
+  const handleWorkspaceDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterWorkspace.current -= 1;
+    if (dragCounterWorkspace.current <= 0) {
+      dragCounterWorkspace.current = 0;
+      setDragActiveWorkspace(false);
+    }
+  };
+
+  const handleWorkspaceDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterWorkspace.current = 0;
+    setDragActiveWorkspace(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+      if (![".pdf", ".docx", ".txt"].includes(ext)) {
+        toast.error("Please drop a valid resume file (.pdf, .docx, or .txt)");
+        return;
+      }
+      onUpload(file);
+    }
+  };
 
   const handleFormat = (command: string, value?: string) => {
     applyFormatToSelection(command, value);
@@ -583,8 +675,16 @@ export default function ResumeBuilder() {
         }}
       />
       <Navbar />
+      <input ref={fileRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); }} />
+
       {starter === "choose" ? (
-        <div className="container py-10 max-w-7xl">
+        <div 
+          className="container py-10 max-w-7xl relative"
+          onDragEnter={handleStarterDragEnter}
+          onDragOver={handleStarterDragOver}
+          onDragLeave={handleStarterDragLeave}
+          onDrop={handleStarterDrop}
+        >
           <div className="flex items-center gap-3 mb-8">
             <div className="h-12 w-12 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
               <Wand2 className="h-6 w-6" />
@@ -595,24 +695,62 @@ export default function ResumeBuilder() {
             </div>
           </div>
 
-          <div className="mb-6 rounded-2xl border-2 border-border bg-gradient-card p-6 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className={`mb-6 rounded-2xl border-2 transition-all duration-300 p-6 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-500 ${
+            dragActiveStarter 
+              ? "border-primary bg-primary/5 shadow-glow ring-4 ring-primary/20 scale-[1.01]" 
+              : "border-border bg-gradient-card"
+          }`}>
             <div className="text-center mb-8">
-              <h2 className="font-display text-2xl font-bold">How would you like to start?</h2>
-              <p className="text-muted-foreground mt-2 max-w-lg mx-auto">Choose to build a fresh resume from scratch or import your existing one.</p>
+              <h2 className="font-display text-2xl font-bold">
+                {dragActiveStarter ? "✨ Drop your resume file here!" : "How would you like to start?"}
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
+                {dragActiveStarter 
+                  ? "Release your file to immediately extract and parse your resume with AI." 
+                  : "Choose to build a fresh resume from scratch or import your existing one."}
+              </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              <button type="button" onClick={() => setStarter("wizard")} className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground"><FilePlus2 className="h-6 w-6" /></div>
+              <button 
+                type="button" 
+                onClick={() => setStarter("wizard")} 
+                className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow"
+              >
+                <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
+                  <FilePlus2 className="h-6 w-6" />
+                </div>
                 <h3 className="font-display text-lg font-bold">Build from scratch</h3>
                 <p className="text-sm text-muted-foreground mt-2 text-pretty">Step-by-step guidance for a perfect professional resume.</p>
               </button>
-              <button onClick={() => fileRef.current?.click()} className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground"><Upload className="h-6 w-6" /></div>
-                <h3 className="font-display text-lg font-bold">Upload my resume</h3>
-                <p className="text-sm text-muted-foreground mt-2">Import your existing PDF/DOCX and let AI fill everything.</p>
-              </button>
+
+              <div 
+                role="button"
+                tabIndex={0}
+                onClick={() => fileRef.current?.click()} 
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileRef.current?.click(); } }}
+                className={`group relative text-left rounded-2xl border-2 p-6 transition-all duration-300 cursor-pointer ${
+                  dragActiveStarter 
+                    ? "border-primary bg-primary/15 shadow-glow ring-2 ring-primary scale-[1.03]" 
+                    : "border-border bg-background hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow"
+                }`}
+              >
+                <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 transition-transform ${
+                  dragActiveStarter 
+                    ? "bg-primary text-primary-foreground scale-110 animate-bounce" 
+                    : "bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground"
+                }`}>
+                  <Upload className="h-6 w-6" />
+                </div>
+                <h3 className="font-display text-lg font-bold">
+                  {dragActiveStarter ? "Drop resume file here" : "Upload my resume"}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {dragActiveStarter 
+                    ? "PDF, DOCX, or TXT — will auto-populate all fields." 
+                    : "Import your existing PDF/DOCX or drag & drop anywhere."}
+                </p>
+              </div>
             </div>
-            <input ref={fileRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); }} />
             {uploading && (
               <div className="mt-8 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-300">
                 <div className="relative">
@@ -631,8 +769,28 @@ export default function ResumeBuilder() {
           </div>
         </div>
       ) : (
+        <div 
+          className="relative h-[calc(100vh-4.25rem)] overflow-hidden"
+          onDragEnter={handleWorkspaceDragEnter}
+          onDragOver={handleWorkspaceDragOver}
+          onDragLeave={handleWorkspaceDragLeave}
+          onDrop={handleWorkspaceDrop}
+        >
+          {dragActiveWorkspace && (
+            <div 
+              className="absolute inset-0 z-50 bg-background/85 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in-95 duration-150 border-4 border-dashed border-primary"
+            >
+              <div className="max-w-md w-full bg-card rounded-3xl p-8 text-center shadow-2xl border border-primary/30 animate-pulse">
+                <div className="h-16 w-16 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                  <Upload className="h-8 w-8 animate-bounce" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-foreground mb-2">Drop resume file to import</h3>
+                <p className="text-xs text-muted-foreground">PDF, DOCX, or TXT — AI will extract and populate your resume details automatically.</p>
+              </div>
+            </div>
+          )}
         <DragDropContext onDragEnd={onDragEnd}>
-        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-[calc(100vh-4.25rem)] flex flex-col overflow-hidden">
+        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-full flex flex-col overflow-hidden">
           <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
@@ -715,6 +873,17 @@ export default function ResumeBuilder() {
                     </span>
                   </div>
                 )}
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => fileRef.current?.click()} 
+                  className="h-9 rounded-full gap-2 border-primary/20 hover:bg-primary/5"
+                  title="Import or drag a resume file (PDF, DOCX, TXT)"
+                >
+                  <Upload className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Import</span>
+                </Button>
 
                 <Sheet>
                   <SheetTrigger asChild>
@@ -1577,6 +1746,7 @@ export default function ResumeBuilder() {
               </div>
             </div>
         </DragDropContext>
+        </div>
           )}
 
 
