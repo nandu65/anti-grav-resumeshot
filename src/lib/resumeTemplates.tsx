@@ -984,20 +984,17 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           {r.skills?.length > 0 && (
             <section className="mb-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-1">Skills</h3>
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="mb-1.5">
-                    <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                    <div className="flex flex-wrap gap-1 mt-0.5">
-                      {s.items.map((it, k) => (
-                        <span key={k} className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">{it}</span>
-                      ))}
+              <div className="space-y-1">
+                {r.skills.map((s, i) => {
+                  const upd = makeSkillUpdater(update, r, i);
+                  return (
+                    <div key={i} className="mb-1">
+                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
+                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 mt-0.5" />
                     </div>
-                    <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9px] text-neutral-400 mt-0.5" />
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </section>
           )}
           {r.education?.length > 0 && (
@@ -1207,8 +1204,9 @@ function PagedSheet({ children }: { children: React.ReactNode }) {
       {breaks.map((top, i) => (
         <div
           key={i}
-          aria-hidden
-          className="pointer-events-none absolute left-0 right-0 z-10"
+          aria-hidden="true"
+          data-page-indicator="true"
+          className="preview-only-badge pointer-events-none absolute left-0 right-0 z-10"
           style={{ top: top - 1 }}
         >
           <div className="border-t-2 border-dashed border-primary/50" />
@@ -1218,7 +1216,11 @@ function PagedSheet({ children }: { children: React.ReactNode }) {
         </div>
       ))}
       {pageCount > 1 && (
-        <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[9px] font-semibold shadow">
+        <div
+          aria-hidden="true"
+          data-page-badge="true"
+          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[9px] font-semibold shadow"
+        >
           {pageCount} pages
         </div>
       )}
@@ -1294,19 +1296,17 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       )}
       {r.skills?.length > 0 && (
         <section className="mb-4">{H("Skills")}
-          <div className="flex flex-wrap gap-1.5">
-            {r.skills.flatMap(s => s.items).map((it, k) => (
-              <span key={k} className="text-[10px] px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-100">{it}</span>
-            ))}
+          <div className="space-y-1 text-left">
+            {r.skills.map((s, i) => {
+              const upd = makeSkillUpdater(update, r, i);
+              return (
+                <div key={i} className="text-[10px] leading-relaxed">
+                  <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-teal-800" colon />{" "}
+                  <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                </div>
+              );
+            })}
           </div>
-          {update && r.skills.map((s, i) => {
-            const upd = makeSkillUpdater(update, r, i);
-            return (
-              <div key={i} className="mt-1 text-[9px] text-neutral-400">
-                <SkillCat value={s.category} onChange={v => upd({ category: v })} colon /> <Editable value={s.items.join(", ")} onChange={v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) })} />
-              </div>
-            );
-          })}
         </section>
       )}
       {r.certifications?.length > 0 && (
@@ -1374,23 +1374,17 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       )}
       {r.skills?.length > 0 && (
         <section>{H("Skills")}
-          <div className="flex flex-wrap justify-center gap-2 px-4">
-            {r.skills.flatMap(s => s.items).map((it, k) => (
-              <span key={k} className="text-[10px] px-2.5 py-1 rounded-full bg-stone-100 text-stone-800 border border-stone-200">{it}</span>
-            ))}
+          <div className="space-y-1 text-center max-w-[90%] mx-auto">
+            {r.skills.map((s, i) => {
+              const upd = makeSkillUpdater(update, r, i);
+              return (
+                <div key={i} className="text-[10.5px] leading-relaxed">
+                  <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-stone-700" colon />{" "}
+                  <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                </div>
+              );
+            })}
           </div>
-          {update && (
-            <div className="mt-4 pt-2 border-t border-stone-100 opacity-20 hover:opacity-100 transition-opacity">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[9px] text-stone-400 text-center mt-1">
-                    <SkillCat value={s.category} onChange={v => upd({ category: v })} colon /> <Editable value={s.items.join(", ")} onChange={v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) })} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </section>
       )}
       {r.certifications?.length > 0 && (
@@ -1566,20 +1560,17 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           {r.skills?.length > 0 && (
             <section className="mb-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-0.5 mb-1.5">Skills</h3>
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="mb-1.5">
-                    <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                    <div className="flex flex-wrap gap-1 mt-0.5">
-                      {s.items.map((it, k) => (
-                        <span key={k} className="text-[9px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-100">{it}</span>
-                      ))}
+              <div className="space-y-1">
+                {r.skills.map((s, i) => {
+                  const upd = makeSkillUpdater(update, r, i);
+                  return (
+                    <div key={i} className="text-[10px]">
+                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
+                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700" />
                     </div>
-                    <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9px] text-neutral-400 mt-0.5" />
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </section>
           )}
           {r.certifications?.length > 0 && (
@@ -1598,10 +1589,15 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
 function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const Rule = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-3 my-2">
-      <div className="flex-1 h-px bg-neutral-300" />
-      <div className="text-[12px] font-semibold tracking-wide text-neutral-800">{label}</div>
-      <div className="flex-1 h-px bg-neutral-300" />
+    <div className="relative my-3">
+      <div className="absolute inset-0 flex items-center" aria-hidden="true">
+        <div className="w-full border-t border-neutral-300" />
+      </div>
+      <div className="relative flex justify-start">
+        <span className="bg-white pr-3 text-[11px] font-bold uppercase tracking-wider text-neutral-800">
+          {label}
+        </span>
+      </div>
     </div>
   );
   return (
@@ -1616,7 +1612,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
           <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
         </div>
       </div>
-      {(r.summary || update) && (<><Rule label="Summary" /><Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-center text-[10.5px] whitespace-pre-wrap px-4" /></>)}
+      {(r.summary || update) && (<><Rule label="Summary" /><Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-left text-[10.5px] whitespace-pre-wrap px-1" /></>)}
       {r.experience?.length > 0 && (<><Rule label="Experience" />{r.experience.map((e, i) => {
         const upd = makeExpUpdater(update, r, i);
         return (
@@ -1630,23 +1626,17 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
       {r.skills?.length > 0 && (
         <>
           <Rule label="Skills" />
-          <div className="flex flex-wrap justify-center gap-2 px-6">
-            {r.skills.flatMap(s => s.items).map((it, k) => (
-              <span key={k} className="text-[10px] border border-neutral-300 px-2 py-0.5 rounded-sm bg-neutral-50">{it}</span>
-            ))}
+          <div className="space-y-1 text-left px-1">
+            {r.skills.map((s, i) => {
+              const upd = makeSkillUpdater(update, r, i);
+              return (
+                <div key={i} className="text-[10.5px] leading-relaxed">
+                  <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
+                  <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                </div>
+              );
+            })}
           </div>
-          {update && (
-            <div className="mt-4 pt-2 border-t border-neutral-100 opacity-20 hover:opacity-100 transition-opacity">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[9px] text-neutral-400 text-center mt-0.5">
-                    <SkillCat value={s.category} onChange={v => upd({ category: v })} colon /> <Editable value={s.items.join(", ")} onChange={v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) })} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </>
       )}
       {r.education?.length > 0 && (<><Rule label="Education" />{r.education.map((e, i) => { const upd = makeEduUpdater(update, r, i); return (
@@ -1809,7 +1799,7 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           <div className="flex-1"><div className="flex justify-between"><span className="font-semibold text-sky-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></span><span className="text-[10px] text-neutral-600"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span></div><div className="italic text-[10.5px]"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div></div>
         </div>
       ); })}</>)}
-      {r.skills?.length > 0 && (<>{H("Skills")}<div className="flex flex-wrap gap-1.5">{r.skills.flatMap(s => s.items).map((it, i) => (<span key={i} className="text-[10px] px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-100">{it}</span>))}</div>{update && r.skills.map((s, i) => { const upd = makeSkillUpdater(update, r, i); return (<div key={i} className="text-[9px] text-neutral-400 mt-0.5"><SkillCat value={s.category} onChange={v => upd({ category: v })} colon /> <Editable value={s.items.join(", ")} onChange={v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) })} /></div>); })}</>)}
+      {r.skills?.length > 0 && (<>{H("Skills")}<div className="space-y-1">{r.skills.map((s, i) => { const upd = makeSkillUpdater(update, r, i); return (<div key={i} className="text-[10px] leading-relaxed"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-sky-800" colon /> <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} /></div>); })}</div></>)}
       {r.certifications?.length > 0 && (<>{H("Certifications")}<Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10.5px] whitespace-pre-wrap" /></>)}
     </div>
   );
@@ -1958,12 +1948,14 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   clone.style.cssText = "transform: none !important; margin: 0 !important; width: 794px !important; max-width: 794px !important; min-height: 1123px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;";
 
   // Strip preview-only overlays like dashed page breaks, page badges, and toolbars
-  clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => {
-    if (el.textContent?.includes("Page") || el.querySelector(".border-dashed") || el.classList.contains("border-dashed")) {
+  clone.querySelectorAll('[data-page-badge], [data-page-indicator], .preview-only-badge, [data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
+  clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => el.remove());
+  clone.querySelectorAll('*').forEach(el => {
+    const txt = (el.textContent || "").trim();
+    if (/^\d+\s*pages?$/i.test(txt) || /^Page\s*\d+$/i.test(txt) || el.classList.contains("border-dashed") || el.querySelector(".border-dashed")) {
       el.remove();
     }
   });
-  clone.querySelectorAll('[data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
 
   // Copy computed CSS custom properties
   const pageH = element.style.getPropertyValue("--page-h");
