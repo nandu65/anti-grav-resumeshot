@@ -34,6 +34,7 @@ import {
 import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
 import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
 import { PreferenceFilterBar, scoreTemplate } from "@/components/PreferenceFilterBar";
+import { ResumeDesignFormattingPanel } from "@/components/ResumeDesignFormattingPanel";
 
 const EMPTY_RESUME: ResumeData = {
   name: "Harsha Naidu",
@@ -99,7 +100,18 @@ const EMPTY_RESUME: ResumeData = {
     { category: "Tools", items: ["Docker", "AWS", "Git", "Kubernetes"] }
   ],
   certifications: ["AWS Certified Solutions Architect", "Google Professional Cloud Developer"],
-  settings: { fontSize: 11, fontFamily: "Inter, sans-serif", sections: {} }
+  settings: {
+    fontSize: 10,
+    headingSize: 14,
+    fontFamily: "Arial, sans-serif",
+    sectionSpacing: 16,
+    paragraphSpacing: 6,
+    lineSpacing: 1.35,
+    marginTopBottom: 32,
+    marginSide: 32,
+    paragraphIndent: 0,
+    sections: {}
+  }
 };
 
 export default function ResumeBuilder() {
@@ -796,7 +808,7 @@ export default function ResumeBuilder() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_1.18fr] gap-6 overflow-hidden">
+            <div className="flex-1 min-h-0 grid lg:grid-cols-[0.82fr_1.38fr] xl:grid-cols-[0.85fr_1.45fr] gap-5 overflow-hidden">
               {/* LEFT COLUMN: FORM EDITOR */}
               <div className="h-full overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-6 min-h-0">
                 {/* NAVIGATION */}
@@ -1407,21 +1419,34 @@ export default function ResumeBuilder() {
                     </Button>
                   </div>
 
-                  {/* Independent Scrollable Preview Area with no horizontal overflow */}
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 custom-scrollbar flex justify-center items-start min-h-0">
-                    {resumeData ? (
-                      <div className="w-full max-w-[794px] min-w-0 mx-auto resume-export-target bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-200">
-                        <DragDropContext onDragEnd={onDragEnd}>
-                          <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
-                        </DragDropContext>
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
-                        <div className="h-20 w-20 rounded-3xl bg-muted/30 flex items-center justify-center mb-6"><Eye className="h-10 w-10 opacity-20" /></div>
-                        <h4 className="font-bold text-foreground mb-2">Live Preview</h4>
-                        <p className="text-xs max-w-[200px]">Fill in your details and click Generate to see your polished resume here.</p>
-                      </div>
-                    )}
+                  {/* Independent Scrollable Preview Area with Formatting Sidebar docked on the left of resume */}
+                  <div className="flex-1 overflow-hidden flex min-h-0 p-3 sm:p-4 gap-4 bg-muted/10">
+                    {/* LEFT OF RESUME: DESIGN & FORMATTING PANEL */}
+                    <div className="shrink-0 h-full overflow-y-auto custom-scrollbar">
+                      <ResumeDesignFormattingPanel
+                        settings={resumeData?.settings || {}}
+                        onChangeSettings={(newSettings) => setResumeData(prev => ({ ...prev, settings: newSettings }))}
+                        template={template}
+                        onChangeTemplate={setTemplate}
+                      />
+                    </div>
+
+                    {/* RESUME A4 SHEET PREVIEW */}
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-1 custom-scrollbar flex justify-center items-start min-h-0">
+                      {resumeData ? (
+                        <div className="w-full max-w-[794px] min-w-0 mx-auto resume-export-target bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-200">
+                          <DragDropContext onDragEnd={onDragEnd}>
+                            <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                          </DragDropContext>
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">
+                          <div className="h-20 w-20 rounded-3xl bg-muted/30 flex items-center justify-center mb-6"><Eye className="h-10 w-10 opacity-20" /></div>
+                          <h4 className="font-bold text-foreground mb-2">Live Preview</h4>
+                          <p className="text-xs max-w-[200px]">Fill in your details and click Generate to see your polished resume here.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

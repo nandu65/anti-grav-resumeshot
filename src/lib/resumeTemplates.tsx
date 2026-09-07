@@ -24,6 +24,20 @@ export function saveBlob(blob: Blob, filename: string) {
 
 
 
+export interface ResumeSettings {
+  fontSize?: number;
+  headingSize?: number;
+  fontFamily?: string;
+  sectionSpacing?: number;
+  paragraphSpacing?: number;
+  lineSpacing?: number;
+  marginTopBottom?: number;
+  marginSide?: number;
+  paragraphIndent?: number;
+  sections?: Partial<Record<ResumeSectionKey, SectionStyle>>;
+  sectionOrder?: string[];
+}
+
 export interface ResumeData {
   name: string;
   title: string;
@@ -38,12 +52,7 @@ export interface ResumeData {
   projects: { name: string; tech: string; bullets: string[] }[];
   skills: { category: string; items: string[] }[];
   certifications: string[];
-  settings?: {
-    fontSize?: number;
-    fontFamily?: string;
-    sections?: Partial<Record<ResumeSectionKey, SectionStyle>>;
-    sectionOrder?: string[];
-  };
+  settings?: ResumeSettings;
 
   _isPolished?: boolean;
 }
@@ -2077,8 +2086,38 @@ function tagSections(root: HTMLElement | null) {
   }
 }
 
-function sectionCss(scope: string, sections?: Partial<Record<ResumeSectionKey, SectionStyle>>) {
-  if (!sections) return "";
+function sectionCss(scope: string, settings?: ResumeSettings) {
+  if (!settings) return "";
+  const sections = settings.sections;
+  const baseRules: string[] = [];
+
+  if (settings.fontFamily) {
+    baseRules.push(`${scope}, ${scope} * { font-family: ${settings.fontFamily} !important; }`);
+  }
+  if (settings.fontSize) {
+    baseRules.push(`${scope}, ${scope} * { font-size: ${settings.fontSize}px; }`);
+  }
+  if (settings.lineSpacing) {
+    baseRules.push(`${scope}, ${scope} * { line-height: ${settings.lineSpacing} !important; }`);
+  }
+  if (settings.headingSize) {
+    baseRules.push(`${scope} h1, ${scope} h2, ${scope} h3, ${scope} [data-rs-head] { font-size: ${settings.headingSize}px !important; }`);
+  }
+  if (settings.sectionSpacing != null) {
+    baseRules.push(`${scope} section, ${scope} [data-rs-sec] { margin-bottom: ${settings.sectionSpacing}px !important; }`);
+  }
+  if (settings.paragraphSpacing != null) {
+    baseRules.push(`${scope} p, ${scope} .space-y-1 > *, ${scope} .space-y-2 > *, ${scope} .mb-3, ${scope} .mb-2 { margin-bottom: ${settings.paragraphSpacing}px !important; }`);
+  }
+  if (settings.paragraphIndent != null && settings.paragraphIndent > 0) {
+    baseRules.push(`${scope} p, ${scope} li { text-indent: ${settings.paragraphIndent}px; }`);
+  }
+  if (settings.marginTopBottom != null || settings.marginSide != null) {
+    const tb = settings.marginTopBottom ?? 32;
+    const lr = settings.marginSide ?? 32;
+    baseRules.push(`${scope} .resume-page-sheet, ${scope} > div > div:first-child { padding-top: ${tb}px !important; padding-bottom: ${tb}px !important; padding-left: ${lr}px !important; padding-right: ${lr}px !important; }`);
+  }
+
   const rule = (sel: string, s?: SectionStyle) => {
     if (!s) return "";
     const decls = [
@@ -2091,10 +2130,12 @@ function sectionCss(scope: string, sections?: Partial<Record<ResumeSectionKey, S
     return decls ? `${sel},${sel} * {${decls}}` : "";
   };
   const body = (["summary", "experience", "leadership", "education", "skills", "projects", "certifications"] as ResumeSectionKey[])
-    .map(k => rule(`${scope} [data-rs-sec="${k}"]`, sections[k]))
+    .map(k => rule(`${scope} [data-rs-sec="${k}"]`, sections?.[k]))
     .join("\n");
   // headings last so they win over section body rules
-  return `${body}\n${rule(`${scope} [data-rs-head]`, sections.headings)}`;
+  const headingRule = rule(`${scope} [data-rs-head]`, sections?.headings);
+
+  return `${baseRules.join("\n")}\n${body}\n${headingRule}`;
 }
 
 export function ResumePreview({
@@ -2128,7 +2169,7 @@ export function ResumePreview({
 
   return (
     <div ref={rootRef} data-rs-root={scopeId} data-rs-template={template} className="resume-root-container">
-      <style dangerouslySetInnerHTML={{ __html: sectionCss(`[data-rs-root="${scopeId}"]`, data.settings?.sections) }} />
+      <style dangerouslySetInnerHTML={{ __html: sectionCss(`[data-rs-root="${scopeId}"]`, data.settings) }} />
       <PagedSheet>{inner}</PagedSheet>
     </div>
   );
@@ -2544,6 +2585,10 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
   const secStyles = data.settings?.sections;
 
   const parseDocxRichText = (text: string) => parseRichSegments(text);
+  const defaultParagraphSpacing = data.settings?.paragraphSpacing != null ? Math.round(data.settings.paragraphSpacing * 15) : 80;
+  const defaultSectionSpacing = data.settings?.sectionSpacing != null ? Math.round(data.settings.sectionSpacing * 15) : 200;
+  const lineSpacingRule = data.settings?.lineSpacing ? Math.round(data.settings.lineSpacing * 240) : undefined;
+  const indentObj = data.settings?.paragraphIndent != null && data.settings.paragraphIndent > 0 ? { left: Math.round(data.settings.paragraphIndent * 15) } : undefined;
 
   const P = (text: string, opts: {
     bold?: boolean;
@@ -2553,7 +2598,8 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
     align?: any;
     sectionKey?: ResumeSectionKey;
     fontFamily?: string;
-    spacing?: { before?: number; after?: number };
+    spacing?: { before?: number; after?: number; line?: number };
+    indent?: { left?: number };
   } = {}) => {
     const parts = parseDocxRichText(text);
     const secStyle = opts.sectionKey ? secStyles?.[opts.sectionKey] : undefined;
@@ -2564,7 +2610,8 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
 
     return new Paragraph({
       alignment: opts.align,
-      spacing: opts.spacing,
+      spacing: opts.spacing || { after: defaultParagraphSpacing, line: lineSpacingRule },
+      indent: opts.indent || indentObj,
       children: parts.map(p => new TextRun({
         text: p.text,
         bold: p.bold || defaultBold,
@@ -2579,16 +2626,19 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
 
   const H = (text: string, isSidebar = false) => {
     const headFont = resolveDocxFont(secStyles?.headings?.fontFamily, font);
-    const headSize = secStyles?.headings?.fontSize ? secStyles.headings.fontSize * 2 : (baseSize + 2);
+    const headSize = secStyles?.headings?.fontSize ? secStyles.headings.fontSize * 2 : (data.settings?.headingSize ? data.settings.headingSize * 2 : (baseSize + 4));
+    const beforeSpacing = Math.round(defaultSectionSpacing * 0.7);
+    const afterSpacing = Math.round(defaultSectionSpacing * 0.3);
+
     if (isSidebar && cfg.sidebarTextColor === "FFFFFF") {
       return new Paragraph({
-        spacing: { before: 200, after: 100 },
+        spacing: { before: beforeSpacing, after: afterSpacing },
         border: cfg.sidebarBorderColor ? { bottom: { color: cfg.sidebarBorderColor, size: 6, style: BorderStyle.SINGLE, space: 6 } } : undefined,
-        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(baseSize * 0.95), color: cfg.sidebarHeadingColor || "FFFFFF", font: headFont })],
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: Math.round(headSize * 0.9), color: cfg.sidebarHeadingColor || "FFFFFF", font: headFont })],
       });
     }
     return new Paragraph({
-      spacing: { before: 200, after: 100 },
+      spacing: { before: beforeSpacing, after: afterSpacing },
       border: { bottom: { color: accent, size: 8, style: BorderStyle.SINGLE, space: 6 } },
       children: [new TextRun({ text: text.toUpperCase(), bold: true, size: headSize, color: accent, font: headFont })],
     });

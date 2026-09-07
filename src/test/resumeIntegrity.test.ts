@@ -83,4 +83,27 @@ describe("Resume Data Integrity", () => {
     const docxBody = buildResumeDocxBody(dataWithLeadership, "classic");
     expect(docxBody.children.length).toBeGreaterThan(0);
   });
+
+  it("should sync font formatting and document formatting into settings and exports", async () => {
+    const formattedData: ResumeData = {
+      ...sentinelData,
+      settings: {
+        fontFamily: "Arial, sans-serif",
+        fontSize: 10,
+        headingSize: 14,
+        sectionSpacing: 18,
+        paragraphSpacing: 8,
+        lineSpacing: 1.4,
+        marginTopBottom: 36,
+        marginSide: 40,
+        paragraphIndent: 12,
+      }
+    };
+
+    const { buildResumeDocxBody, resolveDocxFont } = await import("../lib/resumeTemplates");
+    expect(resolveDocxFont(formattedData.settings?.fontFamily)).toBe("Arial");
+
+    const docx = buildResumeDocxBody(formattedData, "classic");
+    expect(docx.children.length).toBeGreaterThan(0);
+  });
 });
