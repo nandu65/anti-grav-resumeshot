@@ -29,7 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import {
   TEMPLATES, TemplateId, ResumeData, ResumePreview,
   downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
-  normalizeResumeSkills,
+  normalizeResumeSkills, getNormalizedSectionOrder,
 } from "@/lib/resumeTemplates";
 import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
 import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
