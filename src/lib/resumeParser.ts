@@ -99,20 +99,27 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
 
   // 5. Section Partitioning
   const sectionHeaders: { index: number; type: string; header: string }[] = [];
-  const sectionKeywords: Record<string, RegExp> = {
-    summary: /^(professional summary|summary|profile|about me|executive summary)$/i,
-    experience: /^(work experience|professional experience|experience|employment history|work history)$/i,
-    leadership: /^(leadership experience|leadership|volunteer experience|community leadership|extracurricular activities|activities|leadership & activities)$/i,
-    education: /^(education|academic background|academics|qualifications)$/i,
-    skills: /^(skills|core competencies|technical skills|key skills|technologies)$/i,
-    projects: /^(projects|academic projects|key projects|personal projects)$/i,
-    certifications: /^(certifications|licenses & certifications|certificates|credentials)$/i,
-  };
+  const sectionKeywords: [string, RegExp][] = [
+    ["summary", /^(professional summary|summary|profile|about me|executive summary|personal statement)$/i],
+    ["leadership", /^(leadership experience|leadership|volunteer experience|volunteering|volunteer|community leadership|community service|extracurricular activities|extra-curricular activities|co-curricular activities|extracurriculars|activities|leadership & activities|leadership and activities|leadership & involvement|leadership and involvement|leadership & volunteering|leadership and volunteering|positions of responsibility|position of responsibility|student leadership|campus involvement)$/i],
+    ["experience", /^(work experience|professional experience|experience|employment history|work history|career history|internships|internship experience)$/i],
+    ["education", /^(education|academic background|academics|qualifications|academic history)$/i],
+    ["skills", /^(skills|core competencies|technical skills|key skills|technologies|areas of expertise|competencies)$/i],
+    ["projects", /^(projects|academic projects|key projects|personal projects|technical projects)$/i],
+    ["certifications", /^(certifications|licenses & certifications|certificates|credentials|licenses)$/i],
+  ];
 
   lines.forEach((line, idx) => {
-    const clean = line.replace(/[:\-—–_#]/g, "").trim();
-    for (const [type, re] of Object.entries(sectionKeywords)) {
-      if (re.test(clean)) {
+    const clean = line
+      .replace(/^[\d\.\)\s•\-\*▪\u2022\u25E6\u25AA]+/g, "")
+      .replace(/[:\-—–_#|]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!clean) return;
+
+    for (const [type, re] of sectionKeywords) {
+      if (re.test(clean) || (type === "leadership" && /^(leadership|volunteer|extracurricular|co-curricular|activities|positions? of responsibility)/i.test(clean) && clean.length < 40)) {
         sectionHeaders.push({ index: idx, type, header: line });
         break;
       }
@@ -188,7 +195,19 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
         } else if (isBullet && currentEntry) {
           currentEntry.bullets.push(line.replace(/^[•\-\*\u2022\u25E6\u25AA]\s*/, "").trim());
         } else if (!isBullet && currentEntry) {
-          if (!currentEntry.role || currentEntry.role === "Role") {
+          const isHeaderCandidate = (currentEntry.bullets.length > 0 || (Boolean(currentEntry.start) && Boolean(currentEntry.end))) && (line.includes(",") || line.includes("–") || line.includes("-") || line.includes("|") || line.length < 55);
+          if (isHeaderCandidate) {
+            entries.push(currentEntry);
+            const parts = line.split(/[,|–—]/).map(p => p.trim()).filter(Boolean);
+            currentEntry = {
+              company: parts[1] || parts[0] || line,
+              role: parts.length > 1 ? parts[0] : "",
+              location: parts[2] || "",
+              start: "",
+              end: "",
+              bullets: [],
+            };
+          } else if (!currentEntry.role || currentEntry.role === "Role") {
             currentEntry.role = line;
           } else {
             currentEntry.bullets.push(line);
@@ -239,7 +258,19 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
         } else if (isBullet && currentEntry) {
           currentEntry.bullets.push(line.replace(/^[•\-\*\u2022\u25E6\u25AA]\s*/, "").trim());
         } else if (!isBullet && currentEntry) {
-          if (!currentEntry.role || currentEntry.role === "Leader") {
+          const isHeaderCandidate = (currentEntry.bullets.length > 0 || (Boolean(currentEntry.start) && Boolean(currentEntry.end))) && (line.includes(",") || line.includes("–") || line.includes("-") || line.includes("|") || line.length < 55);
+          if (isHeaderCandidate) {
+            entries.push(currentEntry);
+            const parts = line.split(/[,|–—]/).map(p => p.trim()).filter(Boolean);
+            currentEntry = {
+              organization: parts[1] || parts[0] || line,
+              role: parts.length > 1 ? parts[0] : "",
+              location: parts[2] || "",
+              start: "",
+              end: "",
+              bullets: [],
+            };
+          } else if (!currentEntry.role || currentEntry.role === "Leader") {
             currentEntry.role = line;
           } else {
             currentEntry.bullets.push(line);

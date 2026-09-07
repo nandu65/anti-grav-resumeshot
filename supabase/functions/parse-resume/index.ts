@@ -38,6 +38,8 @@ Rules:
 - Preserve the user's own wording for bullets and summary — do NOT rewrite or invent content.
 - If a field isn't present, use "" or [].
 - Split multi-line responsibilities into separate bullet strings.
+- STRICT LEADERSHIP SEPARATION: Any entries under "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Positions of Responsibility", "Activities", "Extracurriculars", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
+- "experience" must ONLY contain formal professional employment, jobs, or corporate internships.
 - Shape:
 {
  "name": string, "title": string, "email": string, "phone": string, "location": string,

@@ -70,4 +70,53 @@ B.S. Computer Science , MIT
     expect(parsed.leadership?.[0].role).toBe("Chapter Lead");
     expect(parsed.leadership?.[0].bullets.length).toBe(2);
   });
+
+  it("should cleanly separate work experience and leadership experience with numbered/varied headers", () => {
+    const rawText = `
+Alex Morgan
+Senior Software Engineer
+alex@example.com • 555-0199 • New York, NY
+
+1. SUMMARY
+Experienced full-stack engineer with 6+ years building web applications.
+
+2. WORK EXPERIENCE
+Software Engineer , Stripe
+2021 – Present
+• Developed payment settlement pipelines processing $10M daily.
+• Optimized Postgres query latencies by 35%.
+
+Frontend Developer , Acme Corp
+2019 – 2021
+• Built reusable component design system.
+
+3. LEADERSHIP & ACTIVITIES
+President , ACM Student Chapter
+2018 – 2019
+• Organized hackathons and weekly technical workshops.
+
+Team Lead , Open Source Collective
+2020 – 2022
+• Coordinated 15 volunteer open-source maintainers.
+
+4. EDUCATION
+B.S. in Computer Science , NYU
+2015 – 2019
+    `;
+
+    const parsed = parseResumeTextLocally(rawText);
+
+    // Verify work experience only contains Stripe and Acme
+    expect(parsed.experience.length).toBe(2);
+    expect(parsed.experience[0].company).toContain("Stripe");
+    expect(parsed.experience[1].company).toContain("Acme Corp");
+
+    // Verify leadership only contains ACM and Open Source Collective
+    expect(parsed.leadership).toBeDefined();
+    expect(parsed.leadership?.length).toBe(2);
+    expect(parsed.leadership?.[0].organization).toContain("ACM Student Chapter");
+    expect(parsed.leadership?.[0].role).toBe("President");
+    expect(parsed.leadership?.[1].organization).toContain("Open Source Collective");
+    expect(parsed.leadership?.[1].role).toBe("Team Lead");
+  });
 });
