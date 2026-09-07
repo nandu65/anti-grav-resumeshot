@@ -73,12 +73,21 @@ export function applyFormatToSelection(command: string, value?: string) {
     const host = hosts[0];
     host.focus({ preventScroll: true });
     if (command === "fontSize") {
-      const next = value === "decrease" ? currentFontSizePx() - 1 : currentFontSizePx() + 1;
+      let next = currentFontSizePx();
+      if (value === "decrease") {
+        next = Math.max(4, next - 1);
+      } else if (value === "increase") {
+        next = Math.min(120, next + 1);
+      } else if (value && !isNaN(Number(value))) {
+        next = Math.max(4, Math.min(120, Number(value)));
+      } else {
+        next = Math.min(120, next + 1);
+      }
       document.execCommand("fontSize", false, "7");
       Array.from(document.getElementsByTagName("font")).forEach(f => {
         if (f.getAttribute("size") === "7") {
           f.removeAttribute("size");
-          f.style.fontSize = `${Math.max(6, Math.min(40, next))}px`;
+          f.style.fontSize = `${next}px`;
         }
       });
     } else if (command === "fontName") {
@@ -94,9 +103,18 @@ export function applyFormatToSelection(command: string, value?: string) {
     return;
   }
 
-  const size = command === "fontSize"
-    ? Math.max(6, Math.min(40, value === "decrease" ? currentFontSizePx() - 1 : currentFontSizePx() + 1))
-    : 0;
+  let size = 0;
+  if (command === "fontSize") {
+    if (value === "decrease") {
+      size = Math.max(4, currentFontSizePx() - 1);
+    } else if (value === "increase") {
+      size = Math.min(120, currentFontSizePx() + 1);
+    } else if (value && !isNaN(Number(value))) {
+      size = Math.max(4, Math.min(120, Number(value)));
+    } else {
+      size = Math.min(120, currentFontSizePx() + 1);
+    }
+  }
 
   hosts.forEach(host => {
     switch (command) {

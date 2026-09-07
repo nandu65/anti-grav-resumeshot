@@ -43,9 +43,20 @@ export function SectionStyleControls({
               {!sectionKey && <span className="text-sm font-medium">{label}</span>}
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => set(key, { fontSize: Math.max(6, size - 1) })}>-</Button>
-                  <span className="text-xs font-bold w-6 text-center">{s.fontSize ? `${s.fontSize}` : "auto"}</span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => set(key, { fontSize: Math.min(28, size + 1) })}>+</Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => set(key, { fontSize: Math.max(4, size - 1) })}>-</Button>
+                  <input
+                    type="number"
+                    min={4}
+                    max={120}
+                    value={s.fontSize ?? ""}
+                    placeholder="auto"
+                    onChange={e => {
+                      const val = e.target.value === "" ? undefined : Math.max(4, Math.min(120, Number(e.target.value)));
+                      set(key, { fontSize: val });
+                    }}
+                    className="w-10 h-7 text-center bg-transparent border-none text-xs font-bold focus:outline-none"
+                  />
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => set(key, { fontSize: Math.min(120, size + 1) })}>+</Button>
                 </div>
                 <select
                   className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none h-8 min-w-[120px]"

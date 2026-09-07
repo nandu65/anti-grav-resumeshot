@@ -83,8 +83,8 @@ export function ResumeContextMenu({
       }
     }
 
-    const menuWidth = 280;
-    const menuHeight = 380;
+    const menuWidth = 340;
+    const menuHeight = 400;
 
     let x = position.x;
     let y = position.y;
@@ -213,7 +213,7 @@ export function ResumeContextMenu({
         top: `${coords.y}px`,
         zIndex: 99999,
       }}
-      className="w-72 bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-2xl p-2 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none ring-1 ring-border/50"
+      className="w-[340px] max-w-[calc(100vw-24px)] bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-2xl p-2.5 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none ring-1 ring-border/50"
       onContextMenu={e => e.preventDefault()}
       onMouseDown={e => {
         // Prevent clicking context menu from de-selecting or blurring editable text
@@ -221,13 +221,13 @@ export function ResumeContextMenu({
       }}
     >
       {/* --- Section 1: Quick Formatting Toolbar --- */}
-      <div className="flex items-center justify-between gap-0.5 pb-2 mb-2 border-b border-border/70 px-0.5">
-        <div className="flex items-center gap-0.5">
+      <div className="flex flex-wrap items-center justify-between gap-1 pb-2 mb-2 border-b border-border/70 px-0.5">
+        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => applyCommand("bold")}
             title="Bold (Ctrl+B)"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors font-bold"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors font-bold"
           >
             <Bold className="w-3.5 h-3.5" />
           </button>
@@ -235,7 +235,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => applyCommand("italic")}
             title="Italic (Ctrl+I)"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors italic"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors italic"
           >
             <Italic className="w-3.5 h-3.5" />
           </button>
@@ -243,7 +243,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => applyCommand("underline")}
             title="Underline (Ctrl+U)"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors underline"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors underline"
           >
             <Underline className="w-3.5 h-3.5" />
           </button>
@@ -251,21 +251,19 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => applyCommand("strikeThrough")}
             title="Strikethrough"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
           >
             <Strikethrough className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="w-px h-4 bg-border/80 mx-0.5" />
-
         {/* Font size +/- */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => applyCommand("fontSize", "decrease")}
             title="Decrease font size"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -274,16 +272,14 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => applyCommand("fontSize", "increase")}
             title="Increase font size"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="w-px h-4 bg-border/80 mx-0.5" />
-
         {/* Text color & Highlight */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => {
@@ -291,7 +287,7 @@ export function ResumeContextMenu({
               setShowHighlightPicker(false);
             }}
             title="Text Color"
-            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showColorPicker ? "bg-accent text-primary" : "text-foreground"}`}
+            className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${showColorPicker ? "bg-accent text-primary" : "text-foreground"}`}
           >
             <Palette className="w-3.5 h-3.5" />
           </button>
@@ -302,45 +298,44 @@ export function ResumeContextMenu({
               setShowColorPicker(false);
             }}
             title="Highlight Color"
-            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${showHighlightPicker ? "bg-accent text-primary" : "text-foreground"}`}
+            className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${showHighlightPicker ? "bg-accent text-primary" : "text-foreground"}`}
           >
             <Highlighter className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Format painter & Close */}
-        {(onCopyFormat || onPasteFormat) && <div className="w-px h-4 bg-border/80 mx-0.5" />}
-        {onCopyFormat && (
+        <div className="flex items-center gap-0.5">
+          {onCopyFormat && (
+            <button
+              type="button"
+              onClick={onCopyFormat}
+              title="Copy text format"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onPasteFormat && (
+            <button
+              type="button"
+              onClick={onPasteFormat}
+              disabled={!copiedFormatLabel}
+              title={copiedFormatLabel ? `Paste text format (${copiedFormatLabel})` : "Copy a format first"}
+              className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${copiedFormatLabel ? "text-primary" : "text-muted-foreground/40 cursor-not-allowed"}`}
+            >
+              <Paintbrush className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             type="button"
-            onClick={onCopyFormat}
-            title="Copy text format"
-            className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
+            onClick={onClose}
+            title="Close"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors ml-0.5"
           >
-            <Copy className="w-3.5 h-3.5" />
+            <X className="w-3.5 h-3.5" />
           </button>
-        )}
-        {onPasteFormat && (
-          <button
-            type="button"
-            onClick={onPasteFormat}
-            disabled={!copiedFormatLabel}
-            title={copiedFormatLabel ? `Paste text format (${copiedFormatLabel})` : "Copy a format first"}
-            className={`p-1.5 rounded-lg hover:bg-accent transition-colors ${copiedFormatLabel ? "text-primary" : "text-muted-foreground/40 cursor-not-allowed"}`}
-          >
-            <Paintbrush className="w-3.5 h-3.5" />
-          </button>
-        )}
-
-        <div className="w-px h-4 bg-border/80 mx-0.5" />
-        <button
-          type="button"
-          onClick={onClose}
-          title="Close"
-          className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        </div>
       </div>
 
       {/* --- Palette dropdown (Text Color) --- */}

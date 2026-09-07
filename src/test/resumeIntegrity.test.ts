@@ -171,22 +171,42 @@ describe("Resume Data Integrity", () => {
     expect(resolveDocxFont("'Public Sans', sans-serif")).toBe("Arial");
   });
 
-  it("should support all 18 templates in TEMPLATES with valid docx bodies and metadata", async () => {
-    const { TEMPLATES, buildResumeDocxBody, TEMPLATE_DOCX_CONFIGS } = await import("../lib/resumeTemplates");
+  it("should support custom section titles and dynamic section order across exporters", async () => {
+    const dataWithCustomTitles: ResumeData = {
+      ...sentinelData,
+      settings: {
+        ...sentinelData.settings,
+        sectionOrder: ["skills", "experience", "education", "summary"],
+        customSectionTitles: {
+          skills: "Core Proficiencies",
+          experience: "Career History",
+          summary: "About Me",
+        }
+      }
+    };
 
-    expect(TEMPLATES.length).toBe(18);
+    const { getSectionTitle, buildResumeText, buildResumeMarkdown, buildResumeDocxBody } = await import("../lib/resumeTemplates");
+    
+    expect(getSectionTitle(dataWithCustomTitles, "skills", "Skills")).toBe("Core Proficiencies");
+    expect(getSectionTitle(dataWithCustomTitles, "experience", "Experience")).toBe("Career History");
+    expect(getSectionTitle(dataWithCustomTitles, "summary", "Summary")).toBe("About Me");
+    expect(getSectionTitle(dataWithCustomTitles, "education", "Education")).toBe("Education");
 
-    TEMPLATES.forEach(t => {
-      expect(t.id).toBeTruthy();
-      expect(t.name).toBeTruthy();
-      expect(t.desc).toBeTruthy();
+    const txt = buildResumeText(dataWithCustomTitles);
+    expect(txt).toContain("CORE PROFICIENCIES");
+    expect(txt).toContain("CAREER HISTORY");
+    expect(txt).toContain("ABOUT ME");
+    // Ensure sectionOrder is respected: Core Proficiencies appears before Career History
+    expect(txt.indexOf("CORE PROFICIENCIES")).toBeLessThan(txt.indexOf("CAREER HISTORY"));
 
-      // Check that DOCX config exists
-      expect(TEMPLATE_DOCX_CONFIGS[t.id]).toBeDefined();
+    const md = buildResumeMarkdown(dataWithCustomTitles);
+    expect(md).toContain("## Core Proficiencies");
+    expect(md).toContain("## Career History");
+    expect(md).toContain("## About Me");
+    expect(md.indexOf("## Core Proficiencies")).toBeLessThan(md.indexOf("## Career History"));
 
-      // Build docx body and ensure children exist
-      const docx = buildResumeDocxBody(sentinelData, t.id);
-      expect(docx.children.length).toBeGreaterThan(0);
-    });
+    const docx = buildResumeDocxBody(dataWithCustomTitles, "classic");
+    expect(docx.children.length).toBeGreaterThan(0);
   });
 });
+

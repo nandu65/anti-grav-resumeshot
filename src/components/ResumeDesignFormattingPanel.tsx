@@ -155,12 +155,36 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Font Size</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentFontSize} pt</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("fontSize", Math.max(4, currentFontSize - 1))}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={4}
+                    max={100}
+                    value={currentFontSize}
+                    onChange={(e) => updateSetting("fontSize", Math.max(4, Number(e.target.value) || 4))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">pt</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("fontSize", Math.min(100, currentFontSize + 1))}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
-                min={8}
-                max={16}
+                min={4}
+                max={72}
                 step={1}
                 value={currentFontSize}
                 onChange={(e) => updateSetting("fontSize", Number(e.target.value))}
@@ -172,12 +196,36 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Heading Size</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentHeadingSize} pt</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("headingSize", Math.max(6, currentHeadingSize - 1))}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={6}
+                    max={120}
+                    value={currentHeadingSize}
+                    onChange={(e) => updateSetting("headingSize", Math.max(6, Number(e.target.value) || 6))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">pt</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("headingSize", Math.min(120, currentHeadingSize + 1))}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
-                min={11}
-                max={24}
+                min={6}
+                max={96}
                 step={1}
                 value={currentHeadingSize}
                 onChange={(e) => updateSetting("headingSize", Number(e.target.value))}
@@ -197,12 +245,22 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Section Spacing</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentSectionSpacing} px</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={currentSectionSpacing}
+                    onChange={(e) => updateSetting("sectionSpacing", Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">px</span>
+                </div>
               </div>
               <input
                 type="range"
-                min={4}
-                max={36}
+                min={0}
+                max={64}
                 step={1}
                 value={currentSectionSpacing}
                 onChange={(e) => updateSetting("sectionSpacing", Number(e.target.value))}
@@ -214,12 +272,22 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Paragraph Spacing</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentParagraphSpacing} px</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={60}
+                    value={currentParagraphSpacing}
+                    onChange={(e) => updateSetting("paragraphSpacing", Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">px</span>
+                </div>
               </div>
               <input
                 type="range"
                 min={0}
-                max={20}
+                max={40}
                 step={1}
                 value={currentParagraphSpacing}
                 onChange={(e) => updateSetting("paragraphSpacing", Number(e.target.value))}
@@ -235,8 +303,8 @@ export function ResumeDesignFormattingPanel({
               </div>
               <input
                 type="range"
-                min={1.0}
-                max={2.2}
+                min={0.8}
+                max={3.0}
                 step={0.05}
                 value={currentLineSpacing}
                 onChange={(e) => updateSetting("lineSpacing", Number(e.target.value))}
@@ -248,12 +316,22 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Top & Bottom Margin</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentMarginTB} px</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={currentMarginTB}
+                    onChange={(e) => updateSetting("marginTopBottom", Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">px</span>
+                </div>
               </div>
               <input
                 type="range"
-                min={8}
-                max={64}
+                min={0}
+                max={100}
                 step={2}
                 value={currentMarginTB}
                 onChange={(e) => updateSetting("marginTopBottom", Number(e.target.value))}
@@ -265,12 +343,22 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Side Margins</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentMarginSide} px</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={currentMarginSide}
+                    onChange={(e) => updateSetting("marginSide", Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">px</span>
+                </div>
               </div>
               <input
                 type="range"
-                min={8}
-                max={64}
+                min={0}
+                max={100}
                 step={2}
                 value={currentMarginSide}
                 onChange={(e) => updateSetting("marginSide", Number(e.target.value))}
@@ -282,12 +370,22 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Paragraph Indent</span>
-                <span className="font-mono text-white/80 text-[11px]">{currentIndent} px</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={60}
+                    value={currentIndent}
+                    onChange={(e) => updateSetting("paragraphIndent", Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  />
+                  <span className="text-[10px] text-white/60">px</span>
+                </div>
               </div>
               <input
                 type="range"
                 min={0}
-                max={32}
+                max={60}
                 step={2}
                 value={currentIndent}
                 onChange={(e) => updateSetting("paragraphIndent", Number(e.target.value))}

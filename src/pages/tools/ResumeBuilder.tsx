@@ -1717,6 +1717,48 @@ export default function ResumeBuilder() {
                     >
                       <LinkIcon className="h-4 w-4" />
                     </Button>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('fontSize', 'decrease')}
+                      title="Decrease Font Size"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center px-0.5">
+                      <Type className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleFormat('fontSize', 'increase')}
+                      title="Increase Font Size"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={handleCopyFormat}
+                      title="Copy Formatting"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`h-8 w-8 p-0 ${copiedFormat ? 'text-primary' : 'text-muted-foreground'}`}
+                      disabled={!copiedFormat}
+                      onClick={handlePasteFormat}
+                      title={copiedFormat ? `Paste Formatting (${describeFormat(copiedFormat)})` : "Copy a format first"}
+                    >
+                      <Paintbrush className="h-4 w-4" />
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
