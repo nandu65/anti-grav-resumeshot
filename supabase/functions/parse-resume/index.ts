@@ -44,6 +44,7 @@ Rules:
  "linkedin": string, "github": string, "portfolio": string,
  "summary": string,
  "experience": [{"company": string, "role": string, "location": string, "start": string, "end": string, "bullets": string[]}],
+ "leadership": [{"organization": string, "role": string, "location": string, "start": string, "end": string, "bullets": string[]}],
  "education": [{"school": string, "degree": string, "location": string, "start": string, "end": string, "details": string}],
  "projects": [{"name": string, "tech": string, "bullets": string[]}],
  "skills": string[],

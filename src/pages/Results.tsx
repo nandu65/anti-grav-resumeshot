@@ -52,6 +52,7 @@ const EMPTY_RESUME: any = {
   links: [],
   summary: "",
   experience: [],
+  leadership: [],
   education: [],
   projects: [],
   skills: [],

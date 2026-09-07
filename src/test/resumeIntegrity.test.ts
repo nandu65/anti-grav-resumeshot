@@ -52,14 +52,35 @@ describe("Resume Data Integrity", () => {
     expect(sentinelData.certifications).toContain("Google UX Design Certificate");
   });
 
-  it("should preserve all fields through the export pipeline", () => {
-    // Mocking the download functions to check what's passed
-    // Note: Since they are imported as functions, we might need to export them as an object or use a different spying strategy
-    // For now, we verify the data object that *would* be passed.
-    const exportData = { ...sentinelData };
-    
-    expect(exportData.summary).toContain("fintech products");
-    expect(exportData.experience[0].bullets[0]).toContain("18%");
-    expect(exportData.projects[0].tech).toBe("Figma, Prototyping");
+  it("should support optional leadership experience in resume data and export builders", async () => {
+    const dataWithLeadership: ResumeData = {
+      ...sentinelData,
+      leadership: [
+        {
+          role: "President",
+          organization: "Design Student Association",
+          location: "Ahmedabad",
+          start: "2019",
+          end: "2020",
+          bullets: ["Organized national design symposium with 500+ attendees."]
+        }
+      ]
+    };
+
+    expect(dataWithLeadership.leadership).toBeDefined();
+    expect(dataWithLeadership.leadership?.[0].role).toBe("President");
+    expect(dataWithLeadership.leadership?.[0].organization).toBe("Design Student Association");
+
+    const { buildResumeText, buildResumeMarkdown, buildResumeDocxBody } = await import("../lib/resumeTemplates");
+    const txt = buildResumeText(dataWithLeadership);
+    expect(txt).toContain("LEADERSHIP EXPERIENCE");
+    expect(txt).toContain("President — Design Student Association");
+
+    const md = buildResumeMarkdown(dataWithLeadership);
+    expect(md).toContain("## Leadership Experience");
+    expect(md).toContain("### President — Design Student Association");
+
+    const docxBody = buildResumeDocxBody(dataWithLeadership, "classic");
+    expect(docxBody.children.length).toBeGreaterThan(0);
   });
 });

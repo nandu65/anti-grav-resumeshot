@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff } from "lucide-react";
+import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
@@ -72,6 +72,7 @@ const EMPTY_RESUME: ResumeData = {
       ]
     }
   ],
+  leadership: [],
   education: [
     {
       school: "National Institute of Technology",
@@ -330,6 +331,10 @@ export default function ResumeBuilder() {
           company: e.company || "", role: e.role || "", location: e.location || "",
           start: e.start || "", end: e.end || "", bullets: Array.isArray(e.bullets) ? e.bullets : (e.bullets ? [e.bullets] : []),
         })),
+        leadership: (p.leadership || []).map((l: any) => ({
+          role: l.role || "", organization: l.organization || "", location: l.location || "",
+          start: l.start || "", end: l.end || "", bullets: Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : []),
+        })),
         education: (p.education || []).map((e: any) => ({
           school: e.school || "", degree: e.degree || "", location: e.location || "",
           start: e.start || "", end: e.end || "", details: e.details || "",
@@ -380,6 +385,7 @@ export default function ResumeBuilder() {
     if (JSON.stringify(prev.resumeData?.settings?.sections) !== JSON.stringify(next.resumeData?.settings?.sections)) return "Formatting changed";
     if (JSON.stringify(prev.resumeData?.skills) !== JSON.stringify(next.resumeData?.skills)) return "Skills edited";
     if (JSON.stringify(prev.resumeData?.experience) !== JSON.stringify(next.resumeData?.experience)) return "Experience edited";
+    if (JSON.stringify(prev.resumeData?.leadership) !== JSON.stringify(next.resumeData?.leadership)) return "Leadership edited";
     if (JSON.stringify(prev.resumeData?.education) !== JSON.stringify(next.resumeData?.education)) return "Education edited";
     if (JSON.stringify(prev.resumeData?.projects) !== JSON.stringify(next.resumeData?.projects)) return "Projects edited";
     if (prev.resumeData?.summary !== next.resumeData?.summary) return "Summary edited";
@@ -392,6 +398,10 @@ export default function ResumeBuilder() {
   const addExp = () => setResumeData(prev => ({
     ...prev,
     experience: [...prev.experience, { company: "", role: "", location: "", start: "", end: "", bullets: [] }]
+  }));
+  const addLeadership = () => setResumeData(prev => ({
+    ...prev,
+    leadership: [...(prev.leadership || []), { role: "", organization: "", location: "", start: "", end: "", bullets: [] }]
   }));
   const addEdu = () => setResumeData(prev => ({
     ...prev,
@@ -795,6 +805,7 @@ export default function ResumeBuilder() {
                     { id: "basics", label: "Basics", icon: CheckCircle2 },
                     { id: "summary", label: "Summary", icon: Sparkles },
                     { id: "experience", label: "Experience", icon: FileText },
+                    { id: "leadership", label: "Leadership", icon: Award },
                     { id: "education", label: "Education", icon: ArrowDown },
                     { id: "skills", label: "Skills", icon: Wand },
                     { id: "projects", label: "Projects", icon: Link2 },
@@ -961,12 +972,64 @@ export default function ResumeBuilder() {
                    </div>
                 </div>
 
+                {/* LEADERSHIP EXPERIENCE */}
+                <div id="section-leadership" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
+                   <div className="flex items-center justify-between mb-6 border-b pb-4">
+                     <div className="flex items-center gap-2">
+                        <Award className="h-5 w-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold">4. Leadership Experience</h3>
+                     </div>
+                     <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                <Settings2 className="h-4 w-4" />
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                                <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="leadership" hideHeader />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" size="sm" onClick={addLeadership} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                            <Plus className="h-3 w-3" />
+                            <span className="text-[10px] font-bold">ADD ROLE</span>
+                        </Button>
+                     </div>
+                   </div>
+                   <div className="space-y-6">
+                      {(resumeData.leadership || []).map((lead, i) => (
+                        <div key={i} className="group p-5 rounded-2xl border bg-muted/20 relative animate-in fade-in slide-in-from-left-2 duration-300">
+                           <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-background border shadow-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setResumeData(prev => ({ ...prev, leadership: (prev.leadership || []).filter((_, j) => i !== j) }))}>
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                           <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Organization</Label>
+                                <Input value={lead.organization} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].organization = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Organization" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
+                                <Input value={lead.role} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].role = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                              </div>
+                           </div>
+                           <div className="relative space-y-1">
+                               <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
+                               <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none" spellCheck={spellCheckEnabled} />
+                           </div>
+                        </div>
+                      ))}
+                      {(!resumeData.leadership || resumeData.leadership.length === 0) && (
+                        <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No leadership added.</div>
+                      )}
+                   </div>
+                </div>
+
                 {/* EDUCATION */}
                 <div id="section-education" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
                      <div className="flex items-center gap-2">
                         <ArrowDown className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">4. Education</h3>
+                        <h3 className="font-display text-lg font-bold">5. Education</h3>
                      </div>
                      <div className="flex gap-2">
                          <Popover>
@@ -1032,7 +1095,7 @@ export default function ResumeBuilder() {
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
                      <div className="flex items-center gap-2">
                         <Link2 className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">5. Projects</h3>
+                        <h3 className="font-display text-lg font-bold">6. Projects</h3>
                      </div>
                      <div className="flex gap-2">
                         <Popover>
@@ -1084,7 +1147,7 @@ export default function ResumeBuilder() {
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
                      <div className="flex items-center gap-2">
                         <Wand className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">6. Skills & Optimization</h3>
+                        <h3 className="font-display text-lg font-bold">7. Skills & Optimization</h3>
                      </div>
                      <div className="flex gap-2">
                         <Popover>

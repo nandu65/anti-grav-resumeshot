@@ -45,4 +45,29 @@ CERTIFICATIONS
     expect(parsed.skills.length).toBeGreaterThanOrEqual(1);
     expect(parsed.certifications.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("should extract leadership experience section when present", () => {
+    const rawText = `
+Jane Doe
+Product Lead
+jane@example.com
+
+LEADERSHIP EXPERIENCE
+Chapter Lead , Women in Tech
+Jan 2022 – Present
+• Mentored 40+ early career engineers.
+• Led monthly community meetups with 200+ attendees.
+
+EDUCATION
+B.S. Computer Science , MIT
+2018 – 2022
+    `;
+
+    const parsed = parseResumeTextLocally(rawText);
+    expect(parsed.leadership).toBeDefined();
+    expect(parsed.leadership?.length).toBe(1);
+    expect(parsed.leadership?.[0].organization).toBe("Women in Tech");
+    expect(parsed.leadership?.[0].role).toBe("Chapter Lead");
+    expect(parsed.leadership?.[0].bullets.length).toBe(2);
+  });
 });

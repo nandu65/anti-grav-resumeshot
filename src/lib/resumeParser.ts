@@ -10,6 +10,7 @@ export interface ParsedResumeResult {
   links: { label: string; url: string }[];
   summary: string;
   experience: { company: string; role: string; location: string; start: string; end: string; bullets: string[] }[];
+  leadership?: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] }[];
   education: { school: string; degree: string; location: string; start: string; end: string; details: string }[];
   projects: { name: string; tech: string; bullets: string[] }[];
   skills: { category: string; items: string[] }[];
@@ -31,6 +32,7 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
     links: [],
     summary: "",
     experience: [],
+    leadership: [],
     education: [],
     projects: [],
     skills: [],
@@ -89,7 +91,7 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
     if (!nameFound) {
       result.name = line.replace(/[•|·]/g, "").trim();
       nameFound = true;
-    } else if (!result.title && line.length < 60 && !/^(summary|experience|education|skills)/i.test(line)) {
+    } else if (!result.title && line.length < 60 && !/^(summary|experience|leadership|education|skills)/i.test(line)) {
       result.title = line.replace(/[•|·]/g, "").trim();
       break;
     }
@@ -100,6 +102,7 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
   const sectionKeywords: Record<string, RegExp> = {
     summary: /^(professional summary|summary|profile|about me|executive summary)$/i,
     experience: /^(work experience|professional experience|experience|employment history|work history)$/i,
+    leadership: /^(leadership experience|leadership|volunteer experience|community leadership|extracurricular activities|activities|leadership & activities)$/i,
     education: /^(education|academic background|academics|qualifications)$/i,
     skills: /^(skills|core competencies|technical skills|key skills|technologies)$/i,
     projects: /^(projects|academic projects|key projects|personal projects)$/i,
@@ -163,31 +166,39 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
         const dateMatch = line.match(dateRegex);
 
         if (dateMatch && !isBullet) {
-          if (currentEntry) entries.push(currentEntry);
           const dateStr = dateMatch[0];
           const dates = dateStr.split(/[-–—]|to/i).map(d => d.trim());
           const otherText = line.replace(dateRegex, "").replace(/[,|·]/g, " ").trim();
-          currentEntry = {
-            company: otherText || "Company",
-            role: "Role",
-            location: "",
-            start: dates[0] || "",
-            end: dates[1] || "",
-            bullets: [],
-          };
+
+          if (currentEntry && !currentEntry.start && !currentEntry.end) {
+            currentEntry.start = dates[0] || "";
+            currentEntry.end = dates[1] || "";
+            if (otherText && !currentEntry.location) currentEntry.location = otherText;
+          } else {
+            if (currentEntry) entries.push(currentEntry);
+            currentEntry = {
+              company: otherText || "Company",
+              role: "Role",
+              location: "",
+              start: dates[0] || "",
+              end: dates[1] || "",
+              bullets: [],
+            };
+          }
         } else if (isBullet && currentEntry) {
           currentEntry.bullets.push(line.replace(/^[•\-\*\u2022\u25E6\u25AA]\s*/, "").trim());
         } else if (!isBullet && currentEntry) {
-          if (currentEntry.role === "Role" && line.length < 50) {
+          if (!currentEntry.role || currentEntry.role === "Role") {
             currentEntry.role = line;
           } else {
             currentEntry.bullets.push(line);
           }
         } else if (!isBullet && !currentEntry) {
+          const parts = line.split(/[,|–—]/).map(p => p.trim()).filter(Boolean);
           currentEntry = {
-            company: line,
-            role: "",
-            location: "",
+            company: parts[1] || parts[0] || line,
+            role: parts.length > 1 ? parts[0] : "",
+            location: parts[2] || "",
             start: "",
             end: "",
             bullets: [],
@@ -196,6 +207,57 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
       });
       if (currentEntry) entries.push(currentEntry);
       result.experience = entries;
+    } else if (current.type === "leadership") {
+      const entries: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] }[] = [];
+      let currentEntry: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] } | null = null;
+      const dateRegex = /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{4})\s*[-–—to\s]+\s*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{4}|Present|Current)/i;
+
+      sectionLines.forEach(line => {
+        const isBullet = /^[•\-\*\u2022\u25E6\u25AA]\s*/.test(line);
+        const dateMatch = line.match(dateRegex);
+
+        if (dateMatch && !isBullet) {
+          const dateStr = dateMatch[0];
+          const dates = dateStr.split(/[-–—]|to/i).map(d => d.trim());
+          const otherText = line.replace(dateRegex, "").replace(/[,|·]/g, " ").trim();
+
+          if (currentEntry && !currentEntry.start && !currentEntry.end) {
+            currentEntry.start = dates[0] || "";
+            currentEntry.end = dates[1] || "";
+            if (otherText && !currentEntry.location) currentEntry.location = otherText;
+          } else {
+            if (currentEntry) entries.push(currentEntry);
+            currentEntry = {
+              organization: otherText || "Organization",
+              role: "Leader",
+              location: "",
+              start: dates[0] || "",
+              end: dates[1] || "",
+              bullets: [],
+            };
+          }
+        } else if (isBullet && currentEntry) {
+          currentEntry.bullets.push(line.replace(/^[•\-\*\u2022\u25E6\u25AA]\s*/, "").trim());
+        } else if (!isBullet && currentEntry) {
+          if (!currentEntry.role || currentEntry.role === "Leader") {
+            currentEntry.role = line;
+          } else {
+            currentEntry.bullets.push(line);
+          }
+        } else if (!isBullet && !currentEntry) {
+          const parts = line.split(/[,|–—]/).map(p => p.trim()).filter(Boolean);
+          currentEntry = {
+            organization: parts[1] || parts[0] || line,
+            role: parts.length > 1 ? parts[0] : "",
+            location: parts[2] || "",
+            start: "",
+            end: "",
+            bullets: [],
+          };
+        }
+      });
+      if (currentEntry) entries.push(currentEntry);
+      result.leadership = entries;
     } else if (current.type === "education") {
       const eduEntries: { school: string; degree: string; location: string; start: string; end: string; details: string }[] = [];
       let currentEdu: { school: string; degree: string; location: string; start: string; end: string; details: string } | null = null;
