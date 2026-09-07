@@ -1,5 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
-import { ResumeData, downloadResumePdfFromData, downloadResumeDocxFromData } from "../lib/resumeTemplates";
+import {
+  ResumeData,
+  downloadResumePdfFromData,
+  downloadResumeDocxFromData,
+  buildResumeText,
+  buildResumeMarkdown,
+  buildResumeDocxBody,
+} from "../lib/resumeTemplates";
+
 
 describe("Resume Data Integrity", () => {
   const sentinelData: ResumeData = {
@@ -71,7 +79,6 @@ describe("Resume Data Integrity", () => {
     expect(dataWithLeadership.leadership?.[0].role).toBe("President");
     expect(dataWithLeadership.leadership?.[0].organization).toBe("Design Student Association");
 
-    const { buildResumeText, buildResumeMarkdown, buildResumeDocxBody } = await import("../lib/resumeTemplates");
     const txt = buildResumeText(dataWithLeadership);
     expect(txt).toContain("LEADERSHIP EXPERIENCE");
     expect(txt).toContain("President — Design Student Association");
@@ -82,6 +89,7 @@ describe("Resume Data Integrity", () => {
 
     const docxBody = buildResumeDocxBody(dataWithLeadership, "classic");
     expect(docxBody.children.length).toBeGreaterThan(0);
+
   });
 
   it("should sync font formatting and document formatting into settings and exports", async () => {

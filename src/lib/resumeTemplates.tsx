@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -8,6 +8,8 @@ import {
 } from "docx";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { MousePointer2 } from "lucide-react";
+import { ResumeContextMenu, ContextMenuPosition } from "@/components/ResumeContextMenu";
+
 
 export function saveBlob(blob: Blob, filename: string) {
   if (typeof window !== "undefined" && typeof document !== "undefined") {
@@ -204,15 +206,60 @@ export function BulletsEditor({
       .map((li) => (li.innerHTML || "").trim())
       .join("\n");
     if (current !== text) {
-      ref.current.innerHTML = bullets.map((b) => `<li>${b}</li>`).join("");
+      ref.current.innerHTML = bullets.map((b, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${b}</li>`).join("");
     }
   }, [text, bullets]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
+    if (!editable) return;
+
+    // Alt + ArrowUp to move active bullet line up
+    if (e.altKey && e.key === "ArrowUp") {
+      e.preventDefault();
+      const sel = window.getSelection();
+      if (!sel || !ref.current) return;
+      const li = sel.anchorNode ? (sel.anchorNode instanceof HTMLElement ? sel.anchorNode.closest("li") : sel.anchorNode.parentElement?.closest("li")) : null;
+      if (li && ref.current.contains(li)) {
+        const lis = Array.from(ref.current.querySelectorAll("li"));
+        const idx = lis.indexOf(li);
+        if (idx > 0) {
+          const newBullets = [...bullets];
+          const temp = newBullets[idx];
+          newBullets[idx] = newBullets[idx - 1];
+          newBullets[idx - 1] = temp;
+          onChange?.(newBullets);
+        }
+      }
+      return;
+    }
+
+    // Alt + ArrowDown to move active bullet line down
+    if (e.altKey && e.key === "ArrowDown") {
+      e.preventDefault();
+      const sel = window.getSelection();
+      if (!sel || !ref.current) return;
+      const li = sel.anchorNode ? (sel.anchorNode instanceof HTMLElement ? sel.anchorNode.closest("li") : sel.anchorNode.parentElement?.closest("li")) : null;
+      if (li && ref.current.contains(li)) {
+        const lis = Array.from(ref.current.querySelectorAll("li"));
+        const idx = lis.indexOf(li);
+        if (idx !== -1 && idx < lis.length - 1) {
+          const newBullets = [...bullets];
+          const temp = newBullets[idx];
+          newBullets[idx] = newBullets[idx + 1];
+          newBullets[idx + 1] = temp;
+          onChange?.(newBullets);
+        }
+      }
+      return;
+    }
+  };
 
   return (
     <ul
       ref={ref}
       contentEditable={editable}
       suppressContentEditableWarning
+      onKeyDown={handleKeyDown}
       className={
         (className || "") +
         (editable ? " outline-none focus:bg-primary/5 focus:ring-1 focus:ring-primary/40 rounded px-1 min-h-[1em]" : "")
@@ -227,10 +274,10 @@ export function BulletsEditor({
             }
           : undefined
       }
-
     />
   );
 }
+
 
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
@@ -2170,6 +2217,8 @@ export function ResumePreview({
   const update: UpdateFn = onChange ? (patch) => onChange({ ...data, ...patch }) : undefined;
   const rootRef = useRef<HTMLDivElement>(null);
   const scopeId = React.useId().replace(/[:]/g, "");
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
+
   const inner =
     template === "modern" ? <ModernPreview r={data} update={update} /> :
     template === "compact" ? <CompactPreview r={data} update={update} /> :
@@ -2193,13 +2242,148 @@ export function ResumePreview({
     return () => clearTimeout(timer);
   }, [template, data.settings?.sectionOrder, data.experience.length, data.education.length, data.projects.length, data.skills.length]);
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (!onChange) return;
+    e.preventDefault();
+
+    const target = e.target as HTMLElement;
+    const li = target.closest("li");
+    let lineIdx: number | undefined = undefined;
+    if (li && li.parentElement) {
+      const lis = Array.from(li.parentElement.querySelectorAll("li"));
+      lineIdx = lis.indexOf(li);
+    }
+
+    const selection = window.getSelection();
+    const selText = selection ? selection.toString() : "";
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      targetElement: target,
+      targetLineIndex: lineIdx,
+      selectedText: selText,
+    });
+  };
+
+  const handleMoveLineUp = () => {
+    if (!contextMenu?.targetElement || !onChange) return;
+    const li = contextMenu.targetElement.closest("li");
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const idx = lis.indexOf(li);
+      if (idx > 0) {
+        const textArr = lis.map(l => l.innerHTML.trim());
+        const temp = textArr[idx];
+        textArr[idx] = textArr[idx - 1];
+        textArr[idx - 1] = temp;
+        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
+        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+      }
+    }
+  };
+
+  const handleMoveLineDown = () => {
+    if (!contextMenu?.targetElement || !onChange) return;
+    const li = contextMenu.targetElement.closest("li");
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const idx = lis.indexOf(li);
+      if (idx !== -1 && idx < lis.length - 1) {
+        const textArr = lis.map(l => l.innerHTML.trim());
+        const temp = textArr[idx];
+        textArr[idx] = textArr[idx + 1];
+        textArr[idx + 1] = temp;
+        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
+        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+      }
+    }
+  };
+
+  const handleDuplicateLine = () => {
+    if (!contextMenu?.targetElement || !onChange) return;
+    const li = contextMenu.targetElement.closest("li");
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const idx = lis.indexOf(li);
+      if (idx !== -1) {
+        const textArr = lis.map(l => l.innerHTML.trim());
+        textArr.splice(idx + 1, 0, textArr[idx]);
+        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
+        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+      }
+    }
+  };
+
+  const handleAddLineBelow = () => {
+    if (!contextMenu?.targetElement || !onChange) return;
+    const li = contextMenu.targetElement.closest("li");
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const idx = lis.indexOf(li);
+      const textArr = lis.map(l => l.innerHTML.trim());
+      textArr.splice(idx !== -1 ? idx + 1 : textArr.length, 0, "New bullet point...");
+      ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
+      ul.dispatchEvent(new Event("blur", { bubbles: true }));
+    }
+  };
+
+  const handleDeleteLine = () => {
+    if (!contextMenu?.targetElement || !onChange) return;
+    const li = contextMenu.targetElement.closest("li");
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const idx = lis.indexOf(li);
+      if (idx !== -1) {
+        const textArr = lis.map(l => l.innerHTML.trim());
+        textArr.splice(idx, 1);
+        ul.innerHTML = textArr.map((t, i) => `<li data-bullet-line="true" data-bullet-index="${i}">${t}</li>`).join("");
+        ul.dispatchEvent(new Event("blur", { bubbles: true }));
+      }
+    }
+  };
+
+  const handleFormatText = (command: string, value: string = "") => {
+    document.execCommand(command, false, value);
+    if (contextMenu?.targetElement) {
+      const el = contextMenu.targetElement;
+      el.dispatchEvent(new Event("blur", { bubbles: true }));
+    }
+  };
+
   return (
-    <div ref={rootRef} data-rs-root={scopeId} data-rs-template={template} className="resume-root-container">
+    <div
+      ref={rootRef}
+      data-rs-root={scopeId}
+      data-rs-template={template}
+      className="resume-root-container relative"
+      onContextMenu={handleContextMenu}
+    >
       <style dangerouslySetInnerHTML={{ __html: sectionCss(`[data-rs-root="${scopeId}"]`, data.settings) }} />
       <PagedSheet>{inner}</PagedSheet>
+
+      {/* Right-click formatting & line actions context menu */}
+      {contextMenu && (
+        <ResumeContextMenu
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+          onMoveLineUp={contextMenu.targetLineIndex != null ? handleMoveLineUp : undefined}
+          onMoveLineDown={contextMenu.targetLineIndex != null ? handleMoveLineDown : undefined}
+          onDuplicateLine={contextMenu.targetLineIndex != null ? handleDuplicateLine : undefined}
+          onAddLineBelow={contextMenu.targetLineIndex != null ? handleAddLineBelow : undefined}
+          onDeleteLine={contextMenu.targetLineIndex != null ? handleDeleteLine : undefined}
+          onFormatText={handleFormatText}
+        />
+      )}
     </div>
   );
 }
+
 
 /* ---------- PDF export ---------- */
 export async function downloadResumePdfFromData(rawData: ResumeData, template: TemplateId) {
