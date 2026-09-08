@@ -5362,7 +5362,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     const targetHeight = Math.max(wrapper.scrollHeight, 1123);
 
     const canvas = await html2canvas(wrapper, {
-      scale: 2,
+      scale: 3.5, // 300+ DPI print-grade ultra-sharp resolution
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
@@ -5373,6 +5373,14 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       height: targetHeight,
       windowWidth: 794,
       windowHeight: targetHeight,
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById("rs-pdf-export-wrapper");
+        if (el) {
+          el.style.textRendering = "geometricPrecision";
+          (el.style as any).webkitFontSmoothing = "antialiased";
+          (el.style as any).mozOsxFontSmoothing = "grayscale";
+        }
+      },
     });
 
     const pdf = new jsPDF({
@@ -5392,7 +5400,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     if (totalPages === 1) {
       const imgData = canvas.toDataURL("image/png", 1.0);
       const renderHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, renderHeight, undefined, "FAST");
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, renderHeight, undefined, "MEDIUM");
     } else {
       // Multi-page export with clean slice per page
       for (let i = 0; i < totalPages; i++) {
@@ -5406,6 +5414,8 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
 
         const ctx = sliceCanvas.getContext("2d");
         if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
           ctx.drawImage(
@@ -5419,7 +5429,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
         if (i > 0) {
           pdf.addPage("a4", "portrait");
         }
-        pdf.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+        pdf.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
       }
     }
 
