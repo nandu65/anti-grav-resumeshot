@@ -591,7 +591,8 @@ export default function ResumeBuilder() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="min-h-screen bg-background">
       {showIntro && <BuilderIntroLoader onDone={() => { setShowIntro(false); localStorage.setItem("rs-intro-seen", "true"); }} />}
       <TemplatePreferencesWizard
         open={starter === "wizard"}
@@ -822,7 +823,6 @@ export default function ResumeBuilder() {
               </div>
             </div>
           )}
-        <DragDropContext onDragEnd={onDragEnd}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-full flex flex-col overflow-hidden">
           <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
             <div className="flex items-center gap-2">
@@ -1808,20 +1808,10 @@ export default function ResumeBuilder() {
                 </div>
               </div>
             </div>
-        </DragDropContext>
         </div>
           )}
 
 
-
-      <TemplatePreferencesWizard
-        open={starter === "wizard"}
-        onOpenChange={(open) => { if (!open) setStarter("choose"); }}
-        onDone={(p) => {
-          setPrefs(p);
-          setStarter("scratch");
-        }}
-      />
 
       <Dialog open={showEditHint} onOpenChange={setShowEditHint}>
         <DialogContent className="max-w-md">
@@ -1907,5 +1897,6 @@ export default function ResumeBuilder() {
         </DialogContent>
       </Dialog>
     </div>
+    </DragDropContext>
   );
 }
