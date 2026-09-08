@@ -706,7 +706,7 @@ export default function ResumeBuilder() {
               <div>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  <h2 className="font-display text-2xl font-bold tracking-tight">Explore 18 Professional Templates</h2>
+                  <h2 className="font-display text-2xl font-bold tracking-tight">Explore {TEMPLATES.length} Professional Templates</h2>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   Preview any template with live sample data or pick one to start tailoring immediately.
@@ -714,11 +714,11 @@ export default function ResumeBuilder() {
               </div>
               <div className="flex flex-wrap items-center gap-1.5 bg-muted/60 p-1.5 rounded-xl border border-border">
                 {[
-                  { id: "all", label: "All (18)" },
+                  { id: "all", label: `All (${TEMPLATES.length})` },
                   { id: "popular", label: "Most Popular" },
                   { id: "ats", label: "ATS Friendly" },
-                  { id: "modern", label: "Modern" },
                   { id: "executive", label: "Executive" },
+                  { id: "modern", label: "Modern" },
                   { id: "creative", label: "Creative" },
                   { id: "academic", label: "Academic" },
                 ].map(cat => (

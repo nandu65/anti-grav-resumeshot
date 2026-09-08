@@ -97,7 +97,10 @@ export type TemplateId =
   | "modern" | "classic" | "compact" | "executive" | "creative" | "minimal"
   | "timeline" | "elegant" | "sidebar-dark" | "photo-header"
   | "centered-serif" | "banner-photo" | "teal-left" | "photo-grid" | "logo-boxed"
-  | "nordic" | "ivy-league" | "tech-dark";
+  | "nordic" | "ivy-league" | "tech-dark"
+  | "monogram-blue-frame" | "emerald-timeline" | "hexagon-editorial" | "slate-node-timeline"
+  | "centered-dual-column" | "teal-duo-banner" | "taupe-header-split" | "amber-ribbon"
+  | "slate-frame-sidebar" | "burgundy-boxed-monogram";
 
 export interface TemplateDefinition {
   id: TemplateId;
@@ -324,6 +327,76 @@ export const TEMPLATES: TemplateDefinition[] = [
     desc: "Dark charcoal slate header, cyan tech accents, and monospace code-styled skills.",
     tag: "Tech Lead",
     category: "modern",
+  },
+  {
+    id: "monogram-blue-frame",
+    name: "Classic Monogram Blue Frame",
+    desc: "Centered circular monogram avatar, royal blue border frame, and 2-column experience split.",
+    tag: "Framed",
+    category: "popular",
+  },
+  {
+    id: "emerald-timeline",
+    name: "Emerald Left Timeline",
+    desc: "High-converting ResumeNow style with two-tone header, left date timeline, and 2-column skills grid.",
+    tag: "ATS Friendly",
+    category: "popular",
+  },
+  {
+    id: "hexagon-editorial",
+    name: "Hexagon Monogram Editorial",
+    desc: "Geometric hexagon initials badge, blue serif headline, and 35/65 split two-column layout.",
+    tag: "Editorial",
+    category: "executive",
+  },
+  {
+    id: "slate-node-timeline",
+    name: "Slate Node Timeline Spine",
+    desc: "Dark slate header bar, boxed contact strip, and central dot-spine timeline layout.",
+    tag: "Executive",
+    category: "executive",
+  },
+  {
+    id: "centered-dual-column",
+    name: "Centered Minimalist Dual-Column",
+    desc: "Clean centered title, dual-column balanced layout, right-aligned dates, and language meters.",
+    tag: "Minimalist",
+    category: "modern",
+  },
+  {
+    id: "teal-duo-banner",
+    name: "Teal Duo-Tone Executive",
+    desc: "Charcoal & teal top banner with left-aligned section labels and right-aligned content.",
+    tag: "Executive",
+    category: "executive",
+  },
+  {
+    id: "taupe-header-split",
+    name: "Warm Taupe Executive Split",
+    desc: "Warm sand/taupe header block with clean vertical divider and left section labels.",
+    tag: "Editorial",
+    category: "executive",
+  },
+  {
+    id: "amber-ribbon",
+    name: "Amber Gold Ribbon Classic",
+    desc: "Golden amber accent ribbon, two-tone bold name, and deep wine section headers.",
+    tag: "Classic",
+    category: "ats",
+  },
+  {
+    id: "slate-frame-sidebar",
+    name: "Slate Frame Modern Sidebar",
+    desc: "Full slate border frame, compact 35% left sidebar for skills & education, and spacious experience column.",
+    tag: "Framed",
+    category: "modern",
+  },
+  {
+    id: "burgundy-boxed-monogram",
+    name: "Burgundy Boxed Monogram",
+    desc: "Square monogram box, deep burgundy header banner, contact icon strip, and dual-column structure.",
+    tag: "Executive",
+    category: "executive",
   },
 ];
 
@@ -3793,6 +3866,1067 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   );
 }
 
+/* =========================================================================
+ * 10 NEW HIGH-CONVERTING TEMPLATES (MATCHING EXACT UPLOADED DESIGNS)
+ * ========================================================================= */
+
+function getInitials(name: string): string {
+  const parts = (name || "Diya Agarwal").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "DA";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function renderBulletSkills2Col(skills: ResumeData["skills"] = [], update?: UpdateFn, dotColor = "text-black") {
+  const allItems = (skills || []).flatMap(s => s.items || []).filter(Boolean);
+  const items = allItems.length > 0 ? allItems : [
+    "Cash register operation", "Inventory management",
+    "POS system operation", "Accurate money handling",
+    "Sales expertise", "Documentation and recordkeeping",
+    "Teamwork", "Retail merchandising expertise"
+  ];
+  const half = Math.ceil(items.length / 2);
+  const col1 = items.slice(0, half);
+  const col2 = items.slice(half);
+
+  return (
+    <div className="grid grid-cols-2 gap-x-6 text-[10px] leading-relaxed text-black">
+      <ul className="space-y-1">
+        {col1.map((item, idx) => (
+          <li key={idx} className="flex items-start gap-1.5">
+            <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <ul className="space-y-1">
+        {col2.map((item, idx) => (
+          <li key={idx} className="flex items-start gap-1.5">
+            <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function renderLanguagesSection(barColor = "bg-slate-700") {
+  return (
+    <div className="space-y-2 text-[10px] text-black">
+      <div className="text-[10px]">
+        <strong>Hindi:</strong> Native speaker
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <div className="flex justify-between text-[9.5px]">
+            <span className="font-semibold text-black">English:</span>
+            <span className="text-slate-500 font-mono">C2</span>
+          </div>
+          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-0.5">
+            <div className={`h-full ${barColor} rounded-full`} style={{ width: "90%" }} />
+          </div>
+          <div className="text-[8.5px] text-slate-500 mt-0.5">Proficient</div>
+        </div>
+        <div>
+          <div className="flex justify-between text-[9.5px]">
+            <span className="font-semibold text-black">Bengali:</span>
+            <span className="text-slate-500 font-mono">B2</span>
+          </div>
+          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-0.5">
+            <div className={`h-full ${barColor} rounded-full`} style={{ width: "75%" }} />
+          </div>
+          <div className="text-[8.5px] text-slate-500 mt-0.5">Upper-intermediate</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 1. Classic Monogram Blue Frame (Batch 1 - Image 1) */
+function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const initials = getInitials(r.name);
+
+  return (
+    <div className="bg-white text-black p-6 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      <div className="border-[3px] border-[#2563eb] rounded-2xl p-7 space-y-4">
+        {/* Header */}
+        <div className="text-center space-y-1.5">
+          <div className="h-16 w-16 rounded-full border-2 border-slate-700 flex items-center justify-center font-bold text-xl text-slate-800 mx-auto">
+            {initials}
+          </div>
+          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-wider uppercase text-slate-900 text-center" />
+          <div className="text-[9.5px] text-slate-600 text-center flex justify-center items-center gap-2 flex-wrap">
+            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+            <span>|</span>
+            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+            <span>|</span>
+            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+          </div>
+        </div>
+
+        {/* Summary */}
+        {r.summary && (
+          <section className="space-y-1.5">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span>Summary</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+          </section>
+        )}
+
+        {/* Skills */}
+        <section className="space-y-1.5">
+          <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+            <span>Skills</span>
+            <span className="flex-1 border-b border-slate-300" />
+          </div>
+          {renderBulletSkills2Col(r.skills, update)}
+        </section>
+
+        {/* Experience */}
+        {r.experience?.length > 0 && (
+          <section className="space-y-2">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span>Experience</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <div className="space-y-3">
+              {r.experience.map((e, i) => {
+                const upd = makeExpUpdater(update, r, i);
+                return (
+                  <div key={i} className="grid grid-cols-[170px_1fr] gap-4">
+                    <div>
+                      <div className="text-[9.5px] text-slate-700 font-medium">
+                        <Editable value={e.company} onChange={update && (v => upd({ company: v }))} />
+                        {e.location && <span> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>}
+                      </div>
+                      <div className="font-bold text-[10.5px] text-black">
+                        <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />
+                      </div>
+                      <div className="text-[9px] italic text-slate-600">
+                        <Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> - <Editable value={e.end} onChange={update && (v => upd({ end: v }))} />
+                      </div>
+                    </div>
+                    <div>
+                      <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-1 text-black" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Education and Training */}
+        {r.education?.length > 0 && (
+          <section className="space-y-1.5">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span>Education and Training</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <div className="space-y-2">
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px]">
+                    <div className="text-slate-700 font-medium">
+                      <Editable value={e.school} onChange={update && (v => upd({ school: v }))} />
+                      {e.location && <span> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>}
+                    </div>
+                    <div className="font-bold text-black">
+                      <Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />
+                    </div>
+                    <div className="text-[9px] italic text-slate-600">
+                      <Editable value={e.start || e.end} onChange={update && (v => upd({ start: v }))} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Languages */}
+        <section className="space-y-1.5">
+          <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+            <span>Languages</span>
+            <span className="flex-1 border-b border-slate-300" />
+          </div>
+          {renderLanguagesSection("bg-[#2563eb]")}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* 2. Emerald Left Timeline - ResumeNow Style (Batch 1 - Image 2) */
+function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const nameParts = (r.name || "NANDU NAIDU L").split(" ");
+  const firstName = nameParts[0] || "NANDU";
+  const restName = nameParts.slice(1).join(" ") || "NAIDU L";
+
+  return (
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-black tracking-wide">
+          <span className="text-[#06b6d4]">{firstName}</span>{" "}
+          <span className="text-[#059669]">{restName}</span>
+        </h1>
+        <div className="text-[9.5px] text-slate-700 flex items-center gap-2 flex-wrap">
+          <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+          <span>|</span>
+          <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          <span>|</span>
+          <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+        </div>
+      </div>
+
+      {/* Summary */}
+      {r.summary && (
+        <section className="space-y-1">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">SUMMARY</div>
+          <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+        </section>
+      )}
+
+      {/* Skills */}
+      <section className="space-y-1.5">
+        <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">SKILLS</div>
+        {renderBulletSkills2Col(r.skills, update, "text-[#059669]")}
+      </section>
+
+      {/* Experience */}
+      {r.experience?.length > 0 && (
+        <section className="space-y-2">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">EXPERIENCE</div>
+          <div className="space-y-3">
+            {r.experience.map((e, i) => {
+              const upd = makeExpUpdater(update, r, i);
+              return (
+                <div key={i} className="grid grid-cols-[115px_1fr] gap-3">
+                  <div className="text-[9.5px] font-bold text-slate-900">
+                    <Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> - <Editable value={e.end} onChange={update && (v => upd({ end: v }))} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-[10.5px] text-black">
+                      <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />
+                    </div>
+                    <div className="text-[9.5px] font-semibold text-slate-800">
+                      <Editable value={e.company} onChange={update && (v => upd({ company: v }))} />
+                      {e.location && <span className="font-normal text-slate-600"> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>}
+                    </div>
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Education */}
+      {r.education?.length > 0 && (
+        <section className="space-y-1.5">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">EDUCATION AND TRAINING</div>
+          <div className="space-y-2">
+            {r.education.map((e, i) => {
+              const upd = makeEduUpdater(update, r, i);
+              return (
+                <div key={i} className="grid grid-cols-[115px_1fr] gap-3 text-[10px]">
+                  <div className="text-[9.5px] font-bold text-slate-900">
+                    <Editable value={e.end || e.start} onChange={update && (v => upd({ end: v }))} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-[9.5px] font-semibold text-slate-800">
+                      <Editable value={e.school} onChange={update && (v => upd({ school: v }))} />
+                      {e.location && <span className="font-normal text-slate-600"> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Leadership & Hobbies */}
+      {r.leadership && r.leadership.length > 0 && (
+        <section className="space-y-1.5">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">LEADERSHIP EXPERIENCE</div>
+          <div className="space-y-2">
+            {r.leadership.map((l, i) => {
+              const upd = makeLeadershipUpdater(update, r, i);
+              return (
+                <div key={i} className="grid grid-cols-[115px_1fr] gap-3 text-[10px]">
+                  <div className="text-[9.5px] font-bold text-slate-900">{l.start} - {l.end}</div>
+                  <div>
+                    <div className="font-bold text-black"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></div>
+                    <div className="text-[9.5px] font-semibold text-slate-800"><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></div>
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-0.5" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/* 3. Hexagon Monogram Editorial Two-Column (Batch 1 - Image 3) */
+function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const initials = getInitials(r.name);
+
+  return (
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+      {/* Header with Hexagon Badge */}
+      <div className="flex justify-between items-center pb-4 border-b border-slate-300">
+        <div className="flex items-center gap-4">
+          <div className="relative h-16 w-16 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full stroke-[#2563eb] stroke-[3] fill-none">
+              <polygon points="50 3, 93 25, 93 75, 50 97, 7 75, 7 25" />
+            </svg>
+            <span className="font-serif font-bold text-2xl text-[#2563eb] z-10">{initials}</span>
+          </div>
+          <div>
+            <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="font-serif text-3xl font-bold text-[#1d4ed8]" />
+            <Editable as="div" value={r.title || "Retail Sales Professional"} onChange={update && (v => on({ title: v }))} className="text-xs text-slate-600 mt-0.5" />
+          </div>
+        </div>
+        <div className="text-right text-[9.5px] text-slate-700 space-y-0.5">
+          <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
+          <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+        </div>
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-[0.38fr_0.62fr] gap-6">
+        {/* Left Column */}
+        <div className="space-y-4">
+          {r.summary && (
+            <section className="space-y-1.5">
+              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Summary</h3>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+            </section>
+          )}
+
+          <section className="space-y-1.5">
+            <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Skills</h3>
+            <ul className="space-y-1 text-[10px] text-black">
+              {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management", "Accurate money handling"]).map((sk, i) => (
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="text-[#2563eb]">•</span>
+                  <span>{sk}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {r.education?.length > 0 && (
+            <section className="space-y-1.5">
+              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Education and Training</h3>
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-slate-700"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></div>
+                    <div className="text-slate-500 text-[9px]"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    <div className="text-slate-600 font-semibold text-[9px]"><Editable value={e.end || e.start} onChange={update && (v => upd({ end: v }))} /></div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4">
+          {r.experience?.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Experience</h3>
+              <div className="space-y-3">
+                {r.experience.map((e, i) => {
+                  const upd = makeExpUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-1">
+                      <div className="font-bold text-[11px] uppercase tracking-wide text-black">
+                        <Editable value={e.company} onChange={update && (v => upd({ company: v }))} />
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-slate-700 italic">
+                        <span><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>
+                        <span className="not-italic font-medium text-slate-800"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> to <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                      </div>
+                      <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <section className="space-y-1.5 pt-2 border-t border-slate-200">
+            <h3 className="font-serif font-bold text-sm text-[#1d4ed8] pb-1">Languages</h3>
+            {renderLanguagesSection("bg-[#2563eb]")}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 4. Slate Node Timeline Spine (Batch 1 - Image 4) */
+function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+
+  return (
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      {/* Dark Slate Top Bar */}
+      <div className="bg-[#334155] h-5 w-full" />
+      <div className="p-8 space-y-3">
+        {/* Name Header */}
+        <div className="text-center">
+          <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-wider uppercase text-slate-900" />
+          <div className="text-[10px] text-slate-600 text-center py-2 border-y border-slate-200 mt-2 flex justify-center items-center gap-3">
+            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+            <span>•</span>
+            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+            <span>•</span>
+            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+          </div>
+        </div>
+
+        {/* Dual Column with Dot Spine */}
+        <div className="grid grid-cols-[0.62fr_0.38fr] gap-8 pt-3 relative">
+          {/* Left Column */}
+          <div className="space-y-4 pr-4">
+            {r.summary && (
+              <section className="space-y-1">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">SUMMARY</h3>
+                <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+              </section>
+            )}
+
+            {r.experience?.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">EXPERIENCE</h3>
+                <div className="space-y-3">
+                  {r.experience.map((e, i) => {
+                    const upd = makeExpUpdater(update, r, i);
+                    return (
+                      <div key={i} className="space-y-0.5">
+                        <div className="font-bold text-[10.5px] text-black">
+                          <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />, <span className="font-normal text-slate-700">{e.start} - {e.end}</span>
+                        </div>
+                        <div className="font-semibold text-slate-900 text-[10px]">
+                          <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
+                        </div>
+                        <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            <section className="space-y-1 pt-2">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">LANGUAGES</h3>
+              {renderLanguagesSection("bg-[#334155]")}
+            </section>
+          </div>
+
+          {/* Right Column with Spine Border */}
+          <div className="border-l-2 border-slate-300 pl-6 space-y-4 relative">
+            <section className="space-y-1.5">
+              <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-slate-700" />
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">SKILLS</h3>
+              <ul className="space-y-1 text-[10px] text-black">
+                {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-slate-800">•</span>
+                    <span>{sk}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {r.education?.length > 0 && (
+              <section className="space-y-1.5 relative pt-2">
+                <div className="absolute -left-[31px] top-3.5 h-2 w-2 rounded-full bg-slate-700" />
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">EDUCATION AND TRAINING</h3>
+                {r.education.map((e, i) => {
+                  const upd = makeEduUpdater(update, r, i);
+                  return (
+                    <div key={i} className="text-[10px] space-y-0.5">
+                      <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />, {e.end || e.start}</div>
+                      <div className="font-semibold text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    </div>
+                  );
+                })}
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 5. Centered Minimalist Dual-Column (Batch 1 - Image 5) */
+function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+
+  return (
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+      {/* Header */}
+      <div className="text-center pt-2">
+        <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-tight text-slate-900" />
+        <div className="text-[9.5px] text-slate-600 text-center py-2 border-y border-slate-200 mt-2 flex justify-center items-center gap-2">
+          <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+          <span>/</span>
+          <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          <span>/</span>
+          <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+        </div>
+      </div>
+
+      {/* Dual Column Layout */}
+      <div className="grid grid-cols-2 gap-6 pt-2">
+        {/* Left Column */}
+        <div className="space-y-4">
+          {r.summary && (
+            <section className="space-y-1">
+              <h3 className="font-bold text-xs text-slate-900">Summary</h3>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+            </section>
+          )}
+
+          {r.experience?.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="font-bold text-xs text-slate-900">Experience</h3>
+              <div className="space-y-3">
+                {r.experience.map((e, i) => {
+                  const upd = makeExpUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="flex justify-between items-center text-[10.5px]">
+                        <span className="font-bold text-black"><Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> - <Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></span>
+                        <span className="text-[9px] italic text-slate-600">{e.start} - {e.end}</span>
+                      </div>
+                      <div className="text-[9.5px] text-slate-700"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                      <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4">
+          <section className="space-y-1">
+            <h3 className="font-bold text-xs text-slate-900">Skills</h3>
+            <ul className="space-y-1 text-[10px] text-black">
+              {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
+                <li key={i} className="flex items-start gap-1.5">
+                  <span>•</span>
+                  <span>{sk}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {r.education?.length > 0 && (
+            <section className="space-y-1">
+              <h3 className="font-bold text-xs text-slate-900">Education and Training</h3>
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="text-[9px] italic text-slate-600">{e.end || e.start}</div>
+                    <div className="font-bold text-black"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></div>
+                    <div className="text-slate-700"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    <div className="font-semibold text-slate-900"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          <section className="space-y-1 pt-2">
+            <h3 className="font-bold text-xs text-slate-900">Languages</h3>
+            {renderLanguagesSection("bg-slate-800")}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 6. Teal Duo-Tone Executive (Batch 2 - Image 1) */
+function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+
+  return (
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      {/* Top Banner */}
+      <div className="bg-[#374151] text-white py-3 px-6 text-center text-[10px] flex justify-center items-center gap-6">
+        <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+        <span>|</span>
+        <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+        <span>|</span>
+        <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+      </div>
+      <div className="h-2 bg-[#0d9488] w-full" />
+
+      {/* Name Title */}
+      <div className="p-8 space-y-4">
+        <div className="text-center py-2">
+          <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-light tracking-wide text-slate-900" />
+        </div>
+
+        {/* Section Row Layout */}
+        <div className="space-y-4 divide-y divide-slate-200">
+          {r.summary && (
+            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div className="font-bold text-xs text-slate-900">Summary</div>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+            </div>
+          )}
+
+          <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+            <div className="font-bold text-xs text-slate-900">Skills</div>
+            <div>{renderBulletSkills2Col(r.skills, update, "text-[#0d9488]")}</div>
+          </div>
+
+          {r.experience?.length > 0 && (
+            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div className="font-bold text-xs text-slate-900">Experience</div>
+              <div className="space-y-3">
+                {r.experience.map((e, i) => {
+                  const upd = makeExpUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="font-bold text-[10.5px] text-black">
+                        <Editable value={e.role} onChange={update && (v => upd({ role: v }))} /> <span className="font-normal text-slate-700">{e.start} - {e.end}</span>
+                      </div>
+                      <div className="font-bold text-slate-800 text-[10px]">
+                        <Editable value={e.company} onChange={update && (v => upd({ company: v }))} />, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
+                      </div>
+                      <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {r.education?.length > 0 && (
+            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div className="font-bold text-xs text-slate-900">Education and Training</div>
+              <div className="space-y-2">
+                {r.education.map((e, i) => {
+                  const upd = makeEduUpdater(update, r, i);
+                  return (
+                    <div key={i} className="text-[10px] space-y-0.5">
+                      <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />, {e.end || e.start}</div>
+                      <div className="text-slate-800 font-semibold"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} />, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+            <div className="font-bold text-xs text-slate-900">Languages</div>
+            <div>{renderLanguagesSection("bg-[#0d9488]")}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 7. Warm Taupe Executive Split (Batch 2 - Image 2) */
+function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+
+  return (
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      {/* Warm Taupe Header */}
+      <div className="bg-[#a89689] text-white p-7 flex justify-between items-center">
+        <div>
+          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-widest uppercase text-white" />
+          <Editable as="div" value={r.title || "Retail Sales Professional"} onChange={update && (v => on({ title: v }))} className="text-xs text-white/90 mt-0.5" />
+        </div>
+        <div className="text-right text-[9.5px] text-white/95 space-y-0.5">
+          <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
+          <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
+          <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+        </div>
+      </div>
+
+      {/* Body with Left Column Titles */}
+      <div className="p-7 space-y-4">
+        {r.summary && (
+          <div className="grid grid-cols-[130px_1fr] gap-5">
+            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">SUMMARY</div>
+            <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+          </div>
+        )}
+
+        <div className="grid grid-cols-[130px_1fr] gap-5">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">SKILLS</div>
+          <div>{renderBulletSkills2Col(r.skills, update, "text-[#a89689]")}</div>
+        </div>
+
+        {r.experience?.length > 0 && (
+          <div className="grid grid-cols-[130px_1fr] gap-5">
+            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">EXPERIENCE</div>
+            <div className="space-y-3">
+              {r.experience.map((e, i) => {
+                const upd = makeExpUpdater(update, r, i);
+                return (
+                  <div key={i} className="space-y-0.5">
+                    <div className="font-bold text-[10.5px] uppercase tracking-wide text-black">
+                      <Editable value={e.role} onChange={update && (v => upd({ role: v }))} /> | <span className="font-normal text-slate-700">{e.start} to {e.end}</span>
+                    </div>
+                    <div className="font-semibold text-slate-800 text-[10px]">
+                      <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
+                    </div>
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {r.education?.length > 0 && (
+          <div className="grid grid-cols-[130px_1fr] gap-5">
+            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">EDUCATION AND TRAINING</div>
+            <div className="space-y-2">
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="text-slate-800 font-semibold"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-slate-600 text-[9px]">{e.end || e.start}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-[130px_1fr] gap-5">
+          <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">LANGUAGES</div>
+          <div>{renderLanguagesSection("bg-[#a89689]")}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 8. Amber Gold Ribbon Classic (Batch 2 - Image 3) */
+function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const nameParts = (r.name || "DIYA AGARWAL").split(" ");
+  const first = nameParts[0] || "DIYA";
+  const rest = nameParts.slice(1).join(" ") || "AGARWAL";
+
+  return (
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      {/* Amber Golden Ribbon */}
+      <div className="bg-[#fbbf24] h-7 w-full" />
+      <div className="p-8 space-y-3.5">
+        {/* Name Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-black tracking-wide">
+            <span className="text-slate-700">{first}</span>{" "}
+            <span className="text-[#7f1d1d]">{rest}</span>
+          </h1>
+          <div className="text-[9.5px] text-slate-600 text-center mt-1 flex justify-center items-center gap-2">
+            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+            <span>|</span>
+            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+            <span>|</span>
+            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+          </div>
+        </div>
+
+        {/* Sections */}
+        {r.summary && (
+          <section className="space-y-1">
+            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Summary</h3>
+            <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+          </section>
+        )}
+
+        <section className="space-y-1">
+          <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Skills</h3>
+          {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]")}
+        </section>
+
+        {r.experience?.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Experience</h3>
+            <div className="space-y-3">
+              {r.experience.map((e, i) => {
+                const upd = makeExpUpdater(update, r, i);
+                return (
+                  <div key={i} className="space-y-0.5">
+                    <div className="flex justify-between items-center text-[10.5px]">
+                      <span className="font-bold text-black"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></span>
+                      <span className="text-[9.5px] text-slate-700">{e.start} to {e.end}</span>
+                    </div>
+                    <div className="font-bold text-slate-900 text-[10px]">
+                      <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> — <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
+                    </div>
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {r.education?.length > 0 && (
+          <section className="space-y-1.5">
+            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Education and Training</h3>
+            <div className="space-y-2">
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></span>
+                      <span className="text-[9px] text-slate-600">{e.end || e.start}</span>
+                    </div>
+                    <div className="text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> — <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <section className="space-y-1">
+          <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Languages</h3>
+          {renderLanguagesSection("bg-[#fbbf24]")}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* 9. Slate Frame Modern Sidebar (Batch 2 - Image 4) */
+function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+
+  return (
+    <div className="bg-white text-black p-6 font-sans text-[10px] leading-snug w-full min-h-[var(--page-h,auto)]">
+      <div className="border-[8px] border-[#475569] p-6 min-h-[1050px]">
+        <div className="grid grid-cols-[0.34fr_0.66fr] gap-6">
+          {/* Left Sidebar */}
+          <div className="space-y-4 pr-4 border-r border-slate-200">
+            <div className="space-y-1 text-[9.5px] text-slate-800 font-medium">
+              <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
+              <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
+              <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+            </div>
+
+            <section className="space-y-1.5">
+              <h3 className="font-bold text-xs text-slate-900">Skills</h3>
+              <ul className="space-y-1 text-[9.5px] text-black">
+                {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span>•</span>
+                    <span>{sk}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {r.education?.length > 0 && (
+              <section className="space-y-1">
+                <h3 className="font-bold text-xs text-slate-900">Education And Training</h3>
+                {r.education.map((e, i) => {
+                  const upd = makeEduUpdater(update, r, i);
+                  return (
+                    <div key={i} className="text-[9.5px] space-y-0.5">
+                      <div className="italic text-slate-600 text-[8.5px]">{e.end || e.start}</div>
+                      <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                      <div className="font-semibold text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></div>
+                      <div className="text-slate-600 text-[8.5px]"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    </div>
+                  );
+                })}
+              </section>
+            )}
+
+            <section className="space-y-1">
+              <h3 className="font-bold text-xs text-slate-900">Languages</h3>
+              {renderLanguagesSection("bg-[#475569]")}
+            </section>
+          </div>
+
+          {/* Right Main Column */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 pb-2 border-b border-slate-200">
+              <div className="w-1.5 h-9 bg-teal-600 rounded-sm" />
+              <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-light text-slate-900 tracking-wide" />
+            </div>
+
+            {r.summary && (
+              <section className="space-y-1">
+                <h3 className="font-bold text-xs text-slate-900">Summary</h3>
+                <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+              </section>
+            )}
+
+            {r.experience?.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="font-bold text-xs text-slate-900">Experience</h3>
+                <div className="space-y-3">
+                  {r.experience.map((e, i) => {
+                    const upd = makeExpUpdater(update, r, i);
+                    return (
+                      <div key={i} className="space-y-0.5">
+                        <div className="font-bold text-[10.5px] text-black">
+                          <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> - <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />
+                        </div>
+                        <div className="text-[9px] italic text-slate-600">
+                          <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /> • {e.start} - {e.end}
+                        </div>
+                        <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 10. Burgundy Boxed Monogram Executive (Batch 2 - Image 5) */
+function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const initials = getInitials(r.name);
+
+  return (
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] p-6">
+      {/* Header Banner */}
+      <div className="flex items-stretch mb-4">
+        <div className="h-28 w-28 border-2 border-[#7f1d1d] flex flex-col items-center justify-center font-bold text-3xl text-black shrink-0 bg-white">
+          <div className="w-8 h-[2px] bg-slate-400 mb-1" />
+          <span>{initials}</span>
+          <div className="w-8 h-[2px] bg-slate-400 mt-1" />
+        </div>
+        <div className="flex-1 bg-[#6b1d1d] text-white p-6 flex flex-col justify-center">
+          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-widest uppercase text-white" />
+          <div className="h-2 bg-slate-800 w-full mt-2" />
+        </div>
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-[0.32fr_0.68fr] gap-6">
+        {/* Left Column */}
+        <div className="space-y-4">
+          <div className="space-y-1.5 text-[9.5px] text-slate-800 font-medium">
+            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📍</span>
+              <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+            </div>
+            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📞</span>
+              <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+            </div>
+            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">✉️</span>
+              <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+            </div>
+          </div>
+
+          {r.education?.length > 0 && (
+            <section className="space-y-1.5 pt-2">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">EDUCATION AND TRAINING</h3>
+              {r.education.map((e, i) => {
+                const upd = makeEduUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} />, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    <div className="text-slate-600 text-[9px]">{e.end || e.start}</div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+        </div>
+
+        {/* Right Main Column */}
+        <div className="space-y-4">
+          {r.summary && (
+            <section className="space-y-1">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">SUMMARY</h3>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
+            </section>
+          )}
+
+          <section className="space-y-1">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">SKILLS</h3>
+            {renderBulletSkills2Col(r.skills, update, "text-[#6b1d1d]")}
+          </section>
+
+          {r.experience?.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">EXPERIENCE</h3>
+              <div className="space-y-3">
+                {r.experience.map((e, i) => {
+                  const upd = makeExpUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="font-bold text-[10.5px] uppercase tracking-wide text-black">
+                        <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />
+                      </div>
+                      <div className="text-[9.5px] text-slate-700 italic">
+                        <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /> | {e.start} - {e.end}
+                      </div>
+                      <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <section className="space-y-1 pt-2">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">LANGUAGES</h3>
+            {renderLanguagesSection("bg-[#6b1d1d]")}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Scaled mini preview component for template pickers and cards */
 export function TemplateMiniPreview({
   template,
@@ -3951,6 +5085,16 @@ export function ResumePreview({
     template === "nordic" ? <NordicPreview r={data} update={update} /> :
     template === "ivy-league" ? <IvyLeaguePreview r={data} update={update} /> :
     template === "tech-dark" ? <TechDarkPreview r={data} update={update} /> :
+    template === "monogram-blue-frame" ? <MonogramBlueFramePreview r={data} update={update} /> :
+    template === "emerald-timeline" ? <EmeraldTimelinePreview r={data} update={update} /> :
+    template === "hexagon-editorial" ? <HexagonEditorialPreview r={data} update={update} /> :
+    template === "slate-node-timeline" ? <SlateNodeTimelinePreview r={data} update={update} /> :
+    template === "centered-dual-column" ? <CenteredDualColumnPreview r={data} update={update} /> :
+    template === "teal-duo-banner" ? <TealDuoBannerPreview r={data} update={update} /> :
+    template === "taupe-header-split" ? <TaupeHeaderSplitPreview r={data} update={update} /> :
+    template === "amber-ribbon" ? <AmberRibbonPreview r={data} update={update} /> :
+    template === "slate-frame-sidebar" ? <SlateFrameSidebarPreview r={data} update={update} /> :
+    template === "burgundy-boxed-monogram" ? <BurgundyBoxedMonogramPreview r={data} update={update} /> :
     <ClassicPreview r={data} update={update} />;
 
   useEffect(() => {
@@ -4499,6 +5643,92 @@ export const TEMPLATE_DOCX_CONFIGS: Record<TemplateId, TemplateDocxConfig> = {
     sidebarSections: ["skills", "education", "certifications"],
     mainSections: ["summary", "experience", "leadership", "projects"],
     skillsFormat: "chips",
+  },
+  "monogram-blue-frame": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "2563EB",
+    namePlacement: "header-centered",
+    skillsFormat: "bullets",
+  },
+  "emerald-timeline": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "059669",
+    namePlacement: "header-left",
+    skillsFormat: "bullets",
+  },
+  "hexagon-editorial": {
+    layout: "sidebar-left",
+    font: "Times New Roman",
+    accent: "1D4ED8",
+    sidebarWidthDXA: 3560,
+    mainWidthDXA: 5800,
+    namePlacement: "header-split",
+    sidebarSections: ["summary", "skills", "education"],
+    mainSections: ["experience", "projects", "certifications"],
+    skillsFormat: "bullets",
+  },
+  "slate-node-timeline": {
+    layout: "sidebar-right",
+    font: "Calibri",
+    accent: "334155",
+    sidebarWidthDXA: 3560,
+    mainWidthDXA: 5800,
+    namePlacement: "header-centered",
+    sidebarSections: ["skills", "education", "certifications"],
+    mainSections: ["summary", "experience", "leadership", "projects"],
+    skillsFormat: "bullets",
+  },
+  "centered-dual-column": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "0F172A",
+    namePlacement: "header-centered",
+    skillsFormat: "bullets",
+  },
+  "teal-duo-banner": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "0D9488",
+    namePlacement: "header-centered",
+    skillsFormat: "bullets",
+  },
+  "taupe-header-split": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "A89689",
+    namePlacement: "header-split",
+    skillsFormat: "bullets",
+  },
+  "amber-ribbon": {
+    layout: "single-column",
+    font: "Calibri",
+    accent: "7F1D1D",
+    namePlacement: "header-centered",
+    skillsFormat: "bullets",
+  },
+  "slate-frame-sidebar": {
+    layout: "sidebar-left",
+    font: "Calibri",
+    accent: "475569",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    namePlacement: "header-left",
+    sidebarSections: ["skills", "education", "certifications"],
+    mainSections: ["summary", "experience", "leadership", "projects"],
+    skillsFormat: "bullets",
+  },
+  "burgundy-boxed-monogram": {
+    layout: "sidebar-left",
+    font: "Calibri",
+    accent: "6B1D1D",
+    sidebarWidthDXA: 3280,
+    mainWidthDXA: 6080,
+    namePlacement: "header-split",
+    sidebarSections: ["education", "certifications"],
+    mainSections: ["summary", "skills", "experience", "leadership", "projects"],
+    skillsFormat: "bullets",
   },
 };
 
