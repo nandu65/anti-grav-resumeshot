@@ -767,7 +767,7 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     
     switch(key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           title = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] whitespace-pre-wrap" />;
         }
@@ -970,7 +970,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
     switch(key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           title = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap" />;
         }
@@ -1141,7 +1141,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
     switch(key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           title = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="mb-2 text-[10px] whitespace-pre-wrap" />;
         }
@@ -1302,7 +1302,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
     switch(key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           title = "Profile";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap" />;
         }
@@ -1455,7 +1455,7 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-1">
@@ -1629,7 +1629,7 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
     switch(key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           title = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[11px]" />;
         }
@@ -1866,7 +1866,7 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let defaultTitle = "";
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           defaultTitle = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[11px]" />;
         }
@@ -2043,7 +2043,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let defaultTitle = "";
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           defaultTitle = "Summary";
           content = (
             <div className="max-w-[85%] mx-auto text-center">
@@ -2208,7 +2208,7 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   const renderMainSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mt-4">
               <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
@@ -2399,7 +2399,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   const renderMainSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">
@@ -2565,7 +2565,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
     let defaultTitle = "";
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           defaultTitle = "Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-left text-[10.5px] whitespace-pre-wrap px-1" />;
         }
@@ -2704,7 +2704,7 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   const renderMainSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#0f2340] mb-1">
@@ -2902,7 +2902,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderMainSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-3">
               <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 border-b-2 border-teal-800 pb-1 mb-2">
@@ -3011,7 +3011,7 @@ function PhotoGridPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mt-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-800 mb-1">
@@ -3143,7 +3143,7 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <div key="summary">
               <div className="text-center text-[12px] font-semibold tracking-wide text-neutral-800 border-b border-neutral-300 pb-1 mb-2 mt-3">
@@ -3288,7 +3288,7 @@ function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-4">
               <h3 className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-slate-700 border-l-2 border-slate-700 pl-2.5 mb-2">
@@ -3484,7 +3484,7 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let defaultTitle = "";
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           defaultTitle = "Professional Summary";
           content = <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] leading-relaxed text-justify whitespace-pre-wrap" />;
         }
@@ -3659,7 +3659,7 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderMainSection = (key: string) => {
     switch (key) {
       case "summary":
-        if (r.summary || update) {
+        if (r.summary && r.summary.trim()) {
           return (
             <section key="summary" className="mb-4">
               <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2 flex items-center gap-1.5">
@@ -3871,23 +3871,18 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
  * ========================================================================= */
 
 function getInitials(name: string): string {
-  const parts = (name || "Diya Agarwal").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "DA";
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function renderBulletSkills2Col(skills: ResumeData["skills"] = [], update?: UpdateFn, dotColor = "text-black") {
   const allItems = (skills || []).flatMap(s => s.items || []).filter(Boolean);
-  const items = allItems.length > 0 ? allItems : [
-    "Cash register operation", "Inventory management",
-    "POS system operation", "Accurate money handling",
-    "Sales expertise", "Documentation and recordkeeping",
-    "Teamwork", "Retail merchandising expertise"
-  ];
-  const half = Math.ceil(items.length / 2);
-  const col1 = items.slice(0, half);
-  const col2 = items.slice(half);
+  if (allItems.length === 0) return null;
+  const half = Math.ceil(allItems.length / 2);
+  const col1 = allItems.slice(0, half);
+  const col2 = allItems.slice(half);
 
   return (
     <div className="grid grid-cols-2 gap-x-6 text-[10px] leading-relaxed text-black">
@@ -3911,39 +3906,30 @@ function renderBulletSkills2Col(skills: ResumeData["skills"] = [], update?: Upda
   );
 }
 
-function renderLanguagesSection(barColor = "bg-slate-700") {
+function renderLanguagesSection(r: ResumeData, barColor = "bg-slate-700") {
+  const langSkill = (r.skills || []).find(s => s.category?.toLowerCase().includes("lang"));
+  const langItems = langSkill?.items?.filter(Boolean) || [];
+  if (langItems.length === 0) return null;
+
   return (
     <div className="space-y-2 text-[10px] text-black">
-      <div className="text-[10px]">
-        <strong>Hindi:</strong> Native speaker
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <div className="flex justify-between text-[9.5px]">
-            <span className="font-semibold text-black">English:</span>
-            <span className="text-slate-500 font-mono">C2</span>
+      <div className="grid grid-cols-2 gap-3">
+        {langItems.map((lang, idx) => (
+          <div key={idx}>
+            <div className="flex justify-between text-[9.5px]">
+              <span className="font-semibold text-black">{lang}</span>
+            </div>
+            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-0.5">
+              <div className={`h-full ${barColor} rounded-full`} style={{ width: "85%" }} />
+            </div>
           </div>
-          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-0.5">
-            <div className={`h-full ${barColor} rounded-full`} style={{ width: "90%" }} />
-          </div>
-          <div className="text-[8.5px] text-slate-500 mt-0.5">Proficient</div>
-        </div>
-        <div>
-          <div className="flex justify-between text-[9.5px]">
-            <span className="font-semibold text-black">Bengali:</span>
-            <span className="text-slate-500 font-mono">B2</span>
-          </div>
-          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-0.5">
-            <div className={`h-full ${barColor} rounded-full`} style={{ width: "75%" }} />
-          </div>
-          <div className="text-[8.5px] text-slate-500 mt-0.5">Upper-intermediate</div>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/* 1. Classic Monogram Blue Frame (Batch 1 - Image 1) */
+/* 1. Classic Monogram Blue Frame */
 function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const initials = getInitials(r.name);
@@ -3953,24 +3939,26 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
       <div className="border-[3px] border-[#2563eb] rounded-2xl p-7 space-y-4">
         {/* Header */}
         <div className="text-center space-y-1.5">
-          <div className="h-16 w-16 rounded-full border-2 border-slate-700 flex items-center justify-center font-bold text-xl text-slate-800 mx-auto">
-            {initials}
-          </div>
-          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-wider uppercase text-slate-900 text-center" />
+          {initials && (
+            <div className="h-16 w-16 rounded-full border-2 border-slate-700 flex items-center justify-center font-bold text-xl text-slate-800 mx-auto">
+              {initials}
+            </div>
+          )}
+          <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-wider uppercase text-slate-900 text-center" />
           <div className="text-[9.5px] text-slate-600 text-center flex justify-center items-center gap-2 flex-wrap">
-            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
-            <span>|</span>
-            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-            <span>|</span>
-            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+            {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
+            {r.email && r.phone && <span>|</span>}
+            {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+            {(r.email || r.phone) && r.location && <span>|</span>}
+            {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
           </div>
         </div>
 
         {/* Summary */}
-        {r.summary && (
-          <section className="space-y-1.5">
+        {r.summary?.trim() && (
+          <section data-rs-sec="summary" className="space-y-1.5">
             <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-              <span>Summary</span>
+              <span data-rs-head="1">{getSectionTitle(r, "summary", "Summary")}</span>
               <span className="flex-1 border-b border-slate-300" />
             </div>
             <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
@@ -3978,19 +3966,21 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
         )}
 
         {/* Skills */}
-        <section className="space-y-1.5">
-          <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-            <span>Skills</span>
-            <span className="flex-1 border-b border-slate-300" />
-          </div>
-          {renderBulletSkills2Col(r.skills, update)}
-        </section>
+        {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+          <section data-rs-sec="skills" className="space-y-1.5">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span data-rs-head="1">{getSectionTitle(r, "skills", "Skills")}</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            {renderBulletSkills2Col(r.skills, update)}
+          </section>
+        )}
 
         {/* Experience */}
         {r.experience?.length > 0 && (
-          <section className="space-y-2">
+          <section data-rs-sec="experience" className="space-y-2">
             <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-              <span>Experience</span>
+              <span data-rs-head="1">{getSectionTitle(r, "experience", "Experience")}</span>
               <span className="flex-1 border-b border-slate-300" />
             </div>
             <div className="space-y-3">
@@ -4020,11 +4010,45 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
           </section>
         )}
 
+        {/* Leadership */}
+        {r.leadership && r.leadership.length > 0 && (
+          <section data-rs-sec="leadership" className="space-y-2">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span data-rs-head="1">{getSectionTitle(r, "leadership", "Leadership Experience")}</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <div className="space-y-3">
+              {r.leadership.map((l, i) => {
+                const upd = makeLeadershipUpdater(update, r, i);
+                return (
+                  <div key={i} className="grid grid-cols-[170px_1fr] gap-4">
+                    <div>
+                      <div className="text-[9.5px] text-slate-700 font-medium">
+                        <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />
+                        {l.location && <span> | <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></span>}
+                      </div>
+                      <div className="font-bold text-[10.5px] text-black">
+                        <Editable value={l.role} onChange={update && (v => upd({ role: v }))} />
+                      </div>
+                      <div className="text-[9px] italic text-slate-600">
+                        <Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> - <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} />
+                      </div>
+                    </div>
+                    <div>
+                      <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-1 text-black" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Education and Training */}
         {r.education?.length > 0 && (
-          <section className="space-y-1.5">
+          <section data-rs-sec="education" className="space-y-1.5">
             <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-              <span>Education and Training</span>
+              <span data-rs-head="1">{getSectionTitle(r, "education", "Education and Training")}</span>
               <span className="flex-1 border-b border-slate-300" />
             </div>
             <div className="space-y-2">
@@ -4049,25 +4073,65 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
           </section>
         )}
 
-        {/* Languages */}
-        <section className="space-y-1.5">
-          <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-            <span>Languages</span>
-            <span className="flex-1 border-b border-slate-300" />
-          </div>
-          {renderLanguagesSection("bg-[#2563eb]")}
-        </section>
+        {/* Projects */}
+        {r.projects?.length > 0 && (
+          <section data-rs-sec="projects" className="space-y-1.5">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span data-rs-head="1">{getSectionTitle(r, "projects", "Projects")}</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <div className="space-y-2">
+              {r.projects.map((p, i) => {
+                const upd = makeProjUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px]">
+                    <div className="font-bold text-black"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /> <span className="font-normal text-slate-600">({p.tech})</span></div>
+                    <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Certifications */}
+        {r.certifications?.filter(Boolean).length > 0 && (
+          <section data-rs-sec="certifications" className="space-y-1.5">
+            <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span data-rs-head="1">{getSectionTitle(r, "certifications", "Certifications")}</span>
+              <span className="flex-1 border-b border-slate-300" />
+            </div>
+            <div className="text-[10px] space-y-0.5">
+              {r.certifications.map((c, i) => <div key={i}>• {c}</div>)}
+            </div>
+          </section>
+        )}
+
+        {/* Languages (Only if provided) */}
+        {(() => {
+          const langContent = renderLanguagesSection(r, "bg-[#2563eb]");
+          if (!langContent) return null;
+          return (
+            <section data-rs-sec="languages" className="space-y-1.5">
+              <div className="font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                <span data-rs-head="1">{getSectionTitle(r, "languages", "Languages")}</span>
+                <span className="flex-1 border-b border-slate-300" />
+              </div>
+              {langContent}
+            </section>
+          );
+        })()}
       </div>
     </div>
   );
 }
 
-/* 2. Emerald Left Timeline - ResumeNow Style (Batch 1 - Image 2) */
+/* 2. Emerald Left Timeline */
 function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const nameParts = (r.name || "NANDU NAIDU L").split(" ");
-  const firstName = nameParts[0] || "NANDU";
-  const restName = nameParts.slice(1).join(" ") || "NAIDU L";
+  const nameParts = (r.name || "").split(" ");
+  const firstName = nameParts[0] || "";
+  const restName = nameParts.slice(1).join(" ");
 
   return (
     <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
@@ -4078,32 +4142,34 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
           <span className="text-[#059669]">{restName}</span>
         </h1>
         <div className="text-[9.5px] text-slate-700 flex items-center gap-2 flex-wrap">
-          <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-          <span>|</span>
-          <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-          <span>|</span>
-          <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+          {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
+          {r.location && r.phone && <span>|</span>}
+          {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+          {(r.location || r.phone) && r.email && <span>|</span>}
+          {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
         </div>
       </div>
 
       {/* Summary */}
-      {r.summary && (
-        <section className="space-y-1">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">SUMMARY</div>
+      {r.summary?.trim() && (
+        <section data-rs-sec="summary" className="space-y-1">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "summary", "SUMMARY")}</div>
           <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
         </section>
       )}
 
       {/* Skills */}
-      <section className="space-y-1.5">
-        <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">SKILLS</div>
-        {renderBulletSkills2Col(r.skills, update, "text-[#059669]")}
-      </section>
+      {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+        <section data-rs-sec="skills" className="space-y-1.5">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "skills", "SKILLS")}</div>
+          {renderBulletSkills2Col(r.skills, update, "text-[#059669]")}
+        </section>
+      )}
 
       {/* Experience */}
       {r.experience?.length > 0 && (
-        <section className="space-y-2">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">EXPERIENCE</div>
+        <section data-rs-sec="experience" className="space-y-2">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "experience", "EXPERIENCE")}</div>
           <div className="space-y-3">
             {r.experience.map((e, i) => {
               const upd = makeExpUpdater(update, r, i);
@@ -4131,8 +4197,8 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
 
       {/* Education */}
       {r.education?.length > 0 && (
-        <section className="space-y-1.5">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">EDUCATION AND TRAINING</div>
+        <section data-rs-sec="education" className="space-y-1.5">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "education", "EDUCATION AND TRAINING")}</div>
           <div className="space-y-2">
             {r.education.map((e, i) => {
               const upd = makeEduUpdater(update, r, i);
@@ -4155,10 +4221,10 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
         </section>
       )}
 
-      {/* Leadership & Hobbies */}
+      {/* Leadership */}
       {r.leadership && r.leadership.length > 0 && (
-        <section className="space-y-1.5">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#059669]">LEADERSHIP EXPERIENCE</div>
+        <section data-rs-sec="leadership" className="space-y-1.5">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "leadership", "LEADERSHIP EXPERIENCE")}</div>
           <div className="space-y-2">
             {r.leadership.map((l, i) => {
               const upd = makeLeadershipUpdater(update, r, i);
@@ -4176,11 +4242,29 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
           </div>
         </section>
       )}
+
+      {/* Projects */}
+      {r.projects?.length > 0 && (
+        <section data-rs-sec="projects" className="space-y-1.5">
+          <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "projects", "PROJECTS")}</div>
+          <div className="space-y-2">
+            {r.projects.map((p, i) => {
+              const upd = makeProjUpdater(update, r, i);
+              return (
+                <div key={i} className="text-[10px]">
+                  <div className="font-bold text-black"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /> <span className="font-normal text-slate-600">({p.tech})</span></div>
+                  <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
-/* 3. Hexagon Monogram Editorial Two-Column (Batch 1 - Image 3) */
+/* 3. Hexagon Monogram Editorial Two-Column */
 function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const initials = getInitials(r.name);
@@ -4190,21 +4274,23 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
       {/* Header with Hexagon Badge */}
       <div className="flex justify-between items-center pb-4 border-b border-slate-300">
         <div className="flex items-center gap-4">
-          <div className="relative h-16 w-16 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full stroke-[#2563eb] stroke-[3] fill-none">
-              <polygon points="50 3, 93 25, 93 75, 50 97, 7 75, 7 25" />
-            </svg>
-            <span className="font-serif font-bold text-2xl text-[#2563eb] z-10">{initials}</span>
-          </div>
+          {initials && (
+            <div className="relative h-16 w-16 flex items-center justify-center">
+              <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full stroke-[#2563eb] stroke-[3] fill-none">
+                <polygon points="50 3, 93 25, 93 75, 50 97, 7 75, 7 25" />
+              </svg>
+              <span className="font-serif font-bold text-2xl text-[#2563eb] z-10">{initials}</span>
+            </div>
+          )}
           <div>
-            <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="font-serif text-3xl font-bold text-[#1d4ed8]" />
-            <Editable as="div" value={r.title || "Retail Sales Professional"} onChange={update && (v => on({ title: v }))} className="text-xs text-slate-600 mt-0.5" />
+            <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="font-serif text-3xl font-bold text-[#1d4ed8]" />
+            {r.title && <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-xs text-slate-600 mt-0.5" />}
           </div>
         </div>
         <div className="text-right text-[9.5px] text-slate-700 space-y-0.5">
-          <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
-          <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
-          <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+          {r.email && <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />}
+          {r.phone && <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+          {r.location && <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />}
         </div>
       </div>
 
@@ -4212,28 +4298,30 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
       <div className="grid grid-cols-[0.38fr_0.62fr] gap-6">
         {/* Left Column */}
         <div className="space-y-4">
-          {r.summary && (
-            <section className="space-y-1.5">
-              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Summary</h3>
+          {r.summary?.trim() && (
+            <section data-rs-sec="summary" className="space-y-1.5">
+              <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "summary", "Summary")}</h3>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
             </section>
           )}
 
-          <section className="space-y-1.5">
-            <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Skills</h3>
-            <ul className="space-y-1 text-[10px] text-black">
-              {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management", "Accurate money handling"]).map((sk, i) => (
-                <li key={i} className="flex items-start gap-1.5">
-                  <span className="text-[#2563eb]">•</span>
-                  <span>{sk}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+            <section data-rs-sec="skills" className="space-y-1.5">
+              <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "skills", "Skills")}</h3>
+              <ul className="space-y-1 text-[10px] text-black">
+                {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-[#2563eb]">•</span>
+                    <span>{sk}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {r.education?.length > 0 && (
-            <section className="space-y-1.5">
-              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Education and Training</h3>
+            <section data-rs-sec="education" className="space-y-1.5">
+              <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "education", "Education and Training")}</h3>
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
                 return (
@@ -4252,8 +4340,8 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
         {/* Right Column */}
         <div className="space-y-4">
           {r.experience?.length > 0 && (
-            <section className="space-y-2">
-              <h3 className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">Experience</h3>
+            <section data-rs-sec="experience" className="space-y-2">
+              <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "experience", "Experience")}</h3>
               <div className="space-y-3">
                 {r.experience.map((e, i) => {
                   const upd = makeExpUpdater(update, r, i);
@@ -4274,17 +4362,47 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
             </section>
           )}
 
-          <section className="space-y-1.5 pt-2 border-t border-slate-200">
-            <h3 className="font-serif font-bold text-sm text-[#1d4ed8] pb-1">Languages</h3>
-            {renderLanguagesSection("bg-[#2563eb]")}
-          </section>
+          {r.leadership && r.leadership.length > 0 && (
+            <section data-rs-sec="leadership" className="space-y-2">
+              <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "leadership", "Leadership Experience")}</h3>
+              <div className="space-y-3">
+                {r.leadership.map((l, i) => {
+                  const upd = makeLeadershipUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-1">
+                      <div className="font-bold text-[11px] uppercase tracking-wide text-black">
+                        <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-slate-700 italic">
+                        <span><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></span>
+                        <span className="not-italic font-medium text-slate-800"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> to <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
+                      </div>
+                      <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Languages (Only if provided) */}
+          {(() => {
+            const langContent = renderLanguagesSection(r, "bg-[#2563eb]");
+            if (!langContent) return null;
+            return (
+              <section data-rs-sec="languages" className="space-y-1.5 pt-2 border-t border-slate-200">
+                <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] pb-1">{getSectionTitle(r, "languages", "Languages")}</h3>
+                {langContent}
+              </section>
+            );
+          })()}
         </div>
       </div>
     </div>
   );
 }
 
-/* 4. Slate Node Timeline Spine (Batch 1 - Image 4) */
+/* 4. Slate Node Timeline Spine */
 function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
@@ -4295,13 +4413,13 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
       <div className="p-8 space-y-3">
         {/* Name Header */}
         <div className="text-center">
-          <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-wider uppercase text-slate-900" />
+          <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-wider uppercase text-slate-900" />
           <div className="text-[10px] text-slate-600 text-center py-2 border-y border-slate-200 mt-2 flex justify-center items-center gap-3">
-            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-            <span>•</span>
-            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-            <span>•</span>
-            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+            {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
+            {r.location && r.phone && <span>•</span>}
+            {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+            {(r.location || r.phone) && r.email && <span>•</span>}
+            {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
           </div>
         </div>
 
@@ -4309,16 +4427,16 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
         <div className="grid grid-cols-[0.62fr_0.38fr] gap-8 pt-3 relative">
           {/* Left Column */}
           <div className="space-y-4 pr-4">
-            {r.summary && (
-              <section className="space-y-1">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">SUMMARY</h3>
+            {r.summary?.trim() && (
+              <section data-rs-sec="summary" className="space-y-1">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "summary", "SUMMARY")}</h3>
                 <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
               </section>
             )}
 
             {r.experience?.length > 0 && (
-              <section className="space-y-2">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">EXPERIENCE</h3>
+              <section data-rs-sec="experience" className="space-y-2">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "experience", "EXPERIENCE")}</h3>
                 <div className="space-y-3">
                   {r.experience.map((e, i) => {
                     const upd = makeExpUpdater(update, r, i);
@@ -4338,37 +4456,82 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
               </section>
             )}
 
-            <section className="space-y-1 pt-2">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">LANGUAGES</h3>
-              {renderLanguagesSection("bg-[#334155]")}
-            </section>
+            {r.leadership && r.leadership.length > 0 && (
+              <section data-rs-sec="leadership" className="space-y-2">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "leadership", "LEADERSHIP EXPERIENCE")}</h3>
+                <div className="space-y-3">
+                  {r.leadership.map((l, i) => {
+                    const upd = makeLeadershipUpdater(update, r, i);
+                    return (
+                      <div key={i} className="space-y-0.5">
+                        <div className="font-bold text-[10.5px] text-black">
+                          <Editable value={l.role} onChange={update && (v => upd({ role: v }))} />
+                        </div>
+                        <div className="font-semibold text-slate-900 text-[10px]">
+                          <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />
+                        </div>
+                        <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {(() => {
+              const langContent = renderLanguagesSection(r, "bg-[#334155]");
+              if (!langContent) return null;
+              return (
+                <section data-rs-sec="languages" className="space-y-1 pt-2">
+                  <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "languages", "LANGUAGES")}</h3>
+                  {langContent}
+                </section>
+              );
+            })()}
           </div>
 
           {/* Right Column with Spine Border */}
           <div className="border-l-2 border-slate-300 pl-6 space-y-4 relative">
-            <section className="space-y-1.5">
-              <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-slate-700" />
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">SKILLS</h3>
-              <ul className="space-y-1 text-[10px] text-black">
-                {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
-                  <li key={i} className="flex items-start gap-1.5">
-                    <span className="text-slate-800">•</span>
-                    <span>{sk}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+              <section data-rs-sec="skills" className="space-y-1.5">
+                <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-slate-700" />
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "skills", "SKILLS")}</h3>
+                <ul className="space-y-1 text-[10px] text-black">
+                  {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
+                    <li key={i} className="flex items-start gap-1.5">
+                      <span className="text-slate-800">•</span>
+                      <span>{sk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {r.education?.length > 0 && (
-              <section className="space-y-1.5 relative pt-2">
+              <section data-rs-sec="education" className="space-y-1.5 relative pt-2">
                 <div className="absolute -left-[31px] top-3.5 h-2 w-2 rounded-full bg-slate-700" />
-                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">EDUCATION AND TRAINING</h3>
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "education", "EDUCATION AND TRAINING")}</h3>
                 {r.education.map((e, i) => {
                   const upd = makeEduUpdater(update, r, i);
                   return (
                     <div key={i} className="text-[10px] space-y-0.5">
                       <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />, {e.end || e.start}</div>
                       <div className="font-semibold text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                    </div>
+                  );
+                })}
+              </section>
+            )}
+
+            {r.projects?.length > 0 && (
+              <section data-rs-sec="projects" className="space-y-1.5 relative pt-2">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "projects", "PROJECTS")}</h3>
+                {r.projects.map((p, i) => {
+                  const upd = makeProjUpdater(update, r, i);
+                  return (
+                    <div key={i} className="text-[10px] space-y-0.5">
+                      <div className="font-bold text-black"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /></div>
+                      <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
                     </div>
                   );
                 })}
@@ -4381,7 +4544,7 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
   );
 }
 
-/* 5. Centered Minimalist Dual-Column (Batch 1 - Image 5) */
+/* 5. Centered Minimalist Dual-Column */
 function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
@@ -4389,13 +4552,13 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
     <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
       {/* Header */}
       <div className="text-center pt-2">
-        <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-tight text-slate-900" />
+        <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-tight text-slate-900" />
         <div className="text-[9.5px] text-slate-600 text-center py-2 border-y border-slate-200 mt-2 flex justify-center items-center gap-2">
-          <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
-          <span>/</span>
-          <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-          <span>/</span>
-          <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+          {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
+          {r.email && r.phone && <span>/</span>}
+          {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+          {(r.email || r.phone) && r.location && <span>/</span>}
+          {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
         </div>
       </div>
 
@@ -4403,16 +4566,16 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
       <div className="grid grid-cols-2 gap-6 pt-2">
         {/* Left Column */}
         <div className="space-y-4">
-          {r.summary && (
-            <section className="space-y-1">
-              <h3 className="font-bold text-xs text-slate-900">Summary</h3>
+          {r.summary?.trim() && (
+            <section data-rs-sec="summary" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "summary", "Summary")}</h3>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
             </section>
           )}
 
           {r.experience?.length > 0 && (
-            <section className="space-y-2">
-              <h3 className="font-bold text-xs text-slate-900">Experience</h3>
+            <section data-rs-sec="experience" className="space-y-2">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "experience", "Experience")}</h3>
               <div className="space-y-3">
                 {r.experience.map((e, i) => {
                   const upd = makeExpUpdater(update, r, i);
@@ -4430,25 +4593,44 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
               </div>
             </section>
           )}
+
+          {r.leadership && r.leadership.length > 0 && (
+            <section data-rs-sec="leadership" className="space-y-2">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "leadership", "Leadership Experience")}</h3>
+              <div className="space-y-3">
+                {r.leadership.map((l, i) => {
+                  const upd = makeLeadershipUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="font-bold text-black"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /> - <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></div>
+                      <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Right Column */}
         <div className="space-y-4">
-          <section className="space-y-1">
-            <h3 className="font-bold text-xs text-slate-900">Skills</h3>
-            <ul className="space-y-1 text-[10px] text-black">
-              {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
-                <li key={i} className="flex items-start gap-1.5">
-                  <span>•</span>
-                  <span>{sk}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+            <section data-rs-sec="skills" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</h3>
+              <ul className="space-y-1 text-[10px] text-black">
+                {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span>•</span>
+                    <span>{sk}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {r.education?.length > 0 && (
-            <section className="space-y-1">
-              <h3 className="font-bold text-xs text-slate-900">Education and Training</h3>
+            <section data-rs-sec="education" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "education", "Education and Training")}</h3>
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
                 return (
@@ -4463,17 +4645,38 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
             </section>
           )}
 
-          <section className="space-y-1 pt-2">
-            <h3 className="font-bold text-xs text-slate-900">Languages</h3>
-            {renderLanguagesSection("bg-slate-800")}
-          </section>
+          {r.projects?.length > 0 && (
+            <section data-rs-sec="projects" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "projects", "Projects")}</h3>
+              {r.projects.map((p, i) => {
+                const upd = makeProjUpdater(update, r, i);
+                return (
+                  <div key={i} className="text-[10px] space-y-0.5">
+                    <div className="font-bold text-black"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /></div>
+                    <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {(() => {
+            const langContent = renderLanguagesSection(r, "bg-slate-800");
+            if (!langContent) return null;
+            return (
+              <section data-rs-sec="languages" className="space-y-1 pt-2">
+                <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "languages", "Languages")}</h3>
+                {langContent}
+              </section>
+            );
+          })()}
         </div>
       </div>
     </div>
   );
 }
 
-/* 6. Teal Duo-Tone Executive (Batch 2 - Image 1) */
+/* 6. Teal Duo-Tone Executive */
 function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
@@ -4481,37 +4684,39 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
     <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
       {/* Top Banner */}
       <div className="bg-[#374151] text-white py-3 px-6 text-center text-[10px] flex justify-center items-center gap-6">
-        <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-        <span>|</span>
-        <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-        <span>|</span>
-        <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+        {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
+        {r.location && r.phone && <span>|</span>}
+        {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+        {(r.location || r.phone) && r.email && <span>|</span>}
+        {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
       </div>
       <div className="h-2 bg-[#0d9488] w-full" />
 
       {/* Name Title */}
       <div className="p-8 space-y-4">
         <div className="text-center py-2">
-          <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-light tracking-wide text-slate-900" />
+          <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-light tracking-wide text-slate-900" />
         </div>
 
         {/* Section Row Layout */}
         <div className="space-y-4 divide-y divide-slate-200">
-          {r.summary && (
-            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
-              <div className="font-bold text-xs text-slate-900">Summary</div>
+          {r.summary?.trim() && (
+            <div data-rs-sec="summary" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "summary", "Summary")}</div>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
             </div>
           )}
 
-          <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
-            <div className="font-bold text-xs text-slate-900">Skills</div>
-            <div>{renderBulletSkills2Col(r.skills, update, "text-[#0d9488]")}</div>
-          </div>
+          {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+            <div data-rs-sec="skills" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</div>
+              <div>{renderBulletSkills2Col(r.skills, update, "text-[#0d9488]")}</div>
+            </div>
+          )}
 
           {r.experience?.length > 0 && (
-            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
-              <div className="font-bold text-xs text-slate-900">Experience</div>
+            <div data-rs-sec="experience" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "experience", "Experience")}</div>
               <div className="space-y-3">
                 {r.experience.map((e, i) => {
                   const upd = makeExpUpdater(update, r, i);
@@ -4532,8 +4737,8 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
           )}
 
           {r.education?.length > 0 && (
-            <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
-              <div className="font-bold text-xs text-slate-900">Education and Training</div>
+            <div data-rs-sec="education" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "education", "Education and Training")}</div>
               <div className="space-y-2">
                 {r.education.map((e, i) => {
                   const upd = makeEduUpdater(update, r, i);
@@ -4548,17 +4753,23 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
             </div>
           )}
 
-          <div className="grid grid-cols-[130px_1fr] gap-4 pt-3">
-            <div className="font-bold text-xs text-slate-900">Languages</div>
-            <div>{renderLanguagesSection("bg-[#0d9488]")}</div>
-          </div>
+          {(() => {
+            const langContent = renderLanguagesSection(r, "bg-[#0d9488]");
+            if (!langContent) return null;
+            return (
+              <div data-rs-sec="languages" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+                <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "languages", "Languages")}</div>
+                <div>{langContent}</div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
   );
 }
 
-/* 7. Warm Taupe Executive Split (Batch 2 - Image 2) */
+/* 7. Warm Taupe Executive Split */
 function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
@@ -4567,33 +4778,35 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
       {/* Warm Taupe Header */}
       <div className="bg-[#a89689] text-white p-7 flex justify-between items-center">
         <div>
-          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-widest uppercase text-white" />
-          <Editable as="div" value={r.title || "Retail Sales Professional"} onChange={update && (v => on({ title: v }))} className="text-xs text-white/90 mt-0.5" />
+          <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-widest uppercase text-white" />
+          {r.title && <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-xs text-white/90 mt-0.5" />}
         </div>
         <div className="text-right text-[9.5px] text-white/95 space-y-0.5">
-          <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
-          <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
-          <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+          {r.email && <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />}
+          {r.phone && <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+          {r.location && <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />}
         </div>
       </div>
 
       {/* Body with Left Column Titles */}
       <div className="p-7 space-y-4">
-        {r.summary && (
-          <div className="grid grid-cols-[130px_1fr] gap-5">
-            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">SUMMARY</div>
+        {r.summary?.trim() && (
+          <div data-rs-sec="summary" className="grid grid-cols-[130px_1fr] gap-5">
+            <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "summary", "SUMMARY")}</div>
             <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
           </div>
         )}
 
-        <div className="grid grid-cols-[130px_1fr] gap-5">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">SKILLS</div>
-          <div>{renderBulletSkills2Col(r.skills, update, "text-[#a89689]")}</div>
-        </div>
+        {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+          <div data-rs-sec="skills" className="grid grid-cols-[130px_1fr] gap-5">
+            <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "skills", "SKILLS")}</div>
+            <div>{renderBulletSkills2Col(r.skills, update, "text-[#a89689]")}</div>
+          </div>
+        )}
 
         {r.experience?.length > 0 && (
-          <div className="grid grid-cols-[130px_1fr] gap-5">
-            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">EXPERIENCE</div>
+          <div data-rs-sec="experience" className="grid grid-cols-[130px_1fr] gap-5">
+            <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "experience", "EXPERIENCE")}</div>
             <div className="space-y-3">
               {r.experience.map((e, i) => {
                 const upd = makeExpUpdater(update, r, i);
@@ -4614,8 +4827,8 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
         )}
 
         {r.education?.length > 0 && (
-          <div className="grid grid-cols-[130px_1fr] gap-5">
-            <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">EDUCATION AND TRAINING</div>
+          <div data-rs-sec="education" className="grid grid-cols-[130px_1fr] gap-5">
+            <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "education", "EDUCATION AND TRAINING")}</div>
             <div className="space-y-2">
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
@@ -4631,21 +4844,27 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
           </div>
         )}
 
-        <div className="grid grid-cols-[130px_1fr] gap-5">
-          <div className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">LANGUAGES</div>
-          <div>{renderLanguagesSection("bg-[#a89689]")}</div>
-        </div>
+        {(() => {
+          const langContent = renderLanguagesSection(r, "bg-[#a89689]");
+          if (!langContent) return null;
+          return (
+            <div data-rs-sec="languages" className="grid grid-cols-[130px_1fr] gap-5">
+              <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "languages", "LANGUAGES")}</div>
+              <div>{langContent}</div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
 }
 
-/* 8. Amber Gold Ribbon Classic (Batch 2 - Image 3) */
+/* 8. Amber Gold Ribbon Classic */
 function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
-  const nameParts = (r.name || "DIYA AGARWAL").split(" ");
-  const first = nameParts[0] || "DIYA";
-  const rest = nameParts.slice(1).join(" ") || "AGARWAL";
+  const nameParts = (r.name || "").split(" ");
+  const first = nameParts[0] || "";
+  const rest = nameParts.slice(1).join(" ");
 
   return (
     <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
@@ -4659,30 +4878,32 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
             <span className="text-[#7f1d1d]">{rest}</span>
           </h1>
           <div className="text-[9.5px] text-slate-600 text-center mt-1 flex justify-center items-center gap-2">
-            <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-            <span>|</span>
-            <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-            <span>|</span>
-            <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+            {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
+            {r.location && r.phone && <span>|</span>}
+            {r.phone && <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+            {(r.location || r.phone) && r.email && <span>|</span>}
+            {r.email && <Editable value={r.email} onChange={update && (v => on({ email: v }))} />}
           </div>
         </div>
 
         {/* Sections */}
-        {r.summary && (
-          <section className="space-y-1">
-            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Summary</h3>
+        {r.summary?.trim() && (
+          <section data-rs-sec="summary" className="space-y-1">
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "summary", "Summary")}</h3>
             <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
           </section>
         )}
 
-        <section className="space-y-1">
-          <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Skills</h3>
-          {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]")}
-        </section>
+        {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+          <section data-rs-sec="skills" className="space-y-1">
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "skills", "Skills")}</h3>
+            {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]")}
+          </section>
+        )}
 
         {r.experience?.length > 0 && (
-          <section className="space-y-2">
-            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Experience</h3>
+          <section data-rs-sec="experience" className="space-y-2">
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "experience", "Experience")}</h3>
             <div className="space-y-3">
               {r.experience.map((e, i) => {
                 const upd = makeExpUpdater(update, r, i);
@@ -4704,8 +4925,8 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
         )}
 
         {r.education?.length > 0 && (
-          <section className="space-y-1.5">
-            <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Education and Training</h3>
+          <section data-rs-sec="education" className="space-y-1.5">
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "education", "Education and Training")}</h3>
             <div className="space-y-2">
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
@@ -4723,16 +4944,22 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           </section>
         )}
 
-        <section className="space-y-1">
-          <h3 className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">Languages</h3>
-          {renderLanguagesSection("bg-[#fbbf24]")}
-        </section>
+        {(() => {
+          const langContent = renderLanguagesSection(r, "bg-[#fbbf24]");
+          if (!langContent) return null;
+          return (
+            <section data-rs-sec="languages" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "languages", "Languages")}</h3>
+              {langContent}
+            </section>
+          );
+        })()}
       </div>
     </div>
   );
 }
 
-/* 9. Slate Frame Modern Sidebar (Batch 2 - Image 4) */
+/* 9. Slate Frame Modern Sidebar */
 function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
@@ -4743,26 +4970,28 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
           {/* Left Sidebar */}
           <div className="space-y-4 pr-4 border-r border-slate-200">
             <div className="space-y-1 text-[9.5px] text-slate-800 font-medium">
-              <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />
-              <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />
-              <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />
+              {r.email && <Editable as="div" value={r.email} onChange={update && (v => on({ email: v }))} />}
+              {r.phone && <Editable as="div" value={r.phone} onChange={update && (v => on({ phone: v }))} />}
+              {r.location && <Editable as="div" value={r.location} onChange={update && (v => on({ location: v }))} />}
             </div>
 
-            <section className="space-y-1.5">
-              <h3 className="font-bold text-xs text-slate-900">Skills</h3>
-              <ul className="space-y-1 text-[9.5px] text-black">
-                {(r.skills?.flatMap(s => s.items) || ["Cash register operation", "POS system operation", "Sales expertise", "Teamwork", "Inventory management"]).map((sk, i) => (
-                  <li key={i} className="flex items-start gap-1">
-                    <span>•</span>
-                    <span>{sk}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+              <section data-rs-sec="skills" className="space-y-1.5">
+                <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</h3>
+                <ul className="space-y-1 text-[9.5px] text-black">
+                  {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
+                    <li key={i} className="flex items-start gap-1">
+                      <span>•</span>
+                      <span>{sk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {r.education?.length > 0 && (
-              <section className="space-y-1">
-                <h3 className="font-bold text-xs text-slate-900">Education And Training</h3>
+              <section data-rs-sec="education" className="space-y-1">
+                <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "education", "Education and Training")}</h3>
                 {r.education.map((e, i) => {
                   const upd = makeEduUpdater(update, r, i);
                   return (
@@ -4770,36 +4999,42 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
                       <div className="italic text-slate-600 text-[8.5px]">{e.end || e.start}</div>
                       <div className="font-bold text-black"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
                       <div className="font-semibold text-slate-800"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></div>
-                      <div className="text-slate-600 text-[8.5px]"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>
+                      {e.location && <div className="text-slate-600 text-[8.5px]"><Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></div>}
                     </div>
                   );
                 })}
               </section>
             )}
 
-            <section className="space-y-1">
-              <h3 className="font-bold text-xs text-slate-900">Languages</h3>
-              {renderLanguagesSection("bg-[#475569]")}
-            </section>
+            {(() => {
+              const langContent = renderLanguagesSection(r, "bg-[#475569]");
+              if (!langContent) return null;
+              return (
+                <section data-rs-sec="languages" className="space-y-1">
+                  <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "languages", "Languages")}</h3>
+                  {langContent}
+                </section>
+              );
+            })()}
           </div>
 
           {/* Right Main Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-3 pb-2 border-b border-slate-200">
               <div className="w-1.5 h-9 bg-teal-600 rounded-sm" />
-              <Editable as="h1" value={r.name || "Diya Agarwal"} onChange={update && (v => on({ name: v }))} className="text-3xl font-light text-slate-900 tracking-wide" />
+              <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-light text-slate-900 tracking-wide" />
             </div>
 
-            {r.summary && (
-              <section className="space-y-1">
-                <h3 className="font-bold text-xs text-slate-900">Summary</h3>
+            {r.summary?.trim() && (
+              <section data-rs-sec="summary" className="space-y-1">
+                <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "summary", "Summary")}</h3>
                 <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
               </section>
             )}
 
             {r.experience?.length > 0 && (
-              <section className="space-y-2">
-                <h3 className="font-bold text-xs text-slate-900">Experience</h3>
+              <section data-rs-sec="experience" className="space-y-2">
+                <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "experience", "Experience")}</h3>
                 <div className="space-y-3">
                   {r.experience.map((e, i) => {
                     const upd = makeExpUpdater(update, r, i);
@@ -4825,7 +5060,7 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
   );
 }
 
-/* 10. Burgundy Boxed Monogram Executive (Batch 2 - Image 5) */
+/* 10. Burgundy Boxed Monogram Executive */
 function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const initials = getInitials(r.name);
@@ -4834,13 +5069,15 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
     <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] p-6">
       {/* Header Banner */}
       <div className="flex items-stretch mb-4">
-        <div className="h-28 w-28 border-2 border-[#7f1d1d] flex flex-col items-center justify-center font-bold text-3xl text-black shrink-0 bg-white">
-          <div className="w-8 h-[2px] bg-slate-400 mb-1" />
-          <span>{initials}</span>
-          <div className="w-8 h-[2px] bg-slate-400 mt-1" />
-        </div>
+        {initials && (
+          <div className="h-28 w-28 border-2 border-[#7f1d1d] flex flex-col items-center justify-center font-bold text-3xl text-black shrink-0 bg-white">
+            <div className="w-8 h-[2px] bg-slate-400 mb-1" />
+            <span>{initials}</span>
+            <div className="w-8 h-[2px] bg-slate-400 mt-1" />
+          </div>
+        )}
         <div className="flex-1 bg-[#6b1d1d] text-white p-6 flex flex-col justify-center">
-          <Editable as="h1" value={r.name || "DIYA AGARWAL"} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-widest uppercase text-white" />
+          <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-2xl font-black tracking-widest uppercase text-white" />
           <div className="h-2 bg-slate-800 w-full mt-2" />
         </div>
       </div>
@@ -4850,23 +5087,29 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
         {/* Left Column */}
         <div className="space-y-4">
           <div className="space-y-1.5 text-[9.5px] text-slate-800 font-medium">
-            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
-              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📍</span>
-              <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
-            </div>
-            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
-              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📞</span>
-              <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
-            </div>
-            <div className="flex items-center gap-2 p-1 border-b border-slate-200">
-              <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">✉️</span>
-              <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
-            </div>
+            {r.location && (
+              <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+                <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📍</span>
+                <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+              </div>
+            )}
+            {r.phone && (
+              <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+                <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">📞</span>
+                <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+              </div>
+            )}
+            {r.email && (
+              <div className="flex items-center gap-2 p-1 border-b border-slate-200">
+                <span className="h-5 w-5 rounded bg-[#6b1d1d] text-white flex items-center justify-center text-[10px]">✉️</span>
+                <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+              </div>
+            )}
           </div>
 
           {r.education?.length > 0 && (
-            <section className="space-y-1.5 pt-2">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">EDUCATION AND TRAINING</h3>
+            <section data-rs-sec="education" className="space-y-1.5 pt-2">
+              <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "education", "EDUCATION AND TRAINING")}</h3>
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
                 return (
@@ -4883,21 +5126,23 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
 
         {/* Right Main Column */}
         <div className="space-y-4">
-          {r.summary && (
-            <section className="space-y-1">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">SUMMARY</h3>
+          {r.summary?.trim() && (
+            <section data-rs-sec="summary" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "summary", "SUMMARY")}</h3>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
             </section>
           )}
 
-          <section className="space-y-1">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">SKILLS</h3>
-            {renderBulletSkills2Col(r.skills, update, "text-[#6b1d1d]")}
-          </section>
+          {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
+            <section data-rs-sec="skills" className="space-y-1">
+              <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "skills", "SKILLS")}</h3>
+              {renderBulletSkills2Col(r.skills, update, "text-[#6b1d1d]")}
+            </section>
+          )}
 
           {r.experience?.length > 0 && (
-            <section className="space-y-2">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">EXPERIENCE</h3>
+            <section data-rs-sec="experience" className="space-y-2">
+              <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "experience", "EXPERIENCE")}</h3>
               <div className="space-y-3">
                 {r.experience.map((e, i) => {
                   const upd = makeExpUpdater(update, r, i);
@@ -4917,10 +5162,16 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
             </section>
           )}
 
-          <section className="space-y-1 pt-2">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">LANGUAGES</h3>
-            {renderLanguagesSection("bg-[#6b1d1d]")}
-          </section>
+          {(() => {
+            const langContent = renderLanguagesSection(r, "bg-[#6b1d1d]");
+            if (!langContent) return null;
+            return (
+              <section data-rs-sec="languages" className="space-y-1 pt-2">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "languages", "LANGUAGES")}</h3>
+                {langContent}
+              </section>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -4962,34 +5213,48 @@ const SECTION_MATCHERS: { key: ResumeSectionKey; re: RegExp }[] = [
   { key: "summary", re: /^(summary|profile|about|professional summary)$/i },
   { key: "experience", re: /^(experience|work experience|professional experience|employment)$/i },
   { key: "leadership", re: /^(leadership experience|leadership|volunteer experience|community leadership|extracurricular activities|activities|leadership & activities)$/i },
-  { key: "education", re: /^(education|academics)$/i },
-  { key: "skills", re: /^(skills|key skills.*|core skills|technical skills)$/i },
-  { key: "projects", re: /^(projects|selected projects)$/i },
-  { key: "certifications", re: /^(certifications|licenses|courses)$/i },
+  { key: "education", re: /^(education|academics|education and training)$/i },
+  { key: "skills", re: /^(skills|key skills.*|core skills|technical skills|skills & optimization)$/i },
+  { key: "projects", re: /^(projects|selected projects|key projects)$/i },
+  { key: "certifications", re: /^(certifications|licenses|courses|certificates)$/i },
 ];
 
-function tagSections(root: HTMLElement | null) {
+export function tagSections(root: HTMLElement | null, customTitles?: Partial<Record<string, string>>) {
   if (!root) return;
   root.querySelectorAll("[data-rs-sec],[data-rs-head]").forEach(el => {
-    el.removeAttribute("data-rs-sec");
-    el.removeAttribute("data-rs-head");
+    // Preserve static declarations from templates
   });
   const els = Array.from(root.querySelectorAll<HTMLElement>("*"));
   for (const el of els) {
     const txt = (el.textContent || "").trim();
-    if (!txt || txt.length > 40 || el.children.length > 0) continue;
-    const match = SECTION_MATCHERS.find(m => m.re.test(txt));
-    if (!match) continue;
+    if (!txt || txt.length > 50 || el.children.length > 0) continue;
+    
+    // Check user custom titles first
+    let matchKey: ResumeSectionKey | null = null;
+    if (customTitles) {
+      for (const [key, title] of Object.entries(customTitles)) {
+        if (title && txt.toLowerCase() === title.trim().toLowerCase()) {
+          matchKey = key as ResumeSectionKey;
+          break;
+        }
+      }
+    }
+    if (!matchKey) {
+      const match = SECTION_MATCHERS.find(m => m.re.test(txt));
+      if (match) matchKey = match.key;
+    }
+    if (!matchKey) continue;
+
     el.setAttribute("data-rs-head", "1");
     const container = el.closest("section");
     if (container && container !== root) {
-      container.setAttribute("data-rs-sec", match.key);
+      container.setAttribute("data-rs-sec", matchKey);
     } else {
       let n = el.parentElement?.nextElementSibling ?? el.nextElementSibling;
       let guard = 0;
       while (n && guard++ < 12) {
         if (n.querySelector("[data-rs-head]") || n.hasAttribute("data-rs-head")) break;
-        n.setAttribute("data-rs-sec", match.key);
+        n.setAttribute("data-rs-sec", matchKey);
         n = n.nextElementSibling;
       }
     }
@@ -5099,10 +5364,9 @@ export function ResumePreview({
 
   useEffect(() => {
     if (isMini) return;
-    // Add small delay to ensure DOM is ready for tagging
-    const timer = setTimeout(() => tagSections(rootRef.current), 50);
+    const timer = setTimeout(() => tagSections(rootRef.current, data.settings?.customSectionTitles), 30);
     return () => clearTimeout(timer);
-  }, [isMini, template, data.settings?.sectionOrder, data.experience.length, data.education.length, data.projects.length, data.skills.length]);
+  }, [isMini, template, data.settings?.sectionOrder, data.settings?.customSectionTitles, data.experience?.length, data.education?.length, data.projects?.length, data.skills?.length]);
 
   // Handle mouseup selection inside resume preview
   useEffect(() => {
@@ -5358,6 +5622,9 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       } catch (_) {}
     }
     await new Promise(r => setTimeout(r, 250));
+
+    // Tag sections synchronously to ensure all custom headings, spacing, and typography rules apply
+    tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
 
     const targetHeight = Math.max(wrapper.scrollHeight, 1123);
 

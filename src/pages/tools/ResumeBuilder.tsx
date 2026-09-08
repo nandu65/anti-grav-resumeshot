@@ -1097,11 +1097,29 @@ export default function ResumeBuilder() {
                 {/* SUMMARY */}
                 <div id="section-summary" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                    <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">2. Professional Summary</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <Sparkles className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">2.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.summary ?? "Professional Summary"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  summary: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1131,11 +1149,29 @@ export default function ResumeBuilder() {
                 {/* EXPERIENCE */}
                 <div id="section-experience" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">3. Work Experience</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <FileText className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">3.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.experience ?? "Work Experience"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  experience: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1239,11 +1275,29 @@ export default function ResumeBuilder() {
                 {/* LEADERSHIP EXPERIENCE */}
                 <div id="section-leadership" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                    <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <Award className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">4. Leadership Experience</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <Award className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">4.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.leadership ?? "Leadership Experience"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  leadership: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[260px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1316,11 +1370,29 @@ export default function ResumeBuilder() {
                 {/* EDUCATION */}
                 <div id="section-education" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <ArrowDown className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">5. Education</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <ArrowDown className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">5.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.education ?? "Education"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  education: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                          <Popover>
                              <PopoverTrigger asChild>
                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1407,11 +1479,29 @@ export default function ResumeBuilder() {
                 {/* PROJECTS */}
                 <div id="section-projects" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <Link2 className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">6. Projects</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <Link2 className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">6.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.projects ?? "Projects"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  projects: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1484,11 +1574,29 @@ export default function ResumeBuilder() {
                 {/* SKILLS & GENERATE */}
                 <div id="section-skills" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-2">
-                        <Wand className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-bold">7. Skills & Optimization</h3>
+                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
+                        <Wand className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">7.</span>
+                        <Input
+                          value={resumeData.settings?.customSectionTitles?.skills ?? "Skills & Optimization"}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setResumeData(prev => ({
+                              ...prev,
+                              settings: {
+                                ...prev.settings,
+                                customSectionTitles: {
+                                  ...(prev.settings?.customSectionTitles || {}),
+                                  skills: val,
+                                }
+                              }
+                            }));
+                          }}
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          title="Click to rename section heading"
+                        />
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
@@ -1530,7 +1638,26 @@ export default function ResumeBuilder() {
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label className="text-xs font-bold text-muted-foreground ml-1">Certifications</Label>
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                value={resumeData.settings?.customSectionTitles?.certifications ?? "Certifications"}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: {
+                                      ...prev.settings,
+                                      customSectionTitles: {
+                                        ...(prev.settings?.customSectionTitles || {}),
+                                        certifications: val,
+                                      }
+                                    }
+                                  }));
+                                }}
+                                className="h-7 text-xs font-bold text-muted-foreground bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[200px] rounded transition-colors"
+                                title="Click to rename certifications heading"
+                              />
+                            </div>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Typography">
