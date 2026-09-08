@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
+import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
@@ -48,14 +48,22 @@ export default function ResumeBuilder() {
   };
 
   const [resumeData, setResumeData] = useState<ResumeData>(() => {
-    const saved = localStorage.getItem("rs-current-resume");
-    const data = saved ? JSON.parse(saved) : EMPTY_RESUME;
-    return normalizeResumeSkills(data);
+    try {
+      const saved = localStorage.getItem("rs-current-resume");
+      const data = saved ? JSON.parse(saved) : EMPTY_RESUME;
+      return normalizeResumeSkills(data);
+    } catch {
+      return normalizeResumeSkills(EMPTY_RESUME);
+    }
   });
   const [targetJd, setTargetJd] = useState("");
   const [template, setTemplate] = useState<TemplateId>(() => {
-    const saved = localStorage.getItem("rs-current-template");
-    return (saved as TemplateId) || "modern";
+    try {
+      const saved = localStorage.getItem("rs-current-template");
+      return (saved as TemplateId) || "modern";
+    } catch {
+      return "modern";
+    }
   });
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"ai" | "verbatim">("ai");
@@ -1805,6 +1813,15 @@ export default function ResumeBuilder() {
           )}
 
 
+
+      <TemplatePreferencesWizard
+        open={starter === "wizard"}
+        onOpenChange={(open) => { if (!open) setStarter("choose"); }}
+        onDone={(p) => {
+          setPrefs(p);
+          setStarter("scratch");
+        }}
+      />
 
       <Dialog open={showEditHint} onOpenChange={setShowEditHint}>
         <DialogContent className="max-w-md">
