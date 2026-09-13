@@ -3871,7 +3871,7 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
     return (
       <section key={key} className="mb-3">
-        <div className="my-3 border-b-2 border-slate-900 pb-0.5">
+        <div className="my-3 border-b-2 border-slate-900 pb-1.5 mb-2.5">
           <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-900">
             <Editable
               value={getSectionTitle(r, key, defaultTitle)}
@@ -5171,21 +5171,21 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
         {/* Sections */}
         {r.summary?.trim() && (
           <section data-rs-sec="summary" className="space-y-1">
-            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "summary", "Summary")}</h3>
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "summary", "Summary")}</h3>
             <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10px] leading-relaxed text-black whitespace-pre-wrap" />
           </section>
         )}
 
         {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
           <section data-rs-sec="skills" className="space-y-1">
-            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "skills", "Skills")}</h3>
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "skills", "Skills")}</h3>
             {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]")}
           </section>
         )}
 
         {r.experience?.length > 0 && (
           <section data-rs-sec="experience" className="space-y-2">
-            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "experience", "Experience")}</h3>
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "experience", "Experience")}</h3>
             <div className="space-y-3">
               {r.experience.map((e, i) => {
                 const upd = makeExpUpdater(update, r, i);
@@ -5208,7 +5208,7 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
 
         {r.education?.length > 0 && (
           <section data-rs-sec="education" className="space-y-1.5">
-            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "education", "Education and Training")}</h3>
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "education", "Education and Training")}</h3>
             <div className="space-y-2">
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
@@ -5231,7 +5231,7 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           if (!langContent) return null;
           return (
             <section data-rs-sec="languages" className="space-y-1">
-              <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-0.5">{getSectionTitle(r, "languages", "Languages")}</h3>
+              <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "languages", "Languages")}</h3>
               {langContent}
             </section>
           );
@@ -5540,8 +5540,9 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
     `${scope} ul.list-disc { list-style-type: none !important; list-style: none !important; padding-left: 0 !important; }`,
     `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
     `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
-    `${scope} [data-rs-head] { display: block !important; }`,
+    `${scope} [data-rs-head], ${scope} h2, ${scope} h3 { display: block !important; line-height: 1.35 !important; }`,
     `${scope} ::selection, ${scope} *::selection { background: rgba(59, 130, 246, 0.22) !important; color: inherit !important; }`,
+    `${scope} span[style*="background-color"], ${scope} font[style*="background-color"], ${scope} mark { display: inline-block !important; vertical-align: baseline !important; line-height: 1.15 !important; border-radius: 2px !important; padding: 0 1.5px !important; }`,
   ];
   if (!settings) return baseRules.join("\n");
   const sections = settings.sections;

@@ -293,5 +293,30 @@
   color: inherit !important;
 }
 
+/* Ensure text highlight styling is consistent and aligned directly behind words in preview & export */
+.resume-root-container span[style*="background-color"],
+.resume-root-container font[style*="background-color"],
+.resume-root-container mark,
+.resume-page-sheet span[style*="background-color"],
+.resume-page-sheet font[style*="background-color"],
+.resume-page-sheet mark {
+  display: inline-block;
+  vertical-align: baseline;
+  line-height: 1.15;
+  border-radius: 2px;
+  padding: 0 1.5px;
+  margin: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Ensure section heading divider lines have proper breathing room below text */
+.resume-root-container [data-rs-head],
+.resume-page-sheet [data-rs-head] {
+  display: block;
+  line-height: 1.35;
+}
+
+
 
 

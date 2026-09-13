@@ -113,6 +113,38 @@ export async function downloadResumePdf(opt: ExportData) {
           (wrap.style as any).webkitFontSmoothing = "antialiased";
           (wrap.style as any).mozOsxFontSmoothing = "grayscale";
         }
+
+        // 1. Fix inline text highlights (background-color) so html2canvas renders them directly behind the text
+        const inlineHighlights = clonedDoc.querySelectorAll('span, font, mark, b, strong, i, em');
+        inlineHighlights.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          const bg = htmlEl.style.backgroundColor || window.getComputedStyle(htmlEl).backgroundColor;
+          if (bg && bg !== "transparent" && bg !== "inherit" && bg !== "rgba(0, 0, 0, 0)") {
+            htmlEl.style.display = "inline-block";
+            htmlEl.style.verticalAlign = "baseline";
+            htmlEl.style.lineHeight = "1.15";
+            htmlEl.style.padding = "0px 2px";
+            htmlEl.style.margin = "0px";
+            htmlEl.style.borderRadius = "2px";
+            htmlEl.style.boxDecorationBreak = "clone";
+            (htmlEl.style as any).webkitBoxDecorationBreak = "clone";
+          }
+        });
+
+        // 2. Fix heading divider lines from overlapping text in html2canvas
+        const headings = clonedDoc.querySelectorAll('h1, h2, h3, [data-rs-head], .border-b, .border-b-2');
+        headings.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          const style = window.getComputedStyle(htmlEl);
+          if (style.borderBottomWidth && style.borderBottomWidth !== "0px" && style.borderBottomStyle !== "none") {
+            htmlEl.style.lineHeight = "1.35";
+            const curPb = parseFloat(style.paddingBottom) || 0;
+            if (curPb < 4) {
+              htmlEl.style.paddingBottom = "5px";
+            }
+            htmlEl.style.boxSizing = "border-box";
+          }
+        });
       },
     });
 
