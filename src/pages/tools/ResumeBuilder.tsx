@@ -1954,7 +1954,7 @@ export default function ResumeBuilder() {
                         className="h-7 w-7 p-0"
                         onClick={() => {
                           setZoomMode("custom");
-                          setCustomZoom((prev) => Math.max(40, Math.round(prev - 10)));
+                          setCustomZoom((prev) => Math.max(30, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) - 10)));
                         }}
                         title="Zoom Out"
                       >
@@ -1974,7 +1974,7 @@ export default function ResumeBuilder() {
                         className="h-7 w-7 p-0"
                         onClick={() => {
                           setZoomMode("custom");
-                          setCustomZoom((prev) => Math.min(150, Math.round(prev + 10)));
+                          setCustomZoom((prev) => Math.min(150, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) + 10)));
                         }}
                         title="Zoom In"
                       >
@@ -2016,32 +2016,34 @@ export default function ResumeBuilder() {
                       />
                     </div>
 
-                    {/* RESUME A4 SHEET PREVIEW VIEWPORT (Strict A4 single source of truth) */}
+                    {/* RESUME A4 SHEET PREVIEW VIEWPORT (Strict A4 single source of truth with non-clipping center layout) */}
                     <div
                       ref={previewContainerRef}
-                      className="flex-1 overflow-y-auto overflow-x-auto p-2 sm:p-4 custom-scrollbar flex justify-center items-start min-h-0 bg-muted/20"
+                      className="flex-1 overflow-y-auto overflow-x-auto p-4 custom-scrollbar min-h-0 bg-muted/20"
                     >
                       {resumeData ? (
-                        <div
-                          className="relative shrink-0 flex justify-center items-start transition-all duration-150"
-                          style={{
-                            width: `${Math.round(A4_WIDTH_PX * effectiveScale)}px`,
-                            height: `${Math.round(sheetHeight * effectiveScale)}px`,
-                          }}
-                        >
+                        <div className="min-w-full w-fit flex flex-col items-center justify-start pb-12">
                           <div
-                            ref={sheetWrapRef}
-                            className="resume-export-target bg-white shadow-2xl transition-transform duration-150"
+                            className="relative shrink-0 transition-all duration-150"
                             style={{
-                              width: `${A4_WIDTH_PX}px`,
-                              minWidth: `${A4_WIDTH_PX}px`,
-                              maxWidth: `${A4_WIDTH_PX}px`,
-                              minHeight: `${A4_HEIGHT_PX}px`,
-                              transform: `scale(${effectiveScale})`,
-                              transformOrigin: "top left",
+                              width: `${Math.round(A4_WIDTH_PX * effectiveScale)}px`,
+                              height: `${Math.round(sheetHeight * effectiveScale)}px`,
                             }}
                           >
-                            <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                            <div
+                              ref={sheetWrapRef}
+                              className="resume-export-target bg-white shadow-2xl transition-transform duration-150"
+                              style={{
+                                width: `${A4_WIDTH_PX}px`,
+                                minWidth: `${A4_WIDTH_PX}px`,
+                                maxWidth: `${A4_WIDTH_PX}px`,
+                                minHeight: `${A4_HEIGHT_PX}px`,
+                                transform: `scale(${effectiveScale})`,
+                                transformOrigin: "top left",
+                              }}
+                            >
+                              <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                            </div>
                           </div>
                         </div>
                       ) : (
