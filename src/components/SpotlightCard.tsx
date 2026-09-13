@@ -36,7 +36,7 @@ export function SpotlightCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11141b]/95 p-6 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/5 ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#11141b]/95 p-6 transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-emerald-500/5 ${className}`}
       {...props}
     >
       {/* Dynamic Cursor-following Spotlight Glow */}

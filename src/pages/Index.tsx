@@ -28,7 +28,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#090b0e] text-zinc-100 selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090b0e] text-zinc-800 dark:text-zinc-100 selection:bg-emerald-500/30 selection:text-emerald-700 dark:selection:text-emerald-200 transition-colors duration-300">
       <Navbar />
       <OnboardingTour open={tourOpen} onClose={() => setTourOpen(false)} />
 
@@ -37,7 +37,7 @@ const Index = () => {
           ================================================================ */}
       <section data-tour="hero" className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
         {/* Background Mesh and Constellation Galaxy */}
-        <div className="absolute inset-0 bg-radial-gradient from-emerald-950/20 via-[#090b0e]/90 to-[#090b0e] pointer-events-none" />
+        <div className="absolute inset-0 bg-radial-gradient from-emerald-100/40 dark:from-emerald-950/20 via-slate-50/90 dark:via-[#090b0e]/90 to-slate-50 dark:to-[#090b0e] pointer-events-none" />
         <SkillConstellation />
 
         {/* Ambient Top Glow */}
@@ -49,33 +49,33 @@ const Index = () => {
             {/* Left Column: Hero Value Proposition */}
             <div className="lg:col-span-7 flex flex-col items-start text-left">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-400 mb-6 backdrop-blur-md animate-fade-in shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-6 backdrop-blur-md animate-fade-in shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 animate-pulse" />
                 <span>AI-Powered ATS Resume Optimization & Builder</span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-balance leading-[1.12] text-white">
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-balance leading-[1.12] text-zinc-950 dark:text-white">
                 Land more interviews with a{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-200">
                   resume that fits.
                 </span>
               </h1>
 
               {/* Description */}
-              <p className="mt-5 text-base sm:text-lg text-zinc-400 max-w-xl leading-relaxed">
+              <p className="mt-5 text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
                 Paste any job description and we'll tailor your resume to beat ATS parsers, highlight critical keywords, and impress recruiters — in under 30 seconds.
               </p>
 
               {/* Social proof counter */}
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#11141b]/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 shadow-sm">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  <AnimatedCounter to={12400} suffix="+" /> <span className="text-zinc-400 font-normal">resumes tailored</span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#11141b]/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 shadow-sm">
+                  <TrendingUp className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                  <AnimatedCounter to={12400} suffix="+" /> <span className="text-zinc-500 dark:text-zinc-400 font-normal">resumes tailored</span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#11141b]/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 shadow-sm">
-                  <span className="flex text-amber-400">★★★★★</span>
-                  <span className="text-zinc-400 font-normal">4.9 / 5 Rating</span>
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#11141b]/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 shadow-sm">
+                  <span className="flex text-amber-500">★★★★★</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 font-normal">4.9 / 5 Rating</span>
                 </div>
               </div>
 
@@ -86,7 +86,7 @@ const Index = () => {
                     Tailor My Resume <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base rounded-xl border-white/[0.12] bg-[#11141b] text-zinc-200 hover:bg-[#161922] hover:text-white cursor-pointer">
+                <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base rounded-xl border-zinc-300 dark:border-white/[0.12] bg-white dark:bg-[#11141b] text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#161922] hover:text-zinc-950 dark:hover:text-white cursor-pointer shadow-sm">
                   <Link to="/tools/resume-builder">
                     Build New Resume
                   </Link>
@@ -94,15 +94,15 @@ const Index = () => {
               </div>
 
               {/* Trust Badges */}
-              <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-wrap items-center gap-4 text-xs text-zinc-400">
+              <div className="mt-8 pt-6 border-t border-zinc-200/80 dark:border-white/[0.06] flex flex-wrap items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" /> No credit card required
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" /> No credit card required
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" /> 1 Free optimization
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" /> 1 Free optimization
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" /> 100% ATS-tested format
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" /> 100% ATS-tested format
                 </span>
               </div>
             </div>
@@ -129,25 +129,25 @@ const Index = () => {
       {/* ================================================================
           ATS SCORE + AI RESUME BUILDER — SIDE BY SIDE PLAYGROUND
           ================================================================ */}
-      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#0c0e14] py-16 sm:py-20">
+      <section className="relative overflow-hidden border-b border-zinc-200/80 dark:border-white/[0.08] bg-slate-100/60 dark:bg-[#0c0e14] py-16 sm:py-20 transition-colors duration-300">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
             
             {/* ATS Score (Try before signup) */}
-            <div data-tour="try-now" className="min-w-0 bg-[#11141b] rounded-2xl border border-white/[0.08] p-5 sm:p-7 shadow-xl">
+            <div data-tour="try-now" className="min-w-0 bg-white dark:bg-[#11141b] rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] p-5 sm:p-7 shadow-lg">
               <TryNow />
             </div>
 
             {/* AI Resume Builder — Compact Showcase */}
-            <div data-tour="resume-builder" className="min-w-0 rounded-2xl border border-white/[0.08] bg-[#11141b] p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+            <div data-tour="resume-builder" className="min-w-0 rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] p-6 sm:p-8 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400 mb-4">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400 mb-4">
                   <Sparkles className="h-3.5 w-3.5" /> <span>AI Resume Builder</span>
                 </div>
-                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                  Build a recruiter-ready resume in <span className="text-emerald-400">3 minutes</span>
+                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
+                  Build a recruiter-ready resume in <span className="text-emerald-600 dark:text-emerald-400">3 minutes</span>
                 </h2>
-                <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                   No existing resume? Pick an ATS-approved template and let AI generate metric-driven, impactful bullet points for you.
                 </p>
 
@@ -157,28 +157,28 @@ const Index = () => {
                     { n: 2, title: "Fill your key roles", desc: "AI rewrites your input into strong, metric-driven bullet points." },
                     { n: 3, title: "Download & apply", desc: "Export a pixel-perfect ATS PDF ready for job submissions." },
                   ].map((step) => (
-                    <div key={step.n} className="flex gap-3 rounded-xl border border-white/[0.06] bg-[#161922] p-3.5">
-                      <div className="h-8 w-8 text-sm shrink-0 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
+                    <div key={step.n} className="flex gap-3 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-slate-50 dark:bg-[#161922] p-3.5">
+                      <div className="h-8 w-8 text-sm shrink-0 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
                         {step.n}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm text-zinc-100">{step.title}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{step.desc}</p>
+                        <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{step.title}</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{step.desc}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold h-11 px-6 text-sm rounded-xl cursor-pointer">
+              <div className="mt-6 pt-5 border-t border-zinc-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold h-11 px-6 text-sm rounded-xl cursor-pointer shadow-md">
                   <Link to="/tools/resume-builder">
                     Launch Resume Builder <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
-                <div className="flex flex-wrap items-center gap-x-3 text-xs text-zinc-400">
-                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> ATS-Tested</span>
-                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> 1-Click PDF</span>
+                <div className="flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> ATS-Tested</span>
+                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> 1-Click PDF</span>
                 </div>
               </div>
             </div>
@@ -192,13 +192,13 @@ const Index = () => {
           ================================================================ */}
       <section className="container mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-3">
             <Target className="h-3.5 w-3.5" /> Built for Modern ATS Systems
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
             Everything you need to get hired
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-zinc-400">
+          <p className="mt-3 text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
             A comprehensive intelligence toolkit to optimize every line of your resume for target roles.
           </p>
         </div>
@@ -214,13 +214,13 @@ const Index = () => {
           ].map(({ icon: Icon, title, desc }) => (
             <SpotlightCard
               key={title}
-              className="group p-6 sm:p-7 shadow-lg hover:-translate-y-1 transition-all duration-300"
+              className="group p-6 sm:p-7 shadow-md hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+              <div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-lg text-white">{title}</h3>
-              <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">{desc}</p>
+              <h3 className="font-semibold text-lg text-zinc-900 dark:text-white">{title}</h3>
+              <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{desc}</p>
             </SpotlightCard>
           ))}
         </div>
@@ -229,17 +229,17 @@ const Index = () => {
       {/* ================================================================
           COMPANY LOGOS / OUTCOMES STRIP
           ================================================================ */}
-      <section className="relative border-y border-white/[0.08] bg-[#0c0e14] py-16 overflow-hidden">
+      <section className="relative border-y border-zinc-200/80 dark:border-white/[0.08] bg-slate-100/60 dark:bg-[#0c0e14] py-16 overflow-hidden transition-colors duration-300">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col items-center text-center mb-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
               Proven Career Outcomes
             </div>
-            <h3 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h3 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
               Tailored resumes that open doors at top teams
             </h3>
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400 max-w-md">
+            <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
               From fast-growing scaleups to high-growth unicorns, our candidates get noticed.
             </p>
           </div>
@@ -254,7 +254,7 @@ const Index = () => {
             ].map((c) => (
               <div
                 key={c.name}
-                className="flex h-20 items-center justify-center rounded-2xl border border-white/[0.08] bg-[#11141b] hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5"
+                className="flex h-20 items-center justify-center rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
               >
                 <span
                   className="font-display font-bold text-lg tracking-tight select-none"
@@ -266,10 +266,10 @@ const Index = () => {
             ))}
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-400">
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> 12,400+ interview calls</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> 3,800+ offers landed</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> 92% ATS pass-rate</span>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" /> 12,400+ interview calls</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" /> 3,800+ offers landed</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" /> 92% ATS pass-rate</span>
           </div>
         </div>
       </section>
@@ -279,13 +279,13 @@ const Index = () => {
           ================================================================ */}
       <section className="container mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-3">
             <Star className="h-3.5 w-3.5 fill-current" /> Verified User Stories
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
             From "No Responses" to Multiple Offers
           </h2>
-          <p className="mt-3 text-sm text-zinc-400">
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
             Real outcomes from candidates who tailored their resumes with ResumeShot AI.
           </p>
         </div>
@@ -298,25 +298,25 @@ const Index = () => {
           ].map((t) => (
             <SpotlightCard
               key={t.name}
-              className="p-6 sm:p-7 shadow-lg flex flex-col justify-between"
+              className="p-6 sm:p-7 shadow-md flex flex-col justify-between"
             >
               <div>
-                <Quote className="h-6 w-6 text-emerald-400/40 mb-3" />
+                <Quote className="h-6 w-6 text-emerald-500/40 dark:text-emerald-400/40 mb-3" />
                 <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">"{t.quote}"</p>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">"{t.quote}"</p>
               </div>
 
-              <div className="mt-6 flex items-center gap-3 pt-4 border-t border-white/[0.06]">
+              <div className="mt-6 flex items-center gap-3 pt-4 border-t border-zinc-200/80 dark:border-white/[0.06]">
                 <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center shadow-md">
                   {t.initials}
                 </div>
                 <div>
-                  <div className="font-semibold text-sm text-white">{t.name}</div>
-                  <div className="text-xs text-zinc-400">{t.role}</div>
+                  <div className="font-semibold text-sm text-zinc-900 dark:text-white">{t.name}</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">{t.role}</div>
                 </div>
               </div>
             </SpotlightCard>
@@ -327,16 +327,16 @@ const Index = () => {
       {/* ================================================================
           PRO TOOLKIT SHOWCASE
           ================================================================ */}
-      <section className="bg-[#0c0e14] border-y border-white/[0.08] py-20 sm:py-24">
+      <section className="bg-slate-100/60 dark:bg-[#0c0e14] border-y border-zinc-200/80 dark:border-white/[0.08] py-20 sm:py-24 transition-colors duration-300">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 mb-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-3">
               <Sparkles className="h-3.5 w-3.5" /> All-in-One Platform
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
               A Complete Job-Search Toolkit
             </h2>
-            <p className="mt-3 text-sm text-zinc-400">
+            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
               Powerful tools designed to elevate your job applications from end to end.
             </p>
           </div>
@@ -355,17 +355,17 @@ const Index = () => {
               <Link
                 to={to}
                 key={title}
-                className="group relative rounded-2xl border border-white/[0.08] bg-[#11141b] hover:bg-[#161922] p-5 shadow-md hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 block"
+                className="group relative rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] hover:bg-slate-50 dark:hover:bg-[#161922] p-5 shadow-sm hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 block"
               >
-                <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 rounded-full px-2 py-0.5">
+                <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2 py-0.5">
                   {tag}
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-4 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-4 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-semibold text-sm text-white group-hover:text-emerald-300 transition-colors">{title}</h3>
-                <p className="mt-1.5 text-xs text-zinc-400 leading-relaxed">{desc}</p>
-                <div className="mt-3 text-xs font-semibold text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <h3 className="font-semibold text-sm text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">{title}</h3>
+                <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{desc}</p>
+                <div className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
                   Open tool →
                 </div>
               </Link>
@@ -379,46 +379,46 @@ const Index = () => {
           ================================================================ */}
       <section data-tour="pricing" className="container mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">Simple, Fair Pricing</h2>
-          <p className="mt-3 text-sm text-zinc-400">Start free. Upgrade only when you want unlimited tailoring power.</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">Simple, Fair Pricing</h2>
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">Start free. Upgrade only when you want unlimited tailoring power.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Free Tier */}
-          <div className="rounded-2xl border border-white/[0.08] bg-[#11141b] p-7 shadow-lg flex flex-col justify-between">
+          <div className="rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] p-7 shadow-md dark:shadow-lg flex flex-col justify-between">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Free Tier</div>
-              <div className="mt-2 font-display text-4xl font-bold text-white">₹0</div>
-              <p className="mt-1 text-xs text-zinc-400">Get started in seconds with zero commitment.</p>
-              <ul className="mt-6 space-y-3 text-xs text-zinc-300">
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> 1 Free resume optimization</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Complete ATS match score & gap report</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Clean ATS-compliant PDF export</li>
+              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Free Tier</div>
+              <div className="mt-2 font-display text-4xl font-bold text-zinc-900 dark:text-white">₹0</div>
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Get started in seconds with zero commitment.</p>
+              <ul className="mt-6 space-y-3 text-xs text-zinc-600 dark:text-zinc-300">
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> 1 Free resume optimization</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Complete ATS match score & gap report</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Clean ATS-compliant PDF export</li>
               </ul>
             </div>
-            <Button asChild variant="outline" className="w-full mt-8 border-white/[0.12] bg-[#161922] text-zinc-200 hover:bg-[#1f2430] hover:text-white">
+            <Button asChild variant="outline" className="w-full mt-8 border-zinc-300 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#161922] text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#1f2430] hover:text-zinc-950 dark:hover:text-white shadow-sm">
               <Link to="/auth">Start Free</Link>
             </Button>
           </div>
 
           {/* Pro Tier */}
-          <div className="relative rounded-2xl border-2 border-emerald-500/40 bg-[#11141b] p-7 shadow-2xl shadow-emerald-500/10 flex flex-col justify-between">
+          <div className="relative rounded-2xl border-2 border-emerald-500/40 bg-white dark:bg-[#11141b] p-7 shadow-xl dark:shadow-2xl shadow-emerald-500/10 flex flex-col justify-between">
             <div className="absolute -top-3 right-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-bold px-3 py-1 shadow-md">
               MOST POPULAR
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Pro Unlimited</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Pro Unlimited</div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold text-white">₹99</span>
-                <span className="text-sm text-zinc-500 line-through">₹999</span>
-                <span className="text-xs text-zinc-400">/ month</span>
+                <span className="font-display text-4xl font-bold text-zinc-900 dark:text-white">₹99</span>
+                <span className="text-sm text-zinc-400 line-through">₹999</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">/ month</span>
               </div>
-              <p className="mt-1 text-xs text-zinc-400">One interview callback pays for this <strong className="text-white">1000x over</strong>.</p>
-              <ul className="mt-6 space-y-3 text-xs text-zinc-300">
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Unlimited AI optimizations & rewrites</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Cover letter generator & Diff viewer</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Unlimited resume versions & history</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" /> Priority AI processing speed</li>
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">One interview callback pays for this <strong className="text-zinc-900 dark:text-white">1000x over</strong>.</p>
+              <ul className="mt-6 space-y-3 text-xs text-zinc-600 dark:text-zinc-300">
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Unlimited AI optimizations & rewrites</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Cover letter generator & Diff viewer</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Unlimited resume versions & history</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> Priority AI processing speed</li>
               </ul>
             </div>
             <Button asChild className="w-full mt-8 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-md shadow-emerald-500/20">
@@ -433,10 +433,10 @@ const Index = () => {
           ================================================================ */}
       <section className="container mx-auto px-4 sm:px-6 py-20">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="font-display text-3xl font-bold tracking-tight text-white">Frequently Asked Questions</h2>
-          <p className="mt-2 text-sm text-zinc-400">Everything you need to know about pricing, privacy, and how it works.</p>
+          <h2 className="font-display text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Frequently Asked Questions</h2>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Everything you need to know about pricing, privacy, and how it works.</p>
         </div>
-        <div className="max-w-3xl mx-auto rounded-2xl border border-white/[0.08] bg-[#11141b] p-3 sm:p-6 shadow-xl">
+        <div className="max-w-3xl mx-auto rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] p-3 sm:p-6 shadow-md dark:shadow-xl">
           <Accordion type="single" collapsible className="w-full">
             {[
               { q: "How does the free plan work?", a: "Sign up and you get 1 free resume optimization — no credit card required. You'll see your full ATS score, keyword gaps, and a tailored rewrite." },
@@ -444,9 +444,9 @@ const Index = () => {
               { q: "Is my resume data safe? Do you train AI on it?", a: "Your resume is encrypted in transit (TLS 1.3) and at rest (AES-256). We never sell your data, never share it with third parties, and never train AI models on it." },
               { q: "Will my resume pass modern ATS scanners?", a: "Yes. We test against parsers used by Workday, Greenhouse, Lever, and Taleo. Our PDF exports use selectable text and clean single-column hierarchy." },
             ].map((f, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-white/[0.08]">
-                <AccordionTrigger className="text-left font-semibold text-sm text-zinc-200 hover:text-emerald-400 px-3">{f.q}</AccordionTrigger>
-                <AccordionContent className="text-xs sm:text-sm text-zinc-400 leading-relaxed px-3">{f.a}</AccordionContent>
+              <AccordionItem key={i} value={`item-${i}`} className="border-zinc-200/80 dark:border-white/[0.08]">
+                <AccordionTrigger className="text-left font-semibold text-sm text-zinc-800 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3">{f.q}</AccordionTrigger>
+                <AccordionContent className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed px-3">{f.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
@@ -478,15 +478,15 @@ const Index = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-white/[0.08] bg-[#090b0e] py-10 text-xs text-zinc-500">
+      <footer className="border-t border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#090b0e] py-10 text-xs text-zinc-500 transition-colors duration-300">
         <div className="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>© {new Date().getFullYear()} ResumeShot AI. Built to help you get hired.</div>
           <nav className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link to="/pricing" className="hover:text-emerald-400 transition-colors">Pricing</Link>
-            <Link to="/terms-of-service" className="hover:text-emerald-400 transition-colors">Terms of Service</Link>
-            <Link to="/privacy-policy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
-            <Link to="/refund-policy" className="hover:text-emerald-400 transition-colors">Refund Policy</Link>
-            <a href="mailto:support.resumeshot@gmail.com" className="hover:text-emerald-400 transition-colors">Support</a>
+            <Link to="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Pricing</Link>
+            <Link to="/terms-of-service" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms of Service</Link>
+            <Link to="/privacy-policy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy Policy</Link>
+            <Link to="/refund-policy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Refund Policy</Link>
+            <a href="mailto:support.resumeshot@gmail.com" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Support</a>
           </nav>
         </div>
       </footer>

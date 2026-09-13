@@ -59,31 +59,31 @@ export function GlobalCursorSpotlight() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-20 overflow-hidden transition-opacity duration-500"
+      className="pointer-events-none fixed inset-0 z-20 overflow-hidden transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0 }}
     >
-      {/* Primary Emerald Core Beam */}
+      {/* Focused Primary Glow (Compact & Refined) */}
       <div
-        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
+        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-[45px] dark:opacity-100 opacity-60"
         style={{
           left: `${pos.x}px`,
           top: `${pos.y}px`,
-          width: "550px",
-          height: "550px",
+          width: "240px",
+          height: "240px",
           background:
-            "radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(20, 184, 166, 0.04) 45%, transparent 70%)",
+            "radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(20, 184, 166, 0.05) 50%, transparent 80%)",
         }}
       />
-      {/* Secondary Cyan Soft Halo */}
+      {/* Focused Ambient Outer Ring */}
       <div
-        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-[140px]"
+        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-[60px] dark:opacity-100 opacity-40"
         style={{
           left: `${pos.x}px`,
           top: `${pos.y}px`,
-          width: "800px",
-          height: "800px",
+          width: "360px",
+          height: "360px",
           background:
-            "radial-gradient(circle, rgba(6, 182, 212, 0.03) 0%, rgba(16, 185, 129, 0.015) 50%, transparent 80%)",
+            "radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, rgba(16, 185, 129, 0.02) 60%, transparent 85%)",
         }}
       />
     </div>
