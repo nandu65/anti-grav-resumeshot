@@ -650,6 +650,18 @@ export function normalizeResumeSkills<T extends { skills?: { category: string; i
   return { ...r, skills };
 }
 
+/** Format skill items for display/editing in templates, preserving line breaks. */
+export function formatSkillsForEditor(items?: string[]): string {
+  if (!items || !items.length) return "";
+  return items.join("\n");
+}
+
+/** Parse edited skill text back into items array, preserving each line (Enter). */
+export function parseSkillsFromEditor(text: string): string[] {
+  if (!text) return [];
+  return text.split("\n");
+}
+
 
 export type RichSegment = { text: string; bold: boolean; italic: boolean; underline: boolean; fontSize?: number; fontFamily?: string };
 
@@ -902,17 +914,17 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
   return (
     <div 
-      className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" 
+      className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug flex flex-col flex-1 w-full" 
       style={{ 
-        minHeight: "var(--page-h, auto)",
+        minHeight: "var(--page-h, 1123px)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
         fontFamily: r.settings?.fontFamily || undefined
       }}
     >
-      <div className="grid grid-cols-[35%_65%] h-full min-h-[1056px]">
+      <div className="grid grid-cols-[35%_65%] flex-1 min-h-[inherit] w-full items-stretch" style={{ minHeight: "var(--page-h, 1123px)" }}>
         <div
-          className="relative text-white p-5 group/sidebar cursor-pointer transition-colors"
-          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#065f46" }}
+          className="relative text-white p-5 group/sidebar cursor-pointer transition-colors flex flex-col h-full"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#065f46", minHeight: "100%" }}
           data-color-target="sidebar"
           data-color-label="Left Sidebar"
           data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#065f46"}
@@ -1070,7 +1082,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -1236,7 +1248,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = r.skills.map((s, i) => {
             const upd = makeSkillUpdater(update, r, i);
             return (
-              <div key={i} className="mb-1"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold" colon /> <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" /></div>
+              <div key={i} className="mb-1"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold" colon /> <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" /></div>
             );
           });
         }
@@ -1401,7 +1413,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = r.skills.map((s, i) => {
             const upd = makeSkillUpdater(update, r, i);
             return (
-              <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" /></div>
+              <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" /></div>
             );
           });
         }
@@ -1562,7 +1574,7 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="mb-1">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 mt-0.5 whitespace-pre-wrap leading-relaxed" />
+                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 mt-0.5 whitespace-pre-wrap leading-relaxed" />
                     </div>
                   );
                 })}
@@ -1745,7 +1757,7 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             return (
               <div key={i} className={isGenericSkillCategory(s.category) ? "mb-1" : "grid grid-cols-[80px_1fr] gap-4 mb-1"}>
                 <div className="text-[10px] text-neutral-500"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} /></div>
-                <div className="text-[10px]"><Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap leading-relaxed" /></div>
+                <div className="text-[10px]"><Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap leading-relaxed" /></div>
               </div>
             );
           });
@@ -1851,7 +1863,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     return (
       <div
         ref={wrapRef}
-        className="relative w-full"
+        className="relative w-full min-h-full flex flex-col flex-1"
         style={{ minHeight: `${A4_HEIGHT_PX}px`, "--page-h": `${A4_HEIGHT_PX}px` } as React.CSSProperties}
       >
         {children}
@@ -1867,7 +1879,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
   return (
     <div
       ref={wrapRef}
-      className="relative w-full"
+      className="relative w-full min-h-full flex flex-col flex-1"
       style={{ minHeight: `${A4_HEIGHT_PX}px`, "--page-h": `${A4_HEIGHT_PX}px` } as React.CSSProperties}
     >
       {children}
@@ -2004,7 +2016,7 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-teal-800" colon />{" "}
-                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2170,7 +2182,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10.5px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-stone-700" colon />{" "}
-                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2404,9 +2416,9 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="grid grid-cols-[minmax(0,1fr)_240px] h-full">
-        <div className="p-6">
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug flex flex-col flex-1 w-full" style={{ minHeight: "var(--page-h, 1123px)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+      <div className="grid grid-cols-[minmax(0,1fr)_240px] flex-1 min-h-[inherit] w-full items-stretch" style={{ minHeight: "var(--page-h, 1123px)" }}>
+        <div className="p-6 flex flex-col flex-1 min-h-full">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-2xl tracking-tight" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-teal-700 text-[11px] font-medium mt-0.5" />
           <div className="mt-1 text-[10px] text-neutral-600 flex flex-wrap gap-x-3">
@@ -2417,8 +2429,8 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           {sectionOrder.filter(k => leftKeys.includes(k)).map(k => renderMainSection(k))}
         </div>
         <div
-          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors"
-          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#115e59" }}
+          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors flex flex-col h-full"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#115e59", minHeight: "100%" }}
           data-color-target="sidebar"
           data-color-label="Dark Teal Sidebar"
           data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#115e59"}
@@ -2579,7 +2591,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
                   return (
                     <div key={i} className="text-[10px]">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px] mb-0.5 text-slate-800" />
-                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 whitespace-pre-wrap leading-relaxed" />
+                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 whitespace-pre-wrap leading-relaxed" />
                     </div>
                   );
                 })}
@@ -2711,7 +2723,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
                 return (
                   <div key={i} className="text-[10.5px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2889,7 +2901,7 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
                 return (
                   <div key={i} className="mb-2">
                     <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-emerald-900" />
-                    <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[10px] text-emerald-800 whitespace-pre-wrap leading-relaxed" />
+                    <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[10px] text-emerald-800 whitespace-pre-wrap leading-relaxed" />
                   </div>
                 );
               })}
@@ -2978,7 +2990,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                     <div className="h-6 w-6 rounded-full bg-teal-500/30 border border-teal-300 flex items-center justify-center text-[10px] font-bold shrink-0">★</div>
                     <div className="flex-1">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-teal-100 leading-snug whitespace-pre-wrap" />
+                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-teal-100 leading-snug whitespace-pre-wrap" />
                     </div>
                   </div>
                 );
@@ -3086,11 +3098,11 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="grid grid-cols-[240px_minmax(0,1fr)] h-full">
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug flex flex-col flex-1 w-full" style={{ minHeight: "var(--page-h, 1123px)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+      <div className="grid grid-cols-[240px_minmax(0,1fr)] flex-1 min-h-[inherit] w-full items-stretch" style={{ minHeight: "var(--page-h, 1123px)" }}>
         <div
-          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors"
-          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#0f766e" }}
+          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors flex flex-col h-full"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#0f766e", minHeight: "100%" }}
           data-color-target="sidebar"
           data-color-label="Teal Left Sidebar"
           data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#0f766e"}
@@ -3111,7 +3123,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           </div>
           {sectionOrder.filter(k => leftKeys.includes(k)).map(k => renderSideSection(k))}
         </div>
-        <div className="p-5">
+        <div className="p-5 flex flex-col flex-1 min-h-full">
           {sectionOrder.filter(k => rightKeys.includes(k)).map(k => renderMainSection(k))}
         </div>
       </div>
@@ -3152,7 +3164,7 @@ function PhotoGridPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="border border-neutral-200 rounded-lg p-3 bg-neutral-50">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-sky-800 mb-1" />
-                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 leading-snug whitespace-pre-wrap" />
+                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 leading-snug whitespace-pre-wrap" />
                     </div>
                   );
                 })}
@@ -3355,7 +3367,7 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="text-[10px] leading-relaxed">
                       <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-sky-800" colon />{" "}
-                      <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                      <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                     </div>
                   );
                 })}
@@ -3700,7 +3712,7 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i}>
                     <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
+                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -5381,7 +5393,9 @@ export function tagSections(root: HTMLElement | null, customTitles?: Partial<Rec
 
 function sectionCss(scope: string, settings?: ResumeSettings) {
   const baseRules: string[] = [
-    `${scope} .resume-page-sheet, ${scope} [data-rs-export], ${scope} > div > div:first-child, ${scope} .rounded-lg, ${scope} .rounded-xl, ${scope} .rounded-2xl { border-radius: 0 !important; }`,
+    `${scope}.resume-root-container, ${scope}.resume-page-sheet, ${scope} .resume-root-container, ${scope} .resume-page-sheet { display: flex !important; flex-direction: column !important; min-height: var(--page-h, 1123px) !important; border-radius: 0 !important; }`,
+    `${scope} [data-rs-export], ${scope} > div > div:first-child, ${scope} .rounded-lg, ${scope} .rounded-xl, ${scope} .rounded-2xl { border-radius: 0 !important; }`,
+    `${scope} [data-color-target="sidebar"] { min-height: 100% !important; }`,
     `${scope} ul.list-disc { list-style-type: none !important; list-style: none !important; padding-left: 0 !important; }`,
     `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
     `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
@@ -5756,7 +5770,7 @@ export function ResumePreview({
       data-rs-export={isExport ? "true" : undefined}
       data-main-resume-preview={!isMini && !isExport ? "true" : undefined}
       data-rs-template={template}
-      className={`resume-root-container resume-page-sheet relative ${isMini ? "pointer-events-none" : ""}`}
+      className={`resume-root-container resume-page-sheet relative flex flex-col flex-1 ${isMini ? "pointer-events-none" : ""}`}
       style={{
         width: `${A4_WIDTH_PX}px`,
         minWidth: `${A4_WIDTH_PX}px`,
