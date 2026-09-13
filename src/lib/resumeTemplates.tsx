@@ -194,8 +194,8 @@ export const SAMPLE_RESUME_DATA: ResumeData = {
     sectionSpacing: 16,
     paragraphSpacing: 6,
     lineSpacing: 1.35,
-    marginTopBottom: 32,
-    marginSide: 32,
+    marginTopBottom: 0,
+    marginSide: 0,
     paragraphIndent: 0,
     sections: {}
   }
@@ -5298,9 +5298,11 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
     baseRules.push(`${scope} p, ${scope} li { text-indent: ${settings.paragraphIndent}px; }`);
   }
   if (settings.marginTopBottom != null || settings.marginSide != null) {
-    const tb = settings.marginTopBottom ?? 32;
-    const lr = settings.marginSide ?? 32;
-    baseRules.push(`${scope} .resume-page-sheet, ${scope} > div > div:first-child { padding-top: ${tb}px !important; padding-bottom: ${tb}px !important; padding-left: ${lr}px !important; padding-right: ${lr}px !important; }`);
+    const tb = settings.marginTopBottom ?? 0;
+    const lr = settings.marginSide ?? 0;
+    if (tb > 0 || lr > 0) {
+      baseRules.push(`${scope} .resume-page-sheet, ${scope} > div > div:first-child { padding-top: ${tb}px !important; padding-bottom: ${tb}px !important; padding-left: ${lr}px !important; padding-right: ${lr}px !important; }`);
+    }
   }
 
   const rule = (sel: string, s?: SectionStyle) => {

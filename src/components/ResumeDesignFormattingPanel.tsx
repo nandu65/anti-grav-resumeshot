@@ -24,6 +24,18 @@ const SECTION_LABELS: Record<string, string> = {
   certifications: "Certifications",
 };
 
+export const DEFAULT_FORMATTING_SETTINGS: Required<Omit<ResumeSettings, "sections" | "sectionOrder" | "customSectionTitles">> = {
+  fontFamily: "Arial, sans-serif",
+  fontSize: 11,
+  headingSize: 14,
+  sectionSpacing: 16,
+  paragraphSpacing: 6,
+  lineSpacing: 1.35,
+  marginTopBottom: 0,
+  marginSide: 0,
+  paragraphIndent: 0,
+};
+
 export function ResumeDesignFormattingPanel({
   settings,
   onChangeSettings,
@@ -52,28 +64,20 @@ export function ResumeDesignFormattingPanel({
     updateSetting("sectionOrder", newOrder);
   };
 
-  const currentFontFamily = settings.fontFamily || "Arial, sans-serif";
-  const currentFontSize = settings.fontSize ?? 10;
-  const currentHeadingSize = settings.headingSize ?? 14;
-  const currentSectionSpacing = settings.sectionSpacing ?? 16;
-  const currentParagraphSpacing = settings.paragraphSpacing ?? 6;
-  const currentLineSpacing = settings.lineSpacing ?? 1.35;
-  const currentMarginTB = settings.marginTopBottom ?? 32;
-  const currentMarginSide = settings.marginSide ?? 32;
-  const currentIndent = settings.paragraphIndent ?? 0;
+  const currentFontFamily = settings.fontFamily || DEFAULT_FORMATTING_SETTINGS.fontFamily;
+  const currentFontSize = settings.fontSize ?? DEFAULT_FORMATTING_SETTINGS.fontSize;
+  const currentHeadingSize = settings.headingSize ?? DEFAULT_FORMATTING_SETTINGS.headingSize;
+  const currentSectionSpacing = settings.sectionSpacing ?? DEFAULT_FORMATTING_SETTINGS.sectionSpacing;
+  const currentParagraphSpacing = settings.paragraphSpacing ?? DEFAULT_FORMATTING_SETTINGS.paragraphSpacing;
+  const currentLineSpacing = settings.lineSpacing ?? DEFAULT_FORMATTING_SETTINGS.lineSpacing;
+  const currentMarginTB = settings.marginTopBottom ?? DEFAULT_FORMATTING_SETTINGS.marginTopBottom;
+  const currentMarginSide = settings.marginSide ?? DEFAULT_FORMATTING_SETTINGS.marginSide;
+  const currentIndent = settings.paragraphIndent ?? DEFAULT_FORMATTING_SETTINGS.paragraphIndent;
 
   const handleResetDefaults = () => {
     onChangeSettings({
       ...settings,
-      fontFamily: "Arial, sans-serif",
-      fontSize: 10,
-      headingSize: 14,
-      sectionSpacing: 16,
-      paragraphSpacing: 6,
-      lineSpacing: 1.35,
-      marginTopBottom: 32,
-      marginSide: 32,
-      paragraphIndent: 0,
+      ...DEFAULT_FORMATTING_SETTINGS,
     });
   };
 
@@ -179,6 +183,15 @@ export function ResumeDesignFormattingPanel({
                   >
                     +
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("fontSize", DEFAULT_FORMATTING_SETTINGS.fontSize)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.fontSize} pt)`}
+                    aria-label="Reset font size to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -220,6 +233,15 @@ export function ResumeDesignFormattingPanel({
                   >
                     +
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("headingSize", DEFAULT_FORMATTING_SETTINGS.headingSize)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.headingSize} pt)`}
+                    aria-label="Reset heading size to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -255,6 +277,15 @@ export function ResumeDesignFormattingPanel({
                     className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
                   <span className="text-[10px] text-white/60">px</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("sectionSpacing", DEFAULT_FORMATTING_SETTINGS.sectionSpacing)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.sectionSpacing} px)`}
+                    aria-label="Reset section spacing to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -282,6 +313,15 @@ export function ResumeDesignFormattingPanel({
                     className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
                   <span className="text-[10px] text-white/60">px</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("paragraphSpacing", DEFAULT_FORMATTING_SETTINGS.paragraphSpacing)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.paragraphSpacing} px)`}
+                    aria-label="Reset paragraph spacing to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -299,7 +339,18 @@ export function ResumeDesignFormattingPanel({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-white/90">Line Spacing</span>
-                <span className="font-mono text-white/80 text-[11px]">{Number(currentLineSpacing).toFixed(2)}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-white/80 text-[11px]">{Number(currentLineSpacing).toFixed(2)}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("lineSpacing", DEFAULT_FORMATTING_SETTINGS.lineSpacing)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.lineSpacing})`}
+                    aria-label="Reset line spacing to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
@@ -326,6 +377,15 @@ export function ResumeDesignFormattingPanel({
                     className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
                   <span className="text-[10px] text-white/60">px</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("marginTopBottom", DEFAULT_FORMATTING_SETTINGS.marginTopBottom)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.marginTopBottom} px)`}
+                    aria-label="Reset top and bottom margin to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -353,6 +413,15 @@ export function ResumeDesignFormattingPanel({
                     className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
                   <span className="text-[10px] text-white/60">px</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("marginSide", DEFAULT_FORMATTING_SETTINGS.marginSide)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.marginSide} px)`}
+                    aria-label="Reset side margins to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
@@ -380,6 +449,15 @@ export function ResumeDesignFormattingPanel({
                     className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
                   <span className="text-[10px] text-white/60">px</span>
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("paragraphIndent", DEFAULT_FORMATTING_SETTINGS.paragraphIndent)}
+                    title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.paragraphIndent} px)`}
+                    aria-label="Reset paragraph indent to default"
+                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <input
