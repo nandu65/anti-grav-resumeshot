@@ -5,7 +5,8 @@ import {
   ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Plus, Minus, Trash2,
   RemoveFormatting, Palette, Highlighter,
   AlignLeft, AlignCenter, AlignRight,
-  Type, MoveVertical, Paintbrush, X, List, Eye, Move
+  Type, MoveVertical, Paintbrush, X, List, Eye, Move, RotateCcw,
+  Undo2, Redo2
 } from "lucide-react";
 
 export interface ContextMenuPosition {
@@ -31,6 +32,10 @@ interface ResumeContextMenuProps {
   onCopyFormat?: () => void;
   onPasteFormat?: () => void;
   copiedFormatLabel?: string | null;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 const PRESET_COLORS = [
@@ -65,6 +70,10 @@ export function ResumeContextMenu({
   onCopyFormat,
   onPasteFormat,
   copiedFormatLabel,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: ResumeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -256,27 +265,91 @@ export function ResumeContextMenu({
     setShowOpacityPicker(false);
   };
 
-  const nudge = (dir: "left" | "right" | "up" | "down") => {
+  const nudge = (dir: "left" | "right" | "up" | "down" | "reset") => {
     restoreSelection();
     const sel = window.getSelection();
     const targetNode = position.targetElement || (sel && sel.anchorNode?.nodeType === Node.ELEMENT_NODE ? sel.anchorNode as HTMLElement : sel?.anchorNode?.parentElement);
     if (!targetNode) return;
 
-    const targetEditable = targetNode.closest('[contenteditable="true"]') as HTMLElement | null;
-    const blockOrSpan = (targetNode.closest('span, div, p, li, h1, h2, h3') as HTMLElement) || targetNode;
+    const targetEditable = (targetNode.closest('[contenteditable="true"]') as HTMLElement) || (targetNode.querySelector('[contenteditable="true"]') as HTMLElement) || targetNode;
+    if (!targetEditable) return;
 
-    if (dir === "left") {
-      const current = parseFloat(blockOrSpan.style.marginLeft || "0") || 0;
-      blockOrSpan.style.marginLeft = `${Math.max(-40, current - 8)}px`;
-    } else if (dir === "right") {
-      const current = parseFloat(blockOrSpan.style.marginLeft || "0") || 0;
-      blockOrSpan.style.marginLeft = `${Math.min(120, current + 8)}px`;
-    } else if (dir === "up") {
-      const current = parseFloat(blockOrSpan.style.marginTop || "0") || 0;
-      blockOrSpan.style.marginTop = `${Math.max(-20, current - 2)}px`;
-    } else if (dir === "down") {
-      const current = parseFloat(blockOrSpan.style.marginTop || "0") || 0;
-      blockOrSpan.style.marginTop = `${Math.min(40, current + 2)}px`;
+    const STEP_X = 6;
+    const STEP_Y = 2;
+
+    const getPx = (val: string) => {
+      if (!val) return 0;
+      const num = parseFloat(val);
+      return isNaN(num) ? 0 : num;
+    };
+
+    // 1. If text is selected within the editable element:
+    if (sel && !sel.isCollapsed && sel.rangeCount > 0 && targetEditable.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0);
+      const parentSpan = (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE 
+        ? range.commonAncestorContainer as HTMLElement 
+        : range.commonAncestorContainer.parentElement)?.closest('span[data-nudge="true"]') as HTMLElement | null;
+
+      if (parentSpan && targetEditable.contains(parentSpan)) {
+        if (dir === "reset") {
+          parentSpan.style.marginLeft = "0px";
+          parentSpan.style.marginTop = "0px";
+        } else {
+          const curX = getPx(parentSpan.style.marginLeft);
+          const curY = getPx(parentSpan.style.marginTop);
+          const nextX = dir === "left" ? curX - STEP_X : dir === "right" ? curX + STEP_X : curX;
+          const nextY = dir === "up" ? curY - STEP_Y : dir === "down" ? curY + STEP_Y : curY;
+          parentSpan.style.marginLeft = `${nextX}px`;
+          parentSpan.style.marginTop = `${nextY}px`;
+        }
+      } else {
+        const selectedContent = range.extractContents();
+        const span = document.createElement("span");
+        span.setAttribute("data-nudge", "true");
+        span.style.display = "inline-block";
+        const deltaX = dir === "left" ? -STEP_X : dir === "right" ? STEP_X : 0;
+        const deltaY = dir === "up" ? -STEP_Y : dir === "down" ? STEP_Y : 0;
+        span.style.marginLeft = `${deltaX}px`;
+        span.style.marginTop = `${deltaY}px`;
+        span.appendChild(selectedContent);
+        range.insertNode(span);
+      }
+    } else {
+      // 2. Entire content of the editable element or existing nudged child
+      let existingSpan = targetEditable.querySelector(':scope > span[data-nudge="true"]') as HTMLElement | null;
+      if (!existingSpan && targetEditable.children.length === 1 && targetEditable.firstElementChild?.tagName === "SPAN") {
+        existingSpan = targetEditable.firstElementChild as HTMLElement;
+      }
+
+      if (existingSpan) {
+        if (dir === "reset") {
+          existingSpan.style.marginLeft = "0px";
+          existingSpan.style.marginTop = "0px";
+        } else {
+          const curX = getPx(existingSpan.style.marginLeft);
+          const curY = getPx(existingSpan.style.marginTop);
+          const nextX = dir === "left" ? curX - STEP_X : dir === "right" ? curX + STEP_X : curX;
+          const nextY = dir === "up" ? curY - STEP_Y : dir === "down" ? curY + STEP_Y : curY;
+          existingSpan.style.display = "inline-block";
+          existingSpan.style.marginLeft = `${nextX}px`;
+          existingSpan.style.marginTop = `${nextY}px`;
+          existingSpan.setAttribute("data-nudge", "true");
+        }
+      } else {
+        if (dir !== "reset") {
+          const deltaX = dir === "left" ? -STEP_X : dir === "right" ? STEP_X : 0;
+          const deltaY = dir === "up" ? -STEP_Y : dir === "down" ? STEP_Y : 0;
+          const span = document.createElement("span");
+          span.setAttribute("data-nudge", "true");
+          span.style.display = "inline-block";
+          span.style.marginLeft = `${deltaX}px`;
+          span.style.marginTop = `${deltaY}px`;
+          while (targetEditable.firstChild) {
+            span.appendChild(targetEditable.firstChild);
+          }
+          targetEditable.appendChild(span);
+        }
+      }
     }
 
     if (targetEditable) {
@@ -310,6 +383,28 @@ export function ResumeContextMenu({
       {/* --- Section 1: Quick Formatting Toolbar --- */}
       <div className="flex flex-wrap items-center justify-between gap-1 pb-2 mb-2 border-b border-border/70 px-0.5">
         <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
+          {onUndo && (
+            <button
+              type="button"
+              onClick={onUndo}
+              disabled={canUndo === false}
+              title="Undo (Ctrl+Z)"
+              className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${canUndo === false ? "opacity-40 cursor-not-allowed text-muted-foreground" : "hover:bg-accent text-foreground"}`}
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onRedo && (
+            <button
+              type="button"
+              onClick={onRedo}
+              disabled={canRedo === false}
+              title="Redo (Ctrl+Y)"
+              className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${canRedo === false ? "opacity-40 cursor-not-allowed text-muted-foreground" : "hover:bg-accent text-foreground"}`}
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => applyCommand("bold")}
@@ -689,9 +784,20 @@ export function ResumeContextMenu({
 
         {/* Nudge & Move Position */}
         <div className="pt-1.5 px-1 border-t border-border/50">
-          <div className="text-[9.5px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-            <Move className="w-3 h-3" />
-            <span>Nudge & Move Position</span>
+          <div className="text-[9.5px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span className="flex items-center gap-1">
+              <Move className="w-3 h-3" />
+              <span>Nudge & Move Position</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => nudge("reset")}
+              title="Reset Position to Default"
+              className="text-[9px] text-muted-foreground hover:text-primary flex items-center gap-0.5 px-1 py-0.5 rounded hover:bg-muted transition-colors"
+            >
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>Reset</span>
+            </button>
           </div>
           <div className="grid grid-cols-4 gap-1">
             <button

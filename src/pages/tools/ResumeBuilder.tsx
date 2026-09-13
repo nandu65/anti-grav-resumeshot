@@ -124,7 +124,7 @@ export default function ResumeBuilder() {
   const restoring = useRef(false);
   const [copiedFormat, setCopiedFormat] = useState<TextFormat | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef = useRef<any>(null);
   const [showVersionDialog, setShowVersionDialog] = useState(false);
   const [versionName, setVersionName] = useState("");
   const [versions, setVersions] = useState<any[]>([]);
@@ -1141,7 +1141,15 @@ export default function ResumeBuilder() {
                             </div>
                             <ScrollArea className="h-full p-6">
                                 {resumeData ? (
-                                    <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                                    <ResumePreview
+                                      template={template}
+                                      data={resumeData}
+                                      onChange={setResumeData}
+                                      onUndo={undo}
+                                      onRedo={redo}
+                                      canUndo={canUndo}
+                                      canRedo={canRedo}
+                                    />
                                 ) : (
                                     <div className="text-center py-20 text-muted-foreground italic">Preview pending...</div>
                                 )}
@@ -2117,7 +2125,15 @@ export default function ResumeBuilder() {
                                 transformOrigin: "top left",
                               }}
                             >
-                              <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                              <ResumePreview
+                                template={template}
+                                data={resumeData}
+                                onChange={setResumeData}
+                                onUndo={undo}
+                                onRedo={redo}
+                                canUndo={canUndo}
+                                canRedo={canRedo}
+                              />
                             </div>
                           </div>
                         </div>

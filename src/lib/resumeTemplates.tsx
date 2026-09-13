@@ -5599,12 +5599,17 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
 
 export function ResumePreview({
   template, data, onChange, isMini = false, isExport = false,
+  onUndo, onRedo, canUndo, canRedo,
 }: {
   template: TemplateId;
   data: ResumeData;
   onChange?: (data: ResumeData) => void;
   isMini?: boolean;
   isExport?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }) {
   const update: UpdateFn = (!isMini && !isExport && onChange) ? (patch) => onChange({ ...data, ...patch }) : undefined;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -5929,6 +5934,10 @@ export function ResumePreview({
           onCopyFormat={handleCopyFormat}
           onPasteFormat={handlePasteFormat}
           copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
+          onUndo={onUndo}
+          onRedo={onRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
         />
       )}
 
