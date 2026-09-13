@@ -73,6 +73,49 @@ export default function ResumeBuilder() {
     return (saved as any) || "choose";
   });
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState("Analyzing your resume...");
+
+  useEffect(() => {
+    if (!uploading) {
+      setUploadProgress(0);
+      setUploadStage("Analyzing your resume...");
+      return;
+    }
+
+    setUploadProgress(15);
+    setUploadStage("Reading document structure...");
+
+    const t1 = setTimeout(() => {
+      setUploadProgress(45);
+      setUploadStage("Extracting work experience & contact...");
+    }, 450);
+
+    const t2 = setTimeout(() => {
+      setUploadProgress(75);
+      setUploadStage("Organizing skills, education & achievements...");
+    }, 1100);
+
+    const t3 = setTimeout(() => {
+      setUploadProgress(90);
+      setUploadStage("AI formatting into template...");
+    }, 1900);
+
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 95) return 95;
+        return prev + Math.floor(Math.random() * 2 + 1);
+      });
+    }, 250);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearInterval(interval);
+    };
+  }, [uploading]);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const [showEditHint, setShowEditHint] = useState(false);
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem("rs-intro-seen"));
@@ -726,13 +769,45 @@ export default function ResumeBuilder() {
               </div>
             </div>
             {uploading && (
-              <div className="mt-8 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-300">
-                <div className="relative">
-                  <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                  <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
+              <div className="mt-8 mx-auto max-w-xl p-5 rounded-2xl bg-card/85 border border-primary/25 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+                  <div className="relative shrink-0">
+                    <div className="h-14 w-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                    <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-primary animate-pulse" />
+                  </div>
+                  <div className="flex-1 w-full text-center sm:text-left">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                        <span>Analyzing your resume...</span>
+                      </p>
+                      <span className="text-xs font-mono font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 tabular-nums">
+                        {Math.round(uploadProgress)}%
+                      </span>
+                    </div>
+
+                    {/* Animated Loading Bar */}
+                    <div
+                      className="h-2.5 w-full bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/60"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(uploadProgress)}
+                      aria-label="Resume analysis progress"
+                    >
+                      <div
+                        className="h-full bg-gradient-to-r from-primary via-emerald-400 to-primary rounded-full transition-all duration-300 relative overflow-hidden shadow-xs"
+                        style={{ width: `${Math.max(6, Math.min(100, uploadProgress))}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/25 animate-[shimmer_1.5s_infinite] -skew-x-12" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-2">
+                      <span className="truncate italic text-muted-foreground/90">{uploadStage}</span>
+                      <span className="text-[10px] text-primary/80 font-medium shrink-0 ml-2">Extracting with AI</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-4 text-sm font-medium text-primary">Analyzing your resume...</p>
-                <p className="text-xs text-muted-foreground mt-1 italic">Extracting details with AI magic</p>
               </div>
             )}
             {!uploading && (
