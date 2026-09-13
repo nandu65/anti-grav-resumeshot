@@ -70,38 +70,41 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-hero flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#090b0e] flex items-center justify-center p-4 relative overflow-hidden text-zinc-100">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10">
         <Link to="/" className="flex items-center justify-center gap-2 font-display font-bold text-xl mb-8">
-          <div className="h-9 w-9 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+            <Sparkles className="h-4 w-4 text-slate-950" />
           </div>
-          ResumeShot <span className="text-primary">AI</span>
+          <span className="text-white">ResumeShot <span className="text-emerald-400">AI</span></span>
         </Link>
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-elegant">
+        <div className="rounded-2xl border border-white/[0.08] bg-[#11141b]/95 backdrop-blur-xl p-8 shadow-2xl">
           <Tabs defaultValue="signin">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign in</TabsTrigger>
-              <TabsTrigger value="signup">Sign up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-[#161922] p-1 rounded-xl border border-white/[0.06]">
+              <TabsTrigger value="signin" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 font-semibold text-xs rounded-lg transition-all">Sign in</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 font-semibold text-xs rounded-lg transition-all">Sign up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="si-email">Email</Label>
-                  <Input id="si-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="si-email" className="text-xs text-zinc-300">Email</Label>
+                  <Input id="si-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="bg-[#161922] border-white/10 text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="si-pw">Password</Label>
-                  <PasswordInput id="si-pw" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="si-pw" className="text-xs text-zinc-300">Password</Label>
+                  <PasswordInput id="si-pw" required value={password} onChange={(e) => setPassword(e.target.value)} className="bg-[#161922] border-white/10 text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 rounded-xl" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-md">
+                <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20 rounded-xl h-10 cursor-pointer">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
                 </Button>
                 <button
                   type="button"
                   onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
-                  className="block w-full text-center text-xs text-muted-foreground hover:text-primary"
+                  className="block w-full text-center text-xs text-zinc-400 hover:text-emerald-400 transition-colors pt-2"
                 >
                   Forgot password?
                 </button>
@@ -110,18 +113,18 @@ export default function Auth() {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="su-email">Email</Label>
-                  <Input id="su-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="su-email" className="text-xs text-zinc-300">Email</Label>
+                  <Input id="su-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="bg-[#161922] border-white/10 text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="su-pw">Password</Label>
-                  <PasswordInput id="su-pw" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="su-pw" className="text-xs text-zinc-300">Password</Label>
+                  <PasswordInput id="su-pw" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="bg-[#161922] border-white/10 text-zinc-100 placeholder:text-zinc-500 focus:border-emerald-500 rounded-xl" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-md">
+                <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20 rounded-xl h-10 cursor-pointer">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">Free plan includes 1 resume optimization.</p>
+                <p className="text-xs text-zinc-400 text-center">Free plan includes 1 resume optimization.</p>
               </form>
             </TabsContent>
           </Tabs>

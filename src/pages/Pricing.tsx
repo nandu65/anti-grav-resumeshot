@@ -173,45 +173,45 @@ export default function Pricing() {
     }
   };
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#090b0e] text-zinc-100 selection:bg-emerald-500/30 selection:text-emerald-200">
       <Navbar />
       <div className="container py-12 max-w-6xl">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6 -ml-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6 -ml-2 text-zinc-400 hover:text-white hover:bg-white/5">
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
 
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary mb-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 mb-4 shadow-sm">
             <Sparkles className="h-3.5 w-3.5" /> Cancel anytime · Secure UPI/Card autopay
           </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight text-white">
             Pick the plan that fits your job hunt
           </h1>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
+          <p className="text-zinc-400 mt-3 max-w-xl mx-auto text-sm sm:text-base">
             Monthly autopay via Razorpay. One job offer pays for this{" "}
-            <span className="font-semibold text-foreground">1000x over.</span>
+            <span className="font-semibold text-white">1000x over.</span>
           </p>
         </div>
 
         {/* Current subscription banner */}
         {user && isActive && currentPlan !== "free" && (
-          <div className="mb-8 rounded-2xl border border-primary/40 bg-gradient-card p-5 shadow-card flex flex-wrap items-center justify-between gap-4">
+          <div className="mb-8 rounded-2xl border border-emerald-500/30 bg-[#11141b] p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 flex items-center justify-center shadow-md">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <div className="font-display font-semibold text-base">
-                  You're on the <span className="capitalize text-primary">{currentPlan}</span> plan
+                <div className="font-display font-semibold text-base text-white">
+                  You're on the <span className="capitalize text-emerald-400 font-bold">{currentPlan}</span> plan
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-zinc-400">
                   {profile?.scans_used_month ?? 0} scans used this month
                   {profile?.current_period_end && ` · renews ${new Date(profile.current_period_end).toLocaleDateString()}`}
                 </div>
               </div>
             </div>
-            <Button onClick={handleCancel} variant="outline" size="sm" disabled={cancelling}>
-              {cancelling ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <X className="h-3.5 w-3.5 mr-1.5" />}
+            <Button onClick={handleCancel} variant="outline" size="sm" disabled={cancelling} className="border-white/10 bg-[#161922] text-zinc-200 hover:text-white">
+              {cancelling ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin text-emerald-400" /> : <X className="h-3.5 w-3.5 mr-1.5" />}
               Cancel subscription
             </Button>
           </div>
@@ -220,15 +220,15 @@ export default function Pricing() {
         {profile?.payment_failed && (
           <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
             <span className="font-semibold text-destructive">Payment failed.</span> Please update your payment method, or email{" "}
-            <a className="underline text-primary" href="mailto:support.resumeshot@gmail.com">support.resumeshot@gmail.com</a>.
+            <a className="underline text-emerald-400" href="mailto:support.resumeshot@gmail.com">support.resumeshot@gmail.com</a>.
           </div>
         )}
 
         {profile?.pending_plan && profile.pending_plan !== currentPlan && (
-          <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
-            You'll keep <span className="capitalize font-semibold">{currentPlan}</span> access until{" "}
+          <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+            You'll keep <span className="capitalize font-semibold text-emerald-400">{currentPlan}</span> access until{" "}
             <span className="font-semibold">{profile.current_period_end ? new Date(profile.current_period_end).toLocaleDateString() : "the end of this cycle"}</span>.{" "}
-            <span className="capitalize font-semibold">{profile.pending_plan}</span> plan starts from next billing cycle.
+            <span className="capitalize font-semibold text-emerald-400">{profile.pending_plan}</span> plan starts from next billing cycle.
           </div>
         )}
 
@@ -241,39 +241,39 @@ export default function Pricing() {
             return (
               <div key={plan.tier} className="relative">
                 {isCurrent && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-gradient-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1 shadow-glow">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-bold uppercase tracking-wider px-3 py-1 shadow-md">
                     Your plan
                   </div>
                 )}
                 <div
                   className={`rounded-3xl border p-7 flex flex-col relative overflow-hidden transition-all h-full ${
                     isCurrent
-                      ? "border-primary bg-gradient-card shadow-glow ring-2 ring-primary/30"
+                      ? "border-emerald-500/50 bg-[#11141b] shadow-2xl ring-2 ring-emerald-500/30"
                       : plan.highlight
-                        ? "border-primary/50 bg-gradient-card shadow-glow"
-                        : "border-border bg-card"
+                        ? "border-emerald-500/40 bg-[#11141b] shadow-2xl shadow-emerald-500/10 hover:border-emerald-400"
+                        : "border-white/[0.08] bg-[#11141b] hover:border-white/20"
                   } ${isBlurred ? "opacity-60" : ""}`}
                 >
                   <div className={isBlurred ? "blur-[2px] pointer-events-none select-none" : ""}>
                     {plan.highlight && !isCurrent && (
-                      <div className="absolute top-0 right-0 bg-gradient-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-2xl tracking-wider">
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-bold px-3 py-1 rounded-bl-2xl tracking-wider shadow-sm">
                         MOST POPULAR
                       </div>
                     )}
 
-                    <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">
                       {plan.tagline}
                     </div>
-                    <div className="font-display text-2xl font-bold mb-1">{plan.name}</div>
+                    <div className="font-display text-2xl font-bold mb-1 text-white">{plan.name}</div>
                     <div className="flex items-baseline gap-1.5 mb-5">
-                      <span className="font-display text-4xl font-extrabold">{plan.tier === "pro" ? proPrice : plan.price}</span>
-                      <span className="text-sm text-muted-foreground">{plan.cadence}</span>
+                      <span className="font-display text-4xl font-extrabold text-white">{plan.tier === "pro" ? proPrice : plan.price}</span>
+                      <span className="text-sm text-zinc-400">{plan.cadence}</span>
                     </div>
 
                     <ul className="space-y-2.5 mb-7 flex-1">
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm leading-relaxed">
-                          <span className="h-5 w-5 shrink-0 rounded-full bg-primary/15 text-primary flex items-center justify-center mt-0.5">
+                        <li key={f} className="flex items-start gap-2.5 text-sm leading-relaxed text-zinc-300">
+                          <span className="h-5 w-5 shrink-0 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mt-0.5">
                             <Check className="h-3 w-3" />
                           </span>
                           <span>{f}</span>
@@ -284,20 +284,20 @@ export default function Pricing() {
 
                   {/* Lock overlay for blurred plans */}
                   {isBlurred && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-10">
-                      <div className="h-12 w-12 rounded-full bg-background/90 border border-border flex items-center justify-center mb-3 shadow-md">
-                        <Lock className="h-5 w-5 text-muted-foreground" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-10 bg-black/70 backdrop-blur-xs">
+                      <div className="h-12 w-12 rounded-full bg-[#161922] border border-white/10 flex items-center justify-center mb-3 shadow-md">
+                        <Lock className="h-5 w-5 text-zinc-400" />
                       </div>
-                      <div className="text-sm font-semibold">Not your current plan</div>
-                      <div className="text-xs text-muted-foreground mt-1">Cancel your active plan to switch</div>
+                      <div className="text-sm font-semibold text-white">Not your current plan</div>
+                      <div className="text-xs text-zinc-400 mt-1">Cancel your active plan to switch</div>
                     </div>
                   )}
 
                   {/* Action button */}
                   <div className="mt-auto pt-2">
                     {isCurrent ? (
-                      <Button variant="outline" disabled className="w-full">
-                        <Check className="h-4 w-4 mr-2" /> Current plan
+                      <Button variant="outline" disabled className="w-full border-white/10 bg-[#161922] text-zinc-400">
+                        <Check className="h-4 w-4 mr-2 text-emerald-400" /> Current plan
                       </Button>
                     ) : plan.tier === "free" ? (
                       <Button variant="outline" onClick={() => navigate(user ? "/dashboard" : "/auth")} className="w-full" disabled={isBlurred}>
