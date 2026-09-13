@@ -7,7 +7,7 @@ import {
   Table, TableRow, TableCell, WidthType, ShadingType, VerticalAlign,
 } from "docx";
 import { Droppable, Draggable } from "react-beautiful-dnd";
-import { MousePointer2 } from "lucide-react";
+import { MousePointer2, Palette, Check, X, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { ResumeContextMenu, ContextMenuPosition } from "../components/ResumeContextMenu";
 import {
@@ -38,6 +38,10 @@ export interface ResumeSettings {
   fontSize?: number;
   headingSize?: number;
   fontFamily?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  headerBg?: string;
+  sidebarBg?: string;
   sectionSpacing?: number;
   paragraphSpacing?: number;
   lineSpacing?: number;
@@ -2542,7 +2546,19 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
 
   return (
     <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="bg-slate-800 text-white px-6 py-5 flex items-center gap-4">
+      <div
+        className="relative text-white px-6 py-5 flex items-center gap-4 group/header cursor-pointer transition-colors"
+        style={{ backgroundColor: r.settings?.headerBg || r.settings?.primaryColor || "#1e293b" }}
+        data-color-target="header"
+        data-color-label="Header Banner"
+        data-current-color={r.settings?.headerBg || r.settings?.primaryColor || "#1e293b"}
+        title={update ? "Click to change color" : undefined}
+      >
+        {update && (
+          <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/header:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 pointer-events-none shadow backdrop-blur-sm z-10">
+            <span>🎨 Change Color</span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-extrabold text-2xl tracking-tight" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-sky-300 text-[11px] font-medium mt-0.5" />
@@ -2555,7 +2571,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
             ))}
           </div>
         </div>
-        <div className="h-16 w-16 rounded-full bg-slate-600 ring-2 ring-white/30 flex items-center justify-center text-lg font-bold shrink-0">
+        <div className="h-16 w-16 rounded-full bg-white/20 ring-2 ring-white/30 flex items-center justify-center text-lg font-bold shrink-0">
           {initials(r.name)}
         </div>
       </div>
@@ -5339,6 +5355,12 @@ export function ResumePreview({
   const scopeId = React.useId().replace(/[:]/g, "");
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
   const [copiedFormat, setCopiedFormat] = useState<TextFormat | null>(null);
+  const [colorPrompt, setColorPrompt] = useState<{
+    isOpen: boolean;
+    targetKey: "headerBg" | "sidebarBg" | "primaryColor" | "accentColor";
+    label: string;
+    currentColor: string;
+  } | null>(null);
 
   const inner =
     template === "modern" ? <ModernPreview r={data} update={update} /> :
@@ -5567,6 +5589,36 @@ export function ResumePreview({
     }
   };
 
+  const handleContainerClick = (e: React.MouseEvent) => {
+    if (isMini || isExport || !onChange) return;
+    const target = e.target as HTMLElement;
+    if (
+      target.isContentEditable ||
+      target.closest('[contenteditable="true"]') ||
+      target.closest('input') ||
+      target.closest('textarea') ||
+      target.closest('[role="menu"]') ||
+      target.closest('.preview-only-badge')
+    ) {
+      return;
+    }
+
+    const colorTarget = target.closest("[data-color-target]") as HTMLElement | null;
+    if (colorTarget) {
+      const targetType = (colorTarget.getAttribute("data-color-target") || "header") as "header" | "sidebar" | "primary" | "accent";
+      const label = colorTarget.getAttribute("data-color-label") || "Design Element";
+      const key = targetType === "header" ? "headerBg" : targetType === "sidebar" ? "sidebarBg" : targetType === "accent" ? "accentColor" : "primaryColor";
+      const currentColor = (data.settings as any)?.[key] || data.settings?.primaryColor || colorTarget.getAttribute("data-current-color") || "#1e293b";
+
+      setColorPrompt({
+        isOpen: true,
+        targetKey: key,
+        label,
+        currentColor,
+      });
+    }
+  };
+
   return (
     <div
       ref={rootRef}
@@ -5577,6 +5629,7 @@ export function ResumePreview({
       data-rs-template={template}
       className={`resume-root-container relative w-full ${isMini ? "pointer-events-none" : ""}`}
       onContextMenu={handleContextMenu}
+      onClick={handleContainerClick}
     >
       <style dangerouslySetInnerHTML={{ __html: sectionCss(isMini ? `[data-rs-mini="true"]` : `[data-rs-root="${scopeId}"]`, data.settings) }} />
       <PagedSheet isMini={isMini} isExport={isExport}>{inner}</PagedSheet>
@@ -5596,6 +5649,147 @@ export function ResumePreview({
           onPasteFormat={handlePasteFormat}
           copiedFormatLabel={copiedFormat ? describeFormat(copiedFormat) : null}
         />
+      )}
+
+      {/* Interactive Color Change Prompt Modal */}
+      {!isMini && !isExport && colorPrompt?.isOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+          onClick={() => setColorPrompt(null)}
+        >
+          <div
+            className="bg-[#1c243c] border border-white/20 text-white rounded-2xl p-5 w-full max-w-sm shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white">Change Color?</h3>
+                  <p className="text-[11px] text-white/60">Customize color for {colorPrompt.label}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setColorPrompt(null)}
+                className="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-white/90 block mb-2">Preset Color Palette</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {[
+                    { label: "Slate Gray", color: "#1e293b" },
+                    { label: "Midnight Navy", color: "#0f172a" },
+                    { label: "Royal Blue", color: "#1e3a8a" },
+                    { label: "Deep Emerald", color: "#064e3b" },
+                    { label: "Modern Teal", color: "#0f766e" },
+                    { label: "Royal Indigo", color: "#4338ca" },
+                    { label: "Ruby Burgundy", color: "#881337" },
+                    { label: "Crimson Red", color: "#b91c1c" },
+                    { label: "Warm Amber", color: "#b45309" },
+                    { label: "Jet Black", color: "#18181b" },
+                    { label: "Cool Steel", color: "#334155" },
+                    { label: "Sky Cyan", color: "#0284c7" },
+                  ].map((p) => (
+                    <button
+                      key={p.color}
+                      type="button"
+                      onClick={() => {
+                        onChange?.({
+                          ...data,
+                          settings: {
+                            ...data.settings,
+                            [colorPrompt.targetKey]: p.color,
+                            primaryColor: p.color,
+                          },
+                        });
+                        setColorPrompt(null);
+                        toast.success(`${colorPrompt.label} color updated!`);
+                      }}
+                      title={p.label}
+                      className={`w-9 h-9 rounded-xl border-2 transition-all transform hover:scale-110 flex items-center justify-center ${
+                        colorPrompt.currentColor.toLowerCase() === p.color.toLowerCase()
+                          ? "border-emerald-400 ring-2 ring-emerald-400/50 shadow-lg scale-105"
+                          : "border-white/20 hover:border-white/60"
+                      }`}
+                      style={{ backgroundColor: p.color }}
+                    >
+                      {colorPrompt.currentColor.toLowerCase() === p.color.toLowerCase() && (
+                        <Check className="w-4 h-4 text-white stroke-[3] drop-shadow" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/10 space-y-2">
+                <label className="text-xs font-semibold text-white/90 block">Or Choose Custom Color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={colorPrompt.currentColor.startsWith("#") && colorPrompt.currentColor.length === 7 ? colorPrompt.currentColor : "#1e293b"}
+                    onChange={(e) => {
+                      setColorPrompt(prev => prev ? { ...prev, currentColor: e.target.value } : null);
+                    }}
+                    className="w-10 h-9 p-0.5 bg-[#28334f] border border-white/20 rounded-xl cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={colorPrompt.currentColor}
+                    onChange={(e) => {
+                      setColorPrompt(prev => prev ? { ...prev, currentColor: e.target.value } : null);
+                    }}
+                    className="flex-1 h-9 px-3 bg-[#28334f] border border-white/20 rounded-xl font-mono text-xs text-white uppercase focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    placeholder="#1E293B"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/10 flex items-center gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  const newSettings = { ...data.settings };
+                  delete (newSettings as any)[colorPrompt.targetKey];
+                  delete newSettings.primaryColor;
+                  onChange?.({ ...data, settings: newSettings });
+                  setColorPrompt(null);
+                  toast.success(`${colorPrompt.label} color reset to template default!`);
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                Reset Default
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange?.({
+                    ...data,
+                    settings: {
+                      ...data.settings,
+                      [colorPrompt.targetKey]: colorPrompt.currentColor,
+                      primaryColor: colorPrompt.currentColor,
+                    },
+                  });
+                  setColorPrompt(null);
+                  toast.success(`${colorPrompt.label} color applied!`);
+                }}
+                className="px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-colors shadow-md"
+              >
+                Apply Color
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

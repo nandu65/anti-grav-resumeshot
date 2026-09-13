@@ -24,7 +24,7 @@ const SECTION_LABELS: Record<string, string> = {
   certifications: "Certifications",
 };
 
-export const DEFAULT_FORMATTING_SETTINGS: Required<Omit<ResumeSettings, "sections" | "sectionOrder" | "customSectionTitles">> = {
+export const DEFAULT_FORMATTING_SETTINGS: Required<Omit<ResumeSettings, "sections" | "sectionOrder" | "customSectionTitles" | "headerBg" | "sidebarBg" | "primaryColor" | "accentColor">> = {
   fontFamily: "Arial, sans-serif",
   fontSize: 11,
   headingSize: 14,
@@ -560,9 +560,111 @@ export function ResumeDesignFormattingPanel({
         </div>
       )}
 
-      {/* DESIGN TAB: TEMPLATES */}
+      {/* DESIGN TAB: COLORS & TEMPLATES */}
       {activeTab === "design" && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Theme & Design Colors */}
+          <div className="space-y-2.5 bg-[#1c243c] p-3 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-emerald-400" />
+                <h4 className="font-bold text-xs text-white">Theme & Header Colors</h4>
+              </div>
+              {(settings.headerBg || settings.primaryColor || settings.sidebarBg) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = { ...settings };
+                    delete next.headerBg;
+                    delete next.primaryColor;
+                    delete next.sidebarBg;
+                    delete next.accentColor;
+                    onChangeSettings(next);
+                  }}
+                  className="text-[10px] text-white/60 hover:text-white flex items-center gap-1 hover:underline"
+                  title="Reset to template default colors"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  Reset
+                </button>
+              )}
+            </div>
+
+            {/* Quick Palettes */}
+            <div className="grid grid-cols-6 gap-1.5 pt-1">
+              {[
+                { label: "Slate", color: "#1e293b" },
+                { label: "Navy", color: "#0f172a" },
+                { label: "Royal Blue", color: "#1e3a8a" },
+                { label: "Emerald", color: "#064e3b" },
+                { label: "Teal", color: "#0f766e" },
+                { label: "Indigo", color: "#4338ca" },
+                { label: "Burgundy", color: "#881337" },
+                { label: "Crimson", color: "#b91c1c" },
+                { label: "Amber", color: "#b45309" },
+                { label: "Charcoal", color: "#18181b" },
+                { label: "Steel", color: "#334155" },
+                { label: "Sky", color: "#0284c7" },
+              ].map((p) => {
+                const isSelected = (settings.headerBg || settings.primaryColor || "").toLowerCase() === p.color.toLowerCase();
+                return (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => {
+                      onChangeSettings({
+                        ...settings,
+                        headerBg: p.color,
+                        primaryColor: p.color,
+                        sidebarBg: p.color,
+                      });
+                    }}
+                    title={p.label}
+                    className={`h-7 rounded-lg border transition-all flex items-center justify-center transform hover:scale-105 ${
+                      isSelected
+                        ? "border-emerald-400 ring-2 ring-emerald-400/50 scale-105 shadow-md"
+                        : "border-white/20 hover:border-white/50"
+                    }`}
+                    style={{ backgroundColor: p.color }}
+                  >
+                    {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3] drop-shadow" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom Hex Picker */}
+            <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+              <input
+                type="color"
+                value={settings.headerBg || settings.primaryColor || "#1e293b"}
+                onChange={(e) => {
+                  onChangeSettings({
+                    ...settings,
+                    headerBg: e.target.value,
+                    primaryColor: e.target.value,
+                    sidebarBg: e.target.value,
+                  });
+                }}
+                className="w-8 h-7 p-0.5 bg-[#28334f] border border-white/20 rounded-lg cursor-pointer shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.headerBg || settings.primaryColor || "#1E293B"}
+                onChange={(e) => {
+                  onChangeSettings({
+                    ...settings,
+                    headerBg: e.target.value,
+                    primaryColor: e.target.value,
+                    sidebarBg: e.target.value,
+                  });
+                }}
+                placeholder="#1E293B"
+                className="flex-1 h-7 px-2 bg-[#28334f] border border-white/20 rounded-lg font-mono text-[11px] text-white uppercase focus:outline-none focus:ring-1 focus:ring-emerald-400"
+              />
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-sm text-white tracking-tight">Resume Templates</h4>
             <span className="text-[11px] text-emerald-400 font-semibold">{TEMPLATES.length} Styles</span>
