@@ -1,284 +1,253 @@
-import { useState } from "react";
+import { useState, useRef, MouseEvent } from "react";
+import { Sparkles, CheckCircle2, FileText, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
 /**
- * Decorative 3D rotating resume card behind the hero text.
- * Realistic resume content on the front, ATS score dashboard on the back.
- * Users can pause the auto-spin on hover and click to flip manually.
+ * Pro Interactive 3D Hero Resume Showcase
+ * Dual-sided (Live Resume Preview & ATS Score Dashboard) with cursor tilt physics and interactive toggle
  */
 export const FloatingResume = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isManual, setIsManual] = useState(false);
+  const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    // Gentle tilt
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+    setRotate({ x: rotateX, y: rotateY });
+  };
+
+  const handleMouseLeave = () => {
+    setRotate({ x: 0, y: 0 });
+  };
 
   return (
-    <div
-      aria-hidden
-      className="floating-resume-root pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
-      style={{ perspective: "1600px" }}
-    >
-      {/* Glow halo — hidden on mobile to avoid blur repaint cost */}
-      <div
-        className="halo absolute h-[460px] w-[460px] rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%)",
-          animation: "halo-pulse 6s ease-in-out infinite",
-          willChange: "transform, opacity",
-        }}
-      />
+    <div className="relative w-full max-w-[480px] mx-auto flex flex-col items-center select-none" style={{ perspective: "1200px" }}>
+      {/* Ambient background glow */}
+      <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/20 via-teal-500/10 to-transparent rounded-3xl blur-2xl pointer-events-none" />
 
+      {/* Floating dynamic tags around the card */}
+      <div className="hidden sm:flex absolute -top-4 -left-6 z-20 items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#11141b]/95 border border-emerald-500/30 text-emerald-400 text-xs font-semibold shadow-lg shadow-black/50 animate-bounce" style={{ animationDuration: "3s" }}>
+        <Sparkles className="h-3.5 w-3.5" />
+        <span>ATS Score: 96 / 100</span>
+      </div>
+
+      <div className="hidden sm:flex absolute -bottom-3 -right-4 z-20 items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#11141b]/95 border border-white/[0.08] text-zinc-200 text-xs font-semibold shadow-lg shadow-black/50">
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+        <span>100% Recruiter Approved</span>
+      </div>
+
+      {/* Interactive Card Stage */}
       <div
-        className="resume-card relative pointer-events-auto cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={() => {
-          setIsFlipped((f) => !f);
-          setIsManual(true);
-        }}
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onClick={() => setIsFlipped(!isFlipped)}
+        className="relative w-full aspect-[4/5] max-h-[520px] rounded-2xl cursor-pointer transition-transform duration-200 ease-out"
         style={{
           transformStyle: "preserve-3d",
-          opacity: 0.85,
-          willChange: "transform",
-          ...(isManual
-            ? {
-                transform: `rotateY(${isFlipped ? 180 : 0}deg) rotateX(8deg)`,
-                transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-                animation: "none",
-              }
-            : {
-                animation: "resume-spin 18s linear infinite",
-                animationPlayState: isHovered ? "paused" : "running",
-              }),
+          transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y + (isFlipped ? 180 : 0)}deg)`,
+          transition: isFlipped ? "transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)" : "transform 0.2s ease-out",
         }}
       >
-        {/* ============ FRONT: Resume ============ */}
+        {/* ============ FRONT: TAILORED RESUME PREVIEW ============ */}
         <div
-          className="absolute inset-0 rounded-2xl border border-primary/20 shadow-2xl overflow-hidden"
+          className="absolute inset-0 rounded-2xl bg-[#11141b]/95 border border-white/[0.12] shadow-2xl p-5 flex flex-col justify-between overflow-hidden backdrop-blur-xl"
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(0deg)",
-            background:
-              "linear-gradient(160deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)",
           }}
         >
-          {/* Top header strip */}
-          <div className="px-5 pt-5 pb-3 border-b border-border/60">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                AS
-              </div>
-              <div className="flex-1">
-                <div className="text-[13px] font-bold text-foreground leading-tight">
-                  Arjun Sharma
+          {/* Subtle paper background glow */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
+
+          {/* Top Header */}
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold text-sm shadow-md shadow-emerald-500/20">
+                  AS
                 </div>
-                <div className="text-[9px] text-muted-foreground">
-                  Senior Product Designer · Bangalore
+                <div>
+                  <h4 className="font-bold text-sm text-zinc-100 leading-tight">Arjun Sharma</h4>
+                  <p className="text-[11px] text-zinc-400">Senior Product Designer · Bangalore</p>
                 </div>
               </div>
-              <div className="text-[8px] text-primary font-semibold border border-primary/40 rounded px-1.5 py-0.5">
-                PDF
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+                <Zap className="h-3 w-3" />
+                <span>AI TAILORED</span>
+              </div>
+            </div>
+
+            {/* Experience Section */}
+            <div className="mt-4 space-y-3">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-bold text-zinc-200">Lead Product Designer • Razorpay</span>
+                  <span className="text-[10px] text-zinc-400 font-mono">2022 — Present</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-zinc-300 leading-relaxed">
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 font-bold">•</span>
+                    <span>Spearheaded checkout flow redesign, increasing transaction completion by <strong className="text-emerald-400">28.4%</strong>.</span>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 font-bold">•</span>
+                    <span>Standardized design system across 14 cross-functional squad repositories.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-bold text-zinc-200">Product Designer • Swiggy</span>
+                  <span className="text-[10px] text-zinc-400 font-mono">2019 — 2022</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-zinc-300 leading-relaxed">
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 font-bold">•</span>
+                    <span>Architected Instamart live search UI, lowering cart abandonment rate by <strong className="text-emerald-400">19%</strong>.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Matched Keywords */}
+            <div className="mt-4 pt-3 border-t border-white/[0.08]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+                ATS Matched Keywords (14/14)
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {["Design Systems", "Figma", "User Testing", "Conversion Rate", "A/B Testing", "TypeScript"].map((k) => (
+                  <span key={k} className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono">
+                    ✓ {k}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="px-5 py-3 space-y-3">
-            <div>
-              <div className="text-[9px] font-bold text-primary tracking-widest mb-1">
-                EXPERIENCE
-              </div>
-              <div className="flex justify-between items-baseline">
-                <div className="text-[10px] font-semibold text-foreground">
-                  Lead Designer · Razorpay
-                </div>
-                <div className="text-[8px] text-muted-foreground">2022 — Now</div>
-              </div>
-              <div className="space-y-1 mt-1">
-                <div className="h-1 w-[95%] rounded-full bg-foreground/20" />
-                <div className="h-1 w-[88%] rounded-full bg-foreground/20" />
-                <div className="h-1 w-[72%] rounded-full bg-foreground/20" />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-baseline">
-                <div className="text-[10px] font-semibold text-foreground">
-                  Product Designer · Swiggy
-                </div>
-                <div className="text-[8px] text-muted-foreground">2019 — 22</div>
-              </div>
-              <div className="space-y-1 mt-1">
-                <div className="h-1 w-[90%] rounded-full bg-foreground/20" />
-                <div className="h-1 w-[65%] rounded-full bg-foreground/20" />
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[9px] font-bold text-primary tracking-widest mb-1.5">
-                SKILLS
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {["Figma", "Design Systems", "UX Research", "Prototyping", "React", "A/B Testing"].map(
-                  (s) => (
-                    <span
-                      key={s}
-                      className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20"
-                    >
-                      {s}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[9px] font-bold text-primary tracking-widest mb-1">
-                EDUCATION
-              </div>
-              <div className="text-[10px] font-semibold text-foreground">
-                B.Des — NID Ahmedabad
-              </div>
-              <div className="text-[8px] text-muted-foreground">
-                Gold Medalist, 2019
-              </div>
-            </div>
+          {/* Footer Action Strip */}
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-xs text-zinc-400">
+            <span className="flex items-center gap-1 text-[11px] text-zinc-400">
+              <FileText className="h-3.5 w-3.5 text-emerald-400" /> Click to view ATS Score Report
+            </span>
+            <span className="text-emerald-400 font-semibold text-[11px] flex items-center gap-1 group">
+              Flip Card <ArrowRight className="h-3 w-3" />
+            </span>
           </div>
 
-          {/* Scanning line */}
+          {/* Glowing laser scan beam */}
           <div
-            className="absolute left-0 right-0 top-0 h-[2px] pointer-events-none block"
+            className="absolute left-0 right-0 top-0 h-[2px] pointer-events-none"
             style={{
-              background:
-                "linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)",
-              boxShadow: "0 0 12px hsl(var(--primary))",
-              animation: "scan-line 3s ease-in-out infinite",
-              willChange: "transform, opacity",
+              background: "linear-gradient(90deg, transparent, #10b981, transparent)",
+              boxShadow: "0 0 15px #10b981",
+              animation: "laserScan 3.5s ease-in-out infinite",
             }}
           />
         </div>
 
-        {/* ============ BACK: ATS Score Dashboard ============ */}
+        {/* ============ BACK: ATS SCORE DASHBOARD ============ */}
         <div
-          className="absolute inset-0 rounded-2xl border border-primary/30 shadow-2xl overflow-hidden p-5"
+          className="absolute inset-0 rounded-2xl bg-[#11141b]/95 border border-emerald-500/30 shadow-2xl p-5 flex flex-col justify-between overflow-hidden backdrop-blur-xl"
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
-            background:
-              "linear-gradient(160deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--card)) 60%)",
           }}
         >
-          <div className="text-[9px] font-bold text-primary tracking-widest mb-3">
-            ATS COMPATIBILITY REPORT
-          </div>
-
-          {/* Big score */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative h-24 w-24">
-              <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="hsl(var(--muted))"
-                  strokeWidth="8"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${0.94 * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-2xl font-extrabold text-foreground">94</div>
-                <div className="text-[7px] text-muted-foreground -mt-0.5">/ 100</div>
+          {/* Top Title */}
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                <span className="font-bold text-sm text-zinc-100">ATS Match Analysis</span>
               </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold uppercase">
+                Ready to Apply
+              </span>
             </div>
-            <div className="flex-1">
-              <div className="text-[11px] font-bold text-foreground">
-                Excellent Match
-              </div>
-              <div className="text-[9px] text-muted-foreground leading-snug mt-0.5">
-                Beats 92% of resumes for this role at top-tier companies.
-              </div>
-            </div>
-          </div>
 
-          {/* Stats */}
-          <div className="space-y-2">
-            {[
-              { label: "Keyword Match", val: 96, color: "hsl(var(--primary))" },
-              { label: "Formatting", val: 100, color: "hsl(142 76% 45%)" },
-              { label: "Recruiter Appeal", val: 88, color: "hsl(var(--primary))" },
-              { label: "Impact Verbs", val: 91, color: "hsl(142 76% 45%)" },
-            ].map((row) => (
-              <div key={row.label}>
-                <div className="flex justify-between text-[9px] mb-0.5">
-                  <span className="text-muted-foreground">{row.label}</span>
-                  <span className="font-bold text-foreground">{row.val}%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${row.val}%`, background: row.color }}
+            {/* Score Ring Section */}
+            <div className="flex items-center gap-4 my-4 p-3 rounded-xl bg-[#161922] border border-white/[0.06]">
+              <div className="relative h-18 w-18 shrink-0">
+                <svg viewBox="0 0 100 100" className="h-18 w-18 -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#27272a" strokeWidth="8" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="42"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${0.96 * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
                   />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl font-extrabold text-white">96</span>
+                  <span className="text-[8px] text-zinc-400 font-mono -mt-1">/ 100</span>
                 </div>
               </div>
-            ))}
+              <div>
+                <h5 className="font-bold text-sm text-emerald-400">Top 1% Resume Score</h5>
+                <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
+                  Matches 100% of required technical competencies for Senior Product Designer.
+                </p>
+              </div>
+            </div>
+
+            {/* Metrics Breakdown */}
+            <div className="space-y-2.5">
+              {[
+                { label: "Keyword Alignment", pct: 98, color: "bg-emerald-400" },
+                { label: "Impact & Quantifiable Metrics", pct: 94, color: "bg-emerald-400" },
+                { label: "ATS Parser Layout Integrity", pct: 100, color: "bg-teal-400" },
+                { label: "6-Second Recruiter Readability", pct: 92, color: "bg-emerald-400" },
+              ].map((m) => (
+                <div key={m.label} className="space-y-1">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-zinc-300 font-medium">{m.label}</span>
+                    <span className="text-zinc-100 font-bold font-mono">{m.pct}%</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                    <div className={`h-full rounded-full ${m.color}`} style={{ width: `${m.pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-[9px] text-primary font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Optimized for: Senior Product Designer
+          {/* Back Footer */}
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-xs text-zinc-400">
+            <span className="text-[11px] text-zinc-400">Click anywhere to flip back</span>
+            <span className="text-emerald-400 font-semibold text-[11px] flex items-center gap-1">
+              View Resume <ArrowRight className="h-3 w-3" />
+            </span>
           </div>
         </div>
       </div>
 
       <style>{`
-        .resume-card {
-          width: 260px;
-          height: 360px;
-        }
-        @media (min-width: 640px) {
-          .resume-card { width: 320px; height: 420px; }
-        }
-        @media (min-width: 1024px) {
-          .resume-card { width: 360px; height: 470px; }
-        }
-        @keyframes resume-spin {
-          0%   { transform: rotateY(0deg)   rotateX(8deg); }
-          100% { transform: rotateY(360deg) rotateX(8deg); }
-        }
-        @keyframes scan-line {
-          0%   { transform: translateY(0);     opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { transform: translateY(420px); opacity: 0; }
-        }
-        @keyframes halo-pulse {
-          0%, 100% { transform: scale(1);   opacity: 0.6; }
-          50%      { transform: scale(1.1); opacity: 1;   }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .resume-card, .halo, .floating-resume-root * {
-            animation: none !important;
+        @keyframes laserScan {
+          0% {
+            top: 0%;
+            opacity: 0.2;
           }
-        }
-        /* Lighter load on small touch screens to keep scrolling smooth */
-        @media (max-width: 639px) {
-          .resume-card {
-            width: 215px; height: 300px;
-            animation-duration: 26s;
-            opacity: 0.85 !important;
-            pointer-events: none !important;
-            filter: drop-shadow(0 10px 30px hsl(var(--primary) / 0.35));
+          50% {
+            top: 96%;
+            opacity: 1;
           }
-          .halo { width: 340px !important; height: 340px !important; opacity: 1 !important; }
+          100% {
+            top: 0%;
+            opacity: 0.2;
+          }
         }
       `}</style>
     </div>
