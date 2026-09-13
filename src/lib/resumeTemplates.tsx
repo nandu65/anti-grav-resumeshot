@@ -463,6 +463,38 @@ export const Editable = React.memo(function Editable({
           if (isFocused) e.stopPropagation();
         }
       }}
+      onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
+        if (!editable) return;
+
+        // Shortcut: Alt+B, Alt+8, or Ctrl+Shift+8 to insert bullet point
+        if (
+          (e.altKey && (e.key === "b" || e.key === "B" || e.key === "8")) ||
+          (e.ctrlKey && e.shiftKey && e.key === "8")
+        ) {
+          e.preventDefault();
+          document.execCommand("insertText", false, "• ");
+          return;
+        }
+
+        // Auto convert "- " or "* " to "• " when pressing space
+        if (e.key === " ") {
+          const sel = window.getSelection();
+          if (sel && sel.isCollapsed && sel.anchorNode) {
+            const node = sel.anchorNode;
+            const offset = sel.anchorOffset;
+            const text = node.textContent || "";
+            const textBefore = text.slice(0, offset);
+            if (/(?:^|[\n\r])[-*]$/.test(textBefore)) {
+              e.preventDefault();
+              const range = sel.getRangeAt(0);
+              range.setStart(node, offset - 1);
+              range.deleteContents();
+              document.execCommand("insertText", false, "• ");
+              return;
+            }
+          }
+        }
+      }}
       onBlur={
         editable
           ? (e: any) => {
@@ -2986,8 +3018,8 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               {r.skills.map((s, i) => {
                 const upd = makeSkillUpdater(update, r, i);
                 return (
-                  <div key={i} className="mb-3 flex gap-2">
-                    <div className="h-6 w-6 rounded-full bg-teal-500/30 border border-teal-300 flex items-center justify-center text-[10px] font-bold shrink-0">★</div>
+                  <div key={i} className="mb-2 flex items-start gap-2">
+                    <span className="text-teal-300 text-sm leading-none mt-0.5 select-none font-bold">•</span>
                     <div className="flex-1">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
                       <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-teal-100 leading-snug whitespace-pre-wrap" />

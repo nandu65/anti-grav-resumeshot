@@ -5,7 +5,7 @@ import {
   ArrowUp, ArrowDown, Copy, Plus, Minus, Trash2,
   RemoveFormatting, Palette, Highlighter,
   AlignLeft, AlignCenter, AlignRight,
-  Type, MoveVertical, Paintbrush, X
+  Type, MoveVertical, Paintbrush, X, List
 } from "lucide-react";
 
 export interface ContextMenuPosition {
@@ -200,6 +200,36 @@ export function ResumeContextMenu({
     onClose();
   };
 
+  const insertBulletPoint = () => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    if (!sel.isCollapsed && sel.toString()) {
+      const text = sel.toString();
+      const lines = text.split("\n");
+      const bulleted = lines.map(line => (line.trim().startsWith("•") ? line : `• ${line}`)).join("\n");
+      try {
+        const success = document.execCommand("insertText", false, bulleted);
+        if (!success && savedRangeRef.current) {
+          savedRangeRef.current.deleteContents();
+          savedRangeRef.current.insertNode(document.createTextNode(bulleted));
+        }
+      } catch (_) {}
+    } else {
+      try {
+        document.execCommand("insertText", false, "• ");
+      } catch (_) {}
+    }
+
+    const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+    if (targetEditable) {
+      targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
+      targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+    }
+    onClose();
+  };
+
   const hasLineActions = Boolean(
     onMoveLineUp || onMoveLineDown || onDuplicateLine || onAddLineBelow || onDeleteLine
   );
@@ -256,6 +286,14 @@ export function ResumeContextMenu({
             className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors"
           >
             <Strikethrough className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={insertBulletPoint}
+            title="Insert Bullet Point (•) (Alt+B)"
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-primary transition-colors font-bold"
+          >
+            <List className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -550,6 +588,21 @@ export function ResumeContextMenu({
             className="flex-1 p-1.5 rounded-lg hover:bg-accent flex justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <RemoveFormatting className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="px-1 pt-1">
+          <button
+            type="button"
+            onClick={insertBulletPoint}
+            title="Insert Bullet Point (•) (Alt+B)"
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 hover:bg-accent text-left transition-colors text-xs font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <List className="w-3.5 h-3.5 text-primary" />
+              <span>Insert Bullet Point (•)</span>
+            </span>
+            <kbd className="text-[9px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">Alt+B</kbd>
           </button>
         </div>
       </div>
