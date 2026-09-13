@@ -943,65 +943,65 @@ export default function ResumeBuilder() {
             </div>
           )}
         <div className="w-full px-2 sm:px-4 py-2 h-full flex flex-col overflow-hidden">
-          <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
+          <div className="shrink-0 bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-2.5 mb-3 shadow-2xl flex items-center justify-between gap-3 z-20">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-zinc-400 hover:text-white hover:bg-white/10 h-8 w-8"><ArrowLeft className="h-4 w-4" /></Button>
               <div className="hidden sm:block">
-                <h2 className="text-sm font-bold leading-none">ResumeShot AI</h2>
-                <p className="text-[10px] text-muted-foreground">Editor</p>
+                <h2 className="text-xs font-bold leading-none text-zinc-100">ResumeShot AI</h2>
+                <p className="text-[10px] text-zinc-400 font-mono">Editor</p>
               </div>
-              <Separator orientation="vertical" className="h-6 mx-2 hidden sm:block" />
+              <Separator orientation="vertical" className="h-5 mx-1 hidden sm:block bg-white/[0.08]" />
 
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={undo} disabled={!canUndo} className="h-8 w-8" title="Undo (Ctrl+Z)"><Undo2 className="h-4 w-4" /></Button>
-                  <Button variant="outline" size="icon" onClick={redo} disabled={!canRedo} className="h-8 w-8" title="Redo (Ctrl+Shift+Z)"><Redo2 className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={undo} disabled={!canUndo} className="h-8 w-8 border-white/10 bg-[#161922] text-zinc-300 hover:text-white hover:bg-white/10" title="Undo (Ctrl+Z)"><Undo2 className="h-3.5 w-3.5" /></Button>
+                  <Button variant="outline" size="icon" onClick={redo} disabled={!canRedo} className="h-8 w-8 border-white/10 bg-[#161922] text-zinc-300 hover:text-white hover:bg-white/10" title="Redo (Ctrl+Shift+Z)"><Redo2 className="h-3.5 w-3.5" /></Button>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-8 w-8" title="Edit history"><History className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8 border-white/10 bg-[#161922] text-zinc-300 hover:text-white hover:bg-white/10" title="Edit history"><History className="h-3.5 w-3.5" /></Button>
                     </PopoverTrigger>
-                    <PopoverContent align="start" className="w-64 p-0">
-                      <div className="px-3 py-2 border-b text-xs font-bold">Recent edits</div>
-                      <div className="max-h-64 overflow-y-auto">
+                    <PopoverContent align="start" className="w-64 p-0 bg-[#161922] border-white/10 text-zinc-100">
+                      <div className="px-3 py-2 border-b border-white/10 text-xs font-bold">Recent edits</div>
+                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
                         {history.length === 0 ? (
-                          <p className="px-3 py-4 text-xs text-muted-foreground">No edits yet — changes you make will be listed here.</p>
+                          <p className="px-3 py-4 text-xs text-zinc-400">No edits yet — changes you make will be listed here.</p>
                         ) : history.map((h, i) => (
-                          <div key={`${h.at}-${i}`} className="px-3 py-2 text-xs flex items-center justify-between gap-2 border-b last:border-0">
-                            <span className="truncate">{h.label}</span>
-                            <span className="text-[10px] text-muted-foreground shrink-0">{new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                          <div key={`${h.at}-${i}`} className="px-3 py-2 text-xs flex items-center justify-between gap-2 border-b border-white/5 last:border-0">
+                            <span className="truncate text-zinc-200">{h.label}</span>
+                            <span className="text-[10px] text-zinc-500 shrink-0 font-mono">{new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                           </div>
                         ))}
                       </div>
-                      <div className="flex gap-2 p-2 border-t">
-                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={undo} disabled={!canUndo}>Undo</Button>
-                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={redo} disabled={!canRedo}>Redo</Button>
+                      <div className="flex gap-2 p-2 border-t border-white/10">
+                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs border-white/10 bg-[#11141b] text-zinc-200 hover:text-white" onClick={undo} disabled={!canUndo}>Undo</Button>
+                        <Button variant="outline" size="sm" className="flex-1 h-7 text-xs border-white/10 bg-[#11141b] text-zinc-200 hover:text-white" onClick={redo} disabled={!canRedo}>Redo</Button>
                       </div>
                     </PopoverContent>
                   </Popover>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-8 w-8" title="Resume versions"><FileText className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8 border-white/10 bg-[#161922] text-zinc-300 hover:text-white hover:bg-white/10" title="Resume versions"><FileText className="h-3.5 w-3.5" /></Button>
                     </PopoverTrigger>
-                    <PopoverContent align="start" className="w-80 p-0">
-                      <div className="px-3 py-2 border-b text-xs font-bold flex items-center justify-between">
+                    <PopoverContent align="start" className="w-80 p-0 bg-[#161922] border-white/10 text-zinc-100">
+                      <div className="px-3 py-2 border-b border-white/10 text-xs font-bold flex items-center justify-between">
                         <span>Resume Versions</span>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1" onClick={() => setShowVersionDialog(true)}>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-emerald-400 hover:bg-emerald-500/10" onClick={() => setShowVersionDialog(true)}>
                           <Plus className="h-3 w-3" /> Save Current
                         </Button>
                       </div>
-                      <div className="max-h-80 overflow-y-auto">
+                      <div className="max-h-80 overflow-y-auto custom-scrollbar">
                         {loadingVersions ? (
-                          <div className="p-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+                          <div className="p-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-zinc-400" /></div>
                         ) : versions.length === 0 ? (
-                          <p className="px-3 py-6 text-xs text-muted-foreground text-center italic">No named versions saved yet.</p>
+                          <p className="px-3 py-6 text-xs text-zinc-400 text-center italic">No named versions saved yet.</p>
                         ) : versions.map((v) => (
-                          <div key={v.id} className="px-3 py-3 text-xs flex items-center justify-between border-b last:border-0 hover:bg-muted/30 transition-colors group">
+                          <div key={v.id} className="px-3 py-3 text-xs flex items-center justify-between border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group">
                             <div className="flex-1 min-w-0 pr-2">
-                              <div className="font-bold truncate text-foreground">{v.name}</div>
-                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                              <div className="font-bold truncate text-zinc-200">{v.name}</div>
+                              <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
                                 {new Date(v.created_at).toLocaleDateString()} {new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             </div>
-                            <Button variant="outline" size="sm" className="h-7 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => restoreVersion(v)}>Restore</Button>
+                            <Button variant="outline" size="sm" className="h-7 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity border-white/10 bg-[#11141b] text-zinc-200 hover:text-white" onClick={() => restoreVersion(v)}>Restore</Button>
                           </div>
                         ))}
                       </div>
@@ -1010,15 +1010,35 @@ export default function ResumeBuilder() {
                 </div>
               </div>
 
+              {/* Center/Right: Page Budget Indicator & Sync Status */}
               <div className="flex items-center gap-2">
+                {/* 1-Page A4 Budget Indicator */}
+                <div
+                  className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-semibold border ${
+                    sheetHeight <= A4_HEIGHT_PX + 25
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                      : "bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse"
+                  }`}
+                  title={
+                    sheetHeight <= A4_HEIGHT_PX + 25
+                      ? "Optimal: Single A4 Page"
+                      : `Overflowing: ~${Math.ceil(sheetHeight / A4_HEIGHT_PX)} Pages (Tighten spacing or font size in formatting sidebar to fit 1 page)`
+                  }
+                >
+                  <FileText className="h-3 w-3" />
+                  <span>
+                    {sheetHeight <= A4_HEIGHT_PX + 25 ? "1 Page (ATS Optimal)" : `~${Math.ceil(sheetHeight / A4_HEIGHT_PX)} Pages (Overflow)`}
+                  </span>
+                </div>
+
                 {user && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 text-[10px] font-bold border border-border/50 text-muted-foreground mr-2">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#161922] text-[10px] font-semibold border border-white/10 text-zinc-400">
                     {saveStatus === "saving" ? (
-                      <Cloud className="h-3 w-3 animate-pulse text-primary" />
+                      <Cloud className="h-3 w-3 animate-pulse text-emerald-400" />
                     ) : saveStatus === "error" ? (
                       <CloudOff className="h-3 w-3 text-destructive" />
                     ) : (
-                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                     )}
                     <span className="hidden sm:inline">
                       {saveStatus === "saving" ? "Saving..." : saveStatus === "error" ? "Offline" : "Synced"}
@@ -1030,118 +1050,37 @@ export default function ResumeBuilder() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => fileRef.current?.click()} 
-                  className="h-9 rounded-xl gap-2 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 transition-all shadow-sm"
+                  className="h-8 rounded-xl gap-1.5 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 text-xs transition-all shadow-sm"
                   title="Import or drag a resume file (PDF, DOCX, TXT)"
                 >
-                  <Upload className="h-4 w-4 text-emerald-400" />
+                  <Upload className="h-3.5 w-3.5 text-emerald-400" />
                   <span className="hidden sm:inline">Import</span>
                 </Button>
 
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 rounded-xl gap-2 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 transition-all shadow-sm">
-                      <Palette className="h-4 w-4 text-emerald-400" />
-                      <span className="hidden sm:inline">Design & Layout</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#11141b] border-white/10 text-zinc-100">
-                    <SheetHeader><SheetTitle className="text-zinc-100">Design & Layout</SheetTitle></SheetHeader>
-                    <div className="py-6 space-y-8 overflow-y-auto max-h-[calc(100vh-100px)] px-1 custom-scrollbar">
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="text-sm font-bold uppercase tracking-wider text-zinc-400">Templates</Label>
-                          <span className="text-xs text-emerald-400 font-semibold">{TEMPLATES.length} Styles</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          {TEMPLATES.map(t => (
-                            <button 
-                              key={t.id} 
-                              type="button"
-                              onClick={() => {
-                                setTemplate(t.id);
-                              }} 
-                              className={`group relative rounded-xl border transition-all overflow-hidden flex flex-col text-left ${template === t.id ? "border-emerald-400 shadow-lg bg-[#1a1e29] ring-2 ring-emerald-400/50" : "border-white/10 hover:border-white/30 bg-[#161922] hover:bg-[#1a1e29]"}`}
-                            >
-                              <div className="aspect-[1/1.35] w-full bg-white relative overflow-hidden flex items-start justify-center p-1 border-b border-white/10">
-                                <TemplateMiniPreview template={t.id} data={resumeData} scale={0.17} className="pointer-events-none" />
-                                {t.tag && (
-                                  <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-slate-900/90 text-emerald-400 text-[8px] font-bold tracking-wider uppercase border border-white/10">
-                                    {t.tag}
-                                  </div>
-                                )}
-                                {template === t.id && (
-                                  <div className="absolute top-1.5 right-1.5 z-20 bg-emerald-500 text-slate-950 rounded-full p-0.5 shadow-md">
-                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-2.5 bg-[#161922]">
-                                <span className="text-[11px] font-bold block truncate group-hover:text-emerald-300 transition-colors">{t.name}</span>
-                                <span className="text-[9px] text-zinc-400 leading-tight mt-0.5 line-clamp-1">{t.desc}</span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator className="bg-white/10" />
-                      <PreferenceFilterBar prefs={prefs} onChange={setPrefs} onOpenWizard={() => setStarter("wizard")} />
-                      <Separator className="bg-white/10" />
-                      <div className="space-y-4">
-                        <Label className="text-sm font-bold uppercase tracking-wider text-zinc-400 block">Global Typography</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs text-zinc-300">Font Family</Label>
-                            <select className="w-full bg-[#161922] border border-white/10 rounded-xl px-2 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-emerald-500" value={resumeData.settings?.fontFamily} onChange={e => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontFamily: e.target.value } }))}>
-                              {fontFamilies.map(f => <option key={f.value} value={f.value} className="bg-[#161922] text-zinc-100">{f.label}</option>)}
-                            </select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-zinc-300">Base Size ({resumeData.settings?.fontSize}px)</Label>
-                            <div className="flex items-center gap-1 bg-[#161922] rounded-xl p-1 border border-white/10">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.max(8, (prev.settings?.fontSize || 11) - 1) } }))}>-</Button>
-                              <span className="flex-1 text-center font-bold text-zinc-100">{resumeData.settings?.fontSize}</span>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.min(16, (prev.settings?.fontSize || 11) + 1) } }))}>+</Button>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-[#161922] rounded-xl border border-white/10">
-                           <div className="flex items-center gap-2">
-                              <SpellCheck className={`h-4 w-4 ${spellCheckEnabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
-                              <Label className="text-sm text-zinc-200">Spell Check</Label>
-                           </div>
-                           <input type="checkbox" checked={spellCheckEnabled} onChange={e => setSpellCheckEnabled(e.target.checked)} className="h-4 w-4 accent-emerald-500" />
-                        </div>
-                      </div>
-                      <Separator className="bg-white/10" />
-                      <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-                
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button className="h-9 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-md shadow-emerald-500/20 gap-2 cursor-pointer transition-all">
-                      <Download className="h-4 w-4" />
+                    <Button className="h-8 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-md shadow-emerald-500/20 gap-1.5 cursor-pointer text-xs transition-all">
+                      <Download className="h-3.5 w-3.5" />
                       <span className="hidden sm:inline">Export</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2 bg-[#161922] border-white/10 text-zinc-100" align="end">
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-4 w-4 text-emerald-400" /> PDF Document</Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-4 w-4 text-emerald-400" /> Word (DOCX)</Button>
+                  <PopoverContent className="w-48 p-2 bg-[#161922] border-white/10 text-zinc-100 shadow-2xl" align="end">
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-emerald-400" /> PDF Document</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400" /> Word (DOCX)</Button>
                   </PopoverContent>
                 </Popover>
 
                 <div className="lg:hidden">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full"><Eye className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-white/10 bg-[#161922] text-zinc-200"><Eye className="h-3.5 w-3.5" /></Button>
                         </SheetTrigger>
-                        <SheetContent side="bottom" className="h-[90vh] p-0">
-                            <div className="p-4 border-b flex items-center justify-between">
-                                <h3 className="font-bold">Preview</h3>
-                                <Button variant="ghost" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
+                        <SheetContent side="bottom" className="h-[90vh] p-0 bg-[#090b0e] border-white/10 text-zinc-100">
+                            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                                <h3 className="font-bold text-sm text-zinc-100">Resume Preview</h3>
+                                <Button variant="ghost" size="sm" onClick={() => window.print()} className="text-zinc-400 hover:text-white"><Printer className="h-4 w-4" /></Button>
                             </div>
-                            <ScrollArea className="h-full p-6">
+                            <ScrollArea className="h-full p-4">
                                 {resumeData ? (
                                     <ResumePreview
                                       template={template}
@@ -1153,7 +1092,7 @@ export default function ResumeBuilder() {
                                       canRedo={canRedo}
                                     />
                                 ) : (
-                                    <div className="text-center py-20 text-muted-foreground italic">Preview pending...</div>
+                                    <div className="text-center py-20 text-zinc-500 italic text-xs">Preview pending...</div>
                                 )}
                             </ScrollArea>
                         </SheetContent>
@@ -2214,6 +2153,19 @@ export default function ResumeBuilder() {
                                 canUndo={canUndo}
                                 canRedo={canRedo}
                               />
+
+                              {/* Subtle Visual A4 Page 1 Cutoff Line Guide */}
+                              {sheetHeight > A4_HEIGHT_PX + 25 && (
+                                <div
+                                  className="preview-only-badge absolute left-0 right-0 pointer-events-none z-30 flex items-center justify-end pr-3 select-none"
+                                  style={{ top: `${A4_HEIGHT_PX}px` }}
+                                >
+                                  <div className="w-full border-b-2 border-dashed border-red-500/50 -mr-2" />
+                                  <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shrink-0">
+                                    ✂ Page 1 Cutoff (Overflow)
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
