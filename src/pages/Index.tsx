@@ -9,6 +9,8 @@ import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { FloatingResume } from "@/components/FloatingResume";
 import { SkillConstellation } from "@/components/SkillConstellation";
 import { ResumeRollingMarquee } from "@/components/ResumeRollingMarquee";
+import { InteractiveTailorDemo } from "@/components/InteractiveTailorDemo";
+import { SpotlightCard } from "@/components/SpotlightCard";
 import { TryNow } from "@/components/TryNow";
 import { OnboardingTour, shouldAutoStartTour } from "@/components/OnboardingTour";
 
@@ -120,6 +122,11 @@ const Index = () => {
       <ResumeRollingMarquee />
 
       {/* ================================================================
+          INTERACTIVE AI TAILOR SIMULATOR & ATS LIVE ENGINE
+          ================================================================ */}
+      <InteractiveTailorDemo />
+
+      {/* ================================================================
           ATS SCORE + AI RESUME BUILDER — SIDE BY SIDE PLAYGROUND
           ================================================================ */}
       <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#0c0e14] py-16 sm:py-20">
@@ -181,7 +188,7 @@ const Index = () => {
       </section>
 
       {/* ================================================================
-          CORE FEATURES GRID
+          CORE FEATURES GRID WITH SPOTLIGHT PHYSICS
           ================================================================ */}
       <section className="container mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
@@ -205,16 +212,16 @@ const Index = () => {
             { icon: ShieldCheck, title: "Pixel-Perfect PDF Export", desc: "Export clean, standard single-column PDF templates tested against Workday, Greenhouse & Lever." },
             { icon: Sparkles, title: "Cross-Industry Adaptation", desc: "From software engineering and data to product, marketing, and operations." },
           ].map(({ icon: Icon, title, desc }) => (
-            <div
+            <SpotlightCard
               key={title}
-              className="group rounded-2xl border border-white/[0.08] bg-[#11141b] hover:bg-[#161922] p-6 sm:p-7 shadow-lg hover:border-emerald-500/40 hover:-translate-y-1 transition-all duration-300"
+              className="group p-6 sm:p-7 shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="font-semibold text-lg text-white">{title}</h3>
               <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">{desc}</p>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </section>
@@ -289,9 +296,9 @@ const Index = () => {
             { name: "Rahul Mehta", role: "Product Manager @ Swiggy", quote: "I tailored 12 resumes for different PM roles in one afternoon. Landed 4 first-round interviews.", initials: "RM" },
             { name: "Sneha Kapoor", role: "Data Analyst @ Flipkart", quote: "The missing keyword analysis showed me critical terms I left out. Recruiters started reaching out instantly.", initials: "SK" },
           ].map((t) => (
-            <div
+            <SpotlightCard
               key={t.name}
-              className="rounded-2xl border border-white/[0.08] bg-[#11141b] p-6 sm:p-7 shadow-lg flex flex-col justify-between"
+              className="p-6 sm:p-7 shadow-lg flex flex-col justify-between"
             >
               <div>
                 <Quote className="h-6 w-6 text-emerald-400/40 mb-3" />
@@ -312,7 +319,7 @@ const Index = () => {
                   <div className="text-xs text-zinc-400">{t.role}</div>
                 </div>
               </div>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </section>
