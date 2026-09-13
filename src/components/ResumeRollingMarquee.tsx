@@ -275,10 +275,18 @@ export const ResumeRollingMarquee = memo(function ResumeRollingMarquee() {
           100% { transform: translateX(0); }
         }
         .marquee-row {
-          animation: scrollLeft 38s linear infinite;
+          animation: scrollLeft 78s linear infinite;
         }
         .marquee-row-reverse {
-          animation: scrollRight 38s linear infinite;
+          animation: scrollRight 78s linear infinite;
+        }
+        @media (max-width: 640px) {
+          .marquee-row {
+            animation-duration: 60s;
+          }
+          .marquee-row-reverse {
+            animation-duration: 60s;
+          }
         }
       `}</style>
     </div>

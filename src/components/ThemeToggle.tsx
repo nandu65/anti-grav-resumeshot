@@ -21,15 +21,17 @@ export function applyTheme(theme: "light" | "dark") {
 export function initTheme() {
   if (typeof window === "undefined") return;
   const saved = localStorage.getItem(KEY) as "light" | "dark" | null;
-  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  const initial = saved ?? (prefersDark ? "dark" : "light");
+  // Default to Dark Mode only. Switch to Light Mode only if explicitly saved by user.
+  const initial = saved === "light" ? "light" : "dark";
   applyTheme(initial);
 }
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof document === "undefined") return "dark";
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    const saved = localStorage.getItem(KEY);
+    if (saved === "light") return "light";
+    return "dark";
   });
 
   useEffect(() => {
