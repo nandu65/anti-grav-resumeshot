@@ -292,9 +292,9 @@ const Index = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {[
+            { name: "Mounika Reddy", role: "Cloud SDE @ Microsoft", quote: "My ATS score jumped from 44 to 98. The keyword injection and quantifiable bullets made all the difference in getting shortlisted!", initials: "MR" },
             { name: "Priya Sharma", role: "SDE-2 @ Razorpay", quote: "My ATS match score jumped from 41 to 86 in minutes. I got 3 interview calls the exact same week!", initials: "PS" },
             { name: "Rahul Mehta", role: "Product Manager @ Swiggy", quote: "I tailored 12 resumes for different PM roles in one afternoon. Landed 4 first-round interviews.", initials: "RM" },
-            { name: "Sneha Kapoor", role: "Data Analyst @ Flipkart", quote: "The missing keyword analysis showed me critical terms I left out. Recruiters started reaching out instantly.", initials: "SK" },
           ].map((t) => (
             <SpotlightCard
               key={t.name}

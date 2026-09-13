@@ -16,6 +16,18 @@ interface ResumeTickerItem {
 
 const TRACK_1: ResumeTickerItem[] = [
   {
+    id: "mounika-reddy",
+    name: "Mounika Reddy",
+    role: "Full Stack SDE & Cloud Engineer",
+    company: "Microsoft",
+    companyColor: "#00A4EF",
+    score: 98,
+    highlight: "ATS Score: 44 → 98 (Top 1%)",
+    keywords: ["React.js", "Azure", "Microservices", "System Design"],
+    hike: "Offered ₹42 LPA",
+    time: "Just now",
+  },
+  {
     id: "1",
     name: "Arjun S.",
     role: "Senior Frontend Engineer",

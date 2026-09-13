@@ -99,6 +99,7 @@ function AppRoutes() {
 const queryClient = new QueryClient();
 
 import { useEffect } from "react";
+import { GlobalCursorSpotlight } from "@/components/GlobalCursorSpotlight";
 
 const App = () => {
   useEffect(() => {
@@ -123,6 +124,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <GlobalCursorSpotlight />
         <Toaster />
         <Sonner />
         <BrowserRouter>
