@@ -264,22 +264,6 @@ export const ResumeRollingMarquee = memo(function ResumeRollingMarquee() {
           </div>
         ))}
       </div>
-              <span className="text-emerald-400 font-medium flex items-center gap-1 text-[11px]">
-                <TrendingUp className="h-3 w-3" /> {item.highlight}
-              </span>
-              <span className="text-[10px] text-zinc-500 font-mono">100% ATS Safe</span>
-            </div>
-
-            <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex flex-wrap gap-1">
-              {item.keywords.map((kw, kIdx) => (
-                <span key={kIdx} className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-zinc-300 border border-white/[0.06] font-mono">
-                  ✓ {kw}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
 
       <style>{`
         @keyframes scrollLeft {
