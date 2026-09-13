@@ -1125,13 +1125,14 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <div className="uppercase tracking-wider text-[9px] font-bold border-b border-emerald-600 pb-1 mb-2">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <ul className="space-y-1 text-[9.5px]">
                 {r.skills.flatMap(s => s.items).map((it, k) => (
-                  <span key={k} className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-700/50 text-emerald-50 border border-emerald-600/30 whitespace-nowrap">
-                    {it}
-                  </span>
+                  <li key={k} className="flex items-start gap-1.5">
+                    <span className="text-emerald-300 font-bold select-none">•</span>
+                    <span>{it}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
           {r.certifications?.length > 0 && (
@@ -2266,7 +2267,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                       <span className="font-semibold text-[12px]"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /> — <span className="italic font-normal"><Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span></span>
                       <span className="text-[10px] italic text-stone-500 whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
                     </div>
-                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-[square] pl-4 mt-1 text-[10.5px] space-y-0.5" />
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10.5px] space-y-0.5" />
                   </div>
                 );
               })}
@@ -2287,7 +2288,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                       <span className="font-semibold text-[12px]"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /> — <span className="italic font-normal"><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span></span>
                       <span className="text-[10px] italic text-stone-500 whitespace-nowrap"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
                     </div>
-                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-[square] pl-4 mt-1 text-[10.5px] space-y-0.5" />
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10.5px] space-y-0.5" />
                   </div>
                 );
               })}
@@ -2519,11 +2520,14 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
                 return (
                   <div key={i} className="mb-2">
                     <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                    <div className="flex flex-wrap gap-1 mt-0.5">
+                    <ul className="space-y-1 mt-1 text-[9.5px]">
                       {s.items.map((it, k) => (
-                        <span key={k} className="text-[9px] px-1.5 py-0.5 rounded-full bg-teal-600 text-teal-50 border border-teal-500/30">{it}</span>
+                        <li key={k} className="flex items-start gap-1.5">
+                          <span className="text-teal-300 font-bold select-none">•</span>
+                          <span>{it}</span>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 );
               })}
@@ -3674,12 +3678,15 @@ function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="flex items-start text-[10px]">
                       <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold text-slate-800 w-36 shrink-0" colon />
-                      <div className="flex flex-wrap gap-1 flex-1">
-                        {s.items.map((it, idx) => (
-                          <span key={idx} className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[9.5px] border border-slate-200">
-                            {it}
-                          </span>
-                        ))}
+                      <div className="flex-1">
+                        <ul className="space-y-1 text-[9.5px]">
+                          {s.items.map((it, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <span className="text-slate-600 select-none">•</span>
+                              <span>{it}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   );
@@ -4025,13 +4032,14 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i}>
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-mono font-bold text-[9.5px] text-slate-700 mb-1" />
-                      <div className="flex flex-wrap gap-1">
+                      <ul className="space-y-1 text-[9.5px]">
                         {s.items.map((it, idx) => (
-                          <span key={idx} className="bg-white font-mono text-[9px] text-slate-800 px-1.5 py-0.5 rounded border border-slate-300">
-                            {it}
-                          </span>
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="text-cyan-600 font-mono select-none">•</span>
+                            <span className="font-mono text-slate-800">{it}</span>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   );
                 })}
@@ -6699,7 +6707,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
       return new Paragraph({
         spacing: { after: 30 },
         children: [
-          new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font: bulletFont }),
+          new TextRun({ text: "• ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font: bulletFont }),
           ...parts.map(p => new TextRun({
             text: p.text,
             bold: p.bold || defaultBold,
@@ -6827,7 +6835,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
               out.push(new Paragraph({
                 spacing: { after: 30 },
                 children: [
-                  new TextRun({ text: "▪ ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font }),
+                  new TextRun({ text: "• ", size: Math.round(fontSize * 0.8), color: cfg.sidebarHeadingColor || "FFFFFF", font }),
                   new TextRun({ text: it, size: fontSize, color: secTextColor || "FFFFFF", font }),
                 ],
               }));
