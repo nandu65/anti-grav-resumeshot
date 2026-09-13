@@ -5985,21 +5985,41 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   const data = normalizeResumeSkills(rawData);
   const safe = safeName(data.name);
 
-  // 1. Create an isolated off-screen export container to render exact data without interference from DOM previews
+  // Prefer cloning the active, already-rendered live preview in DOM
+  const livePreview = document.querySelector(
+    '[data-main-resume-preview="true"], .resume-root-container:not([data-rs-mini="true"])'
+  ) as HTMLElement | null;
+
+  // Create an off-screen export container with opacity: 1 and placed offscreen via left position
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper";
-  wrapper.style.cssText = `position: absolute; left: 0; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
+  wrapper.style.cssText = `position: fixed; left: -99999px; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: 1000; opacity: 1; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
   document.body.appendChild(wrapper);
 
   let root: any = null;
   try {
-    const { createRoot } = await import("react-dom/client");
-    root = createRoot(wrapper);
-    root.render(
-      <React.StrictMode>
-        <ResumePreview template={template} data={data} isExport={true} />
-      </React.StrictMode>
-    );
+    if (livePreview) {
+      const clone = livePreview.cloneNode(true) as HTMLElement;
+      clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
+
+      // Clean up UI-only artifacts
+      clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => {
+        if (el.textContent?.includes("Page") || el.querySelector(".border-dashed") || el.classList.contains("border-dashed")) {
+          el.remove();
+        }
+      });
+      clone.querySelectorAll('[data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"]').forEach(el => el.remove());
+      clone.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
+      wrapper.appendChild(clone);
+    } else {
+      const { createRoot } = await import("react-dom/client");
+      root = createRoot(wrapper);
+      root.render(
+        <React.StrictMode>
+          <ResumePreview template={template} data={data} isExport={true} />
+        </React.StrictMode>
+      );
+    }
 
     // Wait for fonts & layout rendering to settle
     if (document.fonts) {
@@ -6007,7 +6027,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
         await document.fonts.ready;
       } catch (_) {}
     }
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 250));
 
     // Tag sections synchronously to ensure all custom headings, spacing, and typography rules apply
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
@@ -6017,7 +6037,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     const totalPages = Math.max(1, Math.ceil((rawHeight - 25) / A4_HEIGHT_PX));
     const targetHeight = totalPages * A4_HEIGHT_PX;
 
-    const canvas = await html2canvas(wrapper, {
+    const canvas = await html2canvas(sheetEl, {
       scale: 3, // 300+ DPI print-grade ultra-sharp resolution
       useCORS: true,
       allowTaint: true,
@@ -6030,13 +6050,18 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       windowWidth: A4_WIDTH_PX,
       windowHeight: targetHeight,
       onclone: (clonedDoc) => {
-        const el = clonedDoc.getElementById("rs-pdf-export-wrapper");
-        if (el) {
-          el.style.opacity = "1";
-          el.style.zIndex = "99999";
-          el.style.textRendering = "geometricPrecision";
-          (el.style as any).webkitFontSmoothing = "antialiased";
-          (el.style as any).mozOsxFontSmoothing = "grayscale";
+        const wrap = clonedDoc.getElementById("rs-pdf-export-wrapper");
+        if (wrap) {
+          wrap.style.position = "static";
+          wrap.style.left = "0px";
+          wrap.style.top = "0px";
+          wrap.style.transform = "none";
+          wrap.style.opacity = "1";
+          wrap.style.visibility = "visible";
+          wrap.style.display = "block";
+          wrap.style.textRendering = "geometricPrecision";
+          (wrap.style as any).webkitFontSmoothing = "antialiased";
+          (wrap.style as any).mozOsxFontSmoothing = "grayscale";
         }
       },
     });

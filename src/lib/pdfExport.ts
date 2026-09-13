@@ -58,7 +58,7 @@ export async function downloadResumePdf(opt: ExportData) {
 
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper-opt";
-  wrapper.style.cssText = `position: absolute; left: 0; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
+  wrapper.style.cssText = `position: fixed; left: -99999px; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: 1000; opacity: 1; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
 
   const clone = element.cloneNode(true) as HTMLElement;
   clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
@@ -100,13 +100,18 @@ export async function downloadResumePdf(opt: ExportData) {
       windowWidth: A4_WIDTH_PX,
       windowHeight: targetHeight,
       onclone: (clonedDoc) => {
-        const el = clonedDoc.getElementById("rs-pdf-export-wrapper-opt");
-        if (el) {
-          el.style.opacity = "1";
-          el.style.zIndex = "99999";
-          el.style.textRendering = "geometricPrecision";
-          (el.style as any).webkitFontSmoothing = "antialiased";
-          (el.style as any).mozOsxFontSmoothing = "grayscale";
+        const wrap = clonedDoc.getElementById("rs-pdf-export-wrapper-opt");
+        if (wrap) {
+          wrap.style.position = "static";
+          wrap.style.left = "0px";
+          wrap.style.top = "0px";
+          wrap.style.transform = "none";
+          wrap.style.opacity = "1";
+          wrap.style.visibility = "visible";
+          wrap.style.display = "block";
+          wrap.style.textRendering = "geometricPrecision";
+          (wrap.style as any).webkitFontSmoothing = "antialiased";
+          (wrap.style as any).mozOsxFontSmoothing = "grayscale";
         }
       },
     });
