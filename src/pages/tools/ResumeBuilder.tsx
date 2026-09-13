@@ -468,11 +468,11 @@ export default function ResumeBuilder() {
       if (Array.isArray(p.links)) p.links.forEach((l: any) => l?.url && parsedLinks.push({ label: l.label || "Link", url: l.url }));
 
       const rawExp = (p.experience || []).map((e: any) => ({
-        company: e.company || "", role: e.role || "", location: e.location || "",
+        company: e.company || e.organization || "", role: e.role || "", location: e.location || "",
         start: e.start || "", end: e.end || "", bullets: Array.isArray(e.bullets) ? e.bullets : (e.bullets ? [e.bullets] : []),
       }));
       const rawLead = (p.leadership || []).map((l: any) => ({
-        organization: l.organization || "", role: l.role || "", location: l.location || "",
+        organization: l.organization || l.company || "", role: l.role || "", location: l.location || "",
         start: l.start || "", end: l.end || "", bullets: Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : []),
       }));
 

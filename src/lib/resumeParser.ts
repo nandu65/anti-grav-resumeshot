@@ -19,9 +19,9 @@ export interface ParsedResumeResult {
 
 const KNOWN_LOCATIONS = /\b(Bengaluru|Bangalore|Chennai|Mumbai|Delhi|New Delhi|Hyderabad|Pune|Kolkata|Noida|Gurugram|Gurgaon|Ahmedabad|Remote|India|USA|UK|San Francisco|New York|London|California|Texas|Seattle|Boston)\b/i;
 
-const LEADERSHIP_ROLE_KEYWORDS = /\b(placement coordinator|coordinator|event coordinator|program coordinator|volunteer|volunteering|social worker|class representative|cr\b|student representative|representative|head boy|head girl|captain|house captain|vice captain|sports captain|team captain|school band|band member|choir|president|vice president|vp\b|secretary|joint secretary|treasurer|student council|student body|council member|committee member|club lead|chapter lead|campus lead|community lead|campus ambassador|student ambassador|mentor|peer mentor|organizer|co-organizer|event head|cultural head|fest coordinator|ncc|nss|rotaract|leo club)\b/i;
+const LEADERSHIP_ROLE_KEYWORDS = /\b(placement coordinator|coordinator|event coordinator|program coordinator|volunteer|volunteering|social worker|class representative|cr\b|student representative|representative|head boy|head girl|captain|house captain|vice captain|sports captain|team captain|school band|band member|choir|president|vice president|vp\b|secretary|joint secretary|treasurer|student council|student body|council member|committee member|club lead|chapter lead|campus lead|community lead|campus ambassador|student ambassador|mentor|peer mentor|organizer|co-organizer|event head|cultural head|fest coordinator|ncc|nss|rotaract|leo club|lead\b|team lead|student lead|community lead|youth lead|volunteer lead|board member|core member|core team|organizing committee|executive committee|general secretary|cultural secretary|sports secretary|webmaster|head of operations|head of marketing|pr head|head of pr|head of logistics|campaign lead|brand ambassador|moderator|trustee|director at ngo|youth forum|scout|guide|advisor|fellow|community manager)\b/i;
 
-const LEADERSHIP_ORG_KEYWORDS = /\b(club|society|chapter|student council|school band|house team|red house|blue house|green house|yellow house|committee|cell|rotaract|leo club|nss|ncc|ngo|foundation|student branch|eminence club|cultural committee|placement cell)\b/i;
+const LEADERSHIP_ORG_KEYWORDS = /\b(club|society|chapter|student council|school band|house team|red house|blue house|green house|yellow house|committee|cell|rotaract|leo club|nss|ncc|ngo|foundation|student branch|eminence club|cultural committee|placement cell|association|forum|trust|initiative|guild|council|union|brigade|squad|ieee|acm|aiesec|toastmasters|rotary|lions club|interact|csi|tedx|e-cell|entrepreneurship cell|placement division|departmental committee|sports committee|symposium|non-profit|nonprofit|charity|youth organization|student union)\b/i;
 
 export function isLeadershipEntry(entry: { role?: string; company?: string; organization?: string; bullets?: string[] }): boolean {
   const role = (entry.role || "").trim();
@@ -30,33 +30,53 @@ export function isLeadershipEntry(entry: { role?: string; company?: string; orga
 
   if (LEADERSHIP_ROLE_KEYWORDS.test(role)) return true;
   if (LEADERSHIP_ORG_KEYWORDS.test(org)) return true;
-  if (/\b(volunteer|volunteered|coordinated placement|organized college|student representative|sports victory|house captain|school band)\b/i.test(bulletsStr)) return true;
+  if (/\b(volunteer|volunteered|coordinated placement|organized college|student representative|sports victory|house captain|school band|led a team|mentored \d+|managed club|spearheaded|organized annual|headed the student|elected as|appointed as|coordinated inter|presided over|community service)\b/i.test(bulletsStr)) return true;
 
   return false;
 }
 
 export function separateExperienceAndLeadership(
-  experience: { company: string; role: string; location: string; start: string; end: string; bullets: string[] }[],
-  leadership: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] }[] = []
+  experience: { company?: string; organization?: string; role: string; location?: string; start?: string; end?: string; bullets?: string[] }[],
+  leadership: { company?: string; organization?: string; role: string; location?: string; start?: string; end?: string; bullets?: string[] }[] = []
 ): {
   experience: { company: string; role: string; location: string; start: string; end: string; bullets: string[] }[];
   leadership: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] }[];
 } {
-  const cleanExp: typeof experience = [];
-  const cleanLead: typeof leadership = [...leadership];
+  const cleanExp: { company: string; role: string; location: string; start: string; end: string; bullets: string[] }[] = [];
+  const cleanLead: { organization: string; role: string; location: string; start: string; end: string; bullets: string[] }[] = [];
 
+  // 1. Existing leadership entries
+  for (const lead of leadership) {
+    cleanLead.push({
+      organization: lead.organization || lead.company || "Organization",
+      role: lead.role || "Member",
+      location: lead.location || "",
+      start: lead.start || "",
+      end: lead.end || "",
+      bullets: Array.isArray(lead.bullets) ? lead.bullets : (lead.bullets ? [lead.bullets] : []),
+    });
+  }
+
+  // 2. Filter experience entries and extract leadership roles
   for (const exp of experience) {
     if (isLeadershipEntry(exp)) {
       cleanLead.push({
-        organization: exp.company,
+        organization: exp.organization || exp.company || "Organization",
         role: exp.role || "Member",
-        location: exp.location,
-        start: exp.start,
-        end: exp.end,
-        bullets: exp.bullets,
+        location: exp.location || "",
+        start: exp.start || "",
+        end: exp.end || "",
+        bullets: Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : []),
       });
     } else {
-      cleanExp.push(exp);
+      cleanExp.push({
+        company: exp.company || exp.organization || "Company",
+        role: exp.role || "Professional",
+        location: exp.location || "",
+        start: exp.start || "",
+        end: exp.end || "",
+        bullets: Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : []),
+      });
     }
   }
 
@@ -367,13 +387,13 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
   // 5. Section Partitioning
   const sectionHeaders: { index: number; type: string; header: string }[] = [];
   const sectionKeywords: [string, RegExp][] = [
-    ["summary", /^(professional summary|summary|profile|about me|executive summary|personal statement)$/i],
-    ["leadership", /^(leadership experience|leadership|volunteer experience|volunteering|community leadership|community service|extracurricular activities|extra-curricular activities|co-curricular activities|extracurriculars|activities|leadership & activities|leadership and activities|leadership & involvement|leadership and involvement|leadership & volunteering|leadership and volunteering|positions of responsibility|position of responsibility|student leadership|campus involvement)$/i],
-    ["experience", /^(work experience|professional experience|experience|employment history|work history|career history|internships|internship experience)$/i],
-    ["education", /^(education|academic background|academics|qualifications|academic history)$/i],
-    ["skills", /^(skills|core competencies|technical skills|key skills|technologies|areas of expertise|competencies)$/i],
-    ["projects", /^(projects|academic projects|key projects|personal projects|technical projects)$/i],
-    ["certifications", /^(certifications|licenses & certifications|certificates|credentials|licenses)$/i],
+    ["summary", /^(professional summary|summary|profile|about me|executive summary|personal statement|overview)$/i],
+    ["leadership", /^(leadership(\s+(experience|activities|and\s+activities|&\s+activities|involvement|and\s+involvement|&\s+involvement|volunteering|and\s+volunteering|&\s+volunteering|roles|initiatives|service|and\s+service|&\s+service|community|and\s+community|&\s+community|positions|and\s+awards|&\s+awards))?|volunteer(\s+(experience|work|service|activities|and\s+leadership|&\s+leadership|involvement))?|volunteering(\s+(experience|activities|work|&\s+leadership|and\s+leadership))?|community\s+(leadership|service|involvement|engagement)|extracurricular(\s+(activities|involvement|leadership))?|extra-curricular(\s+(activities|involvement|leadership))?|co-curricular(\s+(activities|involvement|leadership))?|extracurriculars|activities(\s+(and\s+leadership|&\s+leadership|and\s+involvement|&\s+involvement|and\s+awards|&\s+awards))?|positions?\s+of\s+responsibility|positions?\s+held|student\s+leadership|campus\s+(leadership|involvement|activities)|leadership\s*\/\s*volunteer(ing)?|volunteer(ing)?\s*\/\s*leadership|social\s+(work|initiatives|service)|club\s+(activities|involvement|leadership)|organizations?\s+(and\s+leadership|&\s+leadership)|student\s+(activities|council|body))$/i],
+    ["experience", /^(work experience|professional experience|experience|employment history|employment|work history|career history|relevant experience|internships|internship experience|industry experience)$/i],
+    ["education", /^(education|academic background|academics|qualifications|academic history|education & training|education and training)$/i],
+    ["skills", /^(skills|core competencies|technical skills|key skills|technologies|areas of expertise|competencies|skills & competencies|technical expertise)$/i],
+    ["projects", /^(projects|academic projects|key projects|personal projects|technical projects|notable projects|portfolio projects)$/i],
+    ["certifications", /^(certifications|licenses & certifications|certificates|credentials|licenses|courses & certifications|certifications & licenses)$/i],
   ];
 
   lines.forEach((line, idx) => {
