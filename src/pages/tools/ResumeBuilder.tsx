@@ -1162,14 +1162,16 @@ export default function ResumeBuilder() {
               </div>
             </div>
 
-            <div className={`flex-1 min-h-0 transition-all duration-300 ${
-              isEditorCollapsed
-                ? "flex flex-col overflow-hidden"
-                : "grid lg:grid-cols-[0.82fr_1.38fr] xl:grid-cols-[0.85fr_1.45fr] gap-5 overflow-hidden"
-            }`}>
+            <div className="flex-1 min-h-0 flex relative gap-0 overflow-hidden w-full">
               {/* LEFT COLUMN: FORM EDITOR */}
-              {!isEditorCollapsed && (
-                <div className="h-full overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-6 min-h-0 animate-in fade-in-50 duration-200">
+              <div 
+                className={`h-full min-h-0 shrink-0 transition-all duration-500 ease-in-out relative flex flex-col ${
+                  isEditorCollapsed 
+                    ? "w-0 max-w-0 opacity-0 -translate-x-8 pointer-events-none pr-0 overflow-hidden" 
+                    : "w-full lg:w-[42%] xl:w-[38%] opacity-100 translate-x-0 pr-3"
+                }`}
+              >
+                <div className="h-full overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar space-y-6 min-h-0">
                   {/* NAVIGATION */}
                   <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-md py-2 px-1 -mx-1 border-b">
                     {[
@@ -1196,17 +1198,6 @@ export default function ResumeBuilder() {
                         {s.label}
                       </button>
                     ))}
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsEditorCollapsed(true)}
-                      className="hidden lg:flex items-center gap-1 ml-auto h-7 px-2 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
-                      title="Collapse Editor Sidebar (◀)"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                      <span>Hide</span>
-                    </Button>
                   </nav>
 
 
@@ -1931,33 +1922,32 @@ export default function ResumeBuilder() {
                         </div>
                      </div>
                    </div>
-                )}
+                </div>
+
+                {/* SLIDE TOGGLE ARROW HANDLE ON THE BORDER */}
+                <div className="hidden lg:flex items-center justify-center relative z-30 shrink-0 select-none py-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                    className={`group relative flex items-center justify-center -ml-3 w-6 h-14 rounded-full bg-background border-2 border-border/80 hover:border-primary/60 text-muted-foreground hover:text-primary shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer ${
+                      isEditorCollapsed ? "ml-1" : ""
+                    }`}
+                    title={isEditorCollapsed ? "Expand Editor (▶)" : "Slide Off Editor (◀)"}
+                    aria-label={isEditorCollapsed ? "Expand Editor" : "Slide Off Editor"}
+                  >
+                    {isEditorCollapsed ? (
+                      <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    ) : (
+                      <ChevronLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
+                    )}
+                  </button>
+                </div>
+
                 {/* RIGHT COLUMN: INDEPENDENT PREVIEW PANE */}
-                <div className={`hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0 ${isEditorCollapsed ? 'flex-1 w-full' : ''}`}>
+                <div className={`hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0 flex-1 min-w-0 transition-all duration-500 ease-in-out ${isEditorCollapsed ? 'flex-1 w-full' : ''}`}>
 
                   {/* Rich Text Toolbar */}
                   <div className="shrink-0 flex items-center gap-1 p-2 bg-background/80 backdrop-blur-sm border-b">
-                    <Button 
-                      variant={isEditorCollapsed ? "secondary" : "ghost"}
-                      size="sm" 
-                      className={`h-8 px-2.5 gap-1.5 text-xs font-bold rounded-lg border transition-all ${
-                        isEditorCollapsed 
-                          ? "bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90" 
-                          : "border-transparent text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
-                      title={isEditorCollapsed ? "Expand Editor Panel (▶)" : "Collapse Editor (Focus Mode ◀)"}
-                    >
-                      {isEditorCollapsed ? (
-                        <>
-                          <PanelLeftOpen className="h-4 w-4" />
-                          <span>Show Editor</span>
-                        </>
-                      ) : (
-                        <PanelLeftClose className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Separator orientation="vertical" className="h-4 mx-1" />
                     <Button 
                       variant="ghost" 
                       size="sm" 
