@@ -38,6 +38,7 @@ export interface ResumeSettings {
   fontSize?: number;
   headingSize?: number;
   fontFamily?: string;
+  textOpacity?: number;
   primaryColor?: string;
   accentColor?: string;
   headerBg?: string;
@@ -892,7 +893,7 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
   return (
     <div 
-      className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" 
+      className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" 
       style={{ 
         minHeight: "var(--page-h, auto)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
@@ -900,7 +901,19 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       }}
     >
       <div className="grid grid-cols-[35%_65%] h-full min-h-[1056px]">
-        <div className="bg-emerald-800 text-white p-5">
+        <div
+          className="relative text-white p-5 group/sidebar cursor-pointer transition-colors"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#065f46" }}
+          data-color-target="sidebar"
+          data-color-label="Left Sidebar"
+          data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#065f46"}
+          title={update ? "Click to change color" : undefined}
+        >
+          {update && (
+            <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/sidebar:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+              <span>🎨 Color</span>
+            </div>
+          )}
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-lg leading-tight" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-emerald-100 text-[10px] mt-0.5" />
           <div className="mt-4 space-y-1 text-[10px] text-emerald-50 break-words">
@@ -1591,8 +1604,20 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const rightKeys = ["skills", "education", "certifications"];
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="p-5 bg-gradient-to-r from-indigo-700 via-indigo-600 to-fuchsia-600 text-white">
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+      <div
+        className="p-5 text-white relative group/header cursor-pointer transition-colors"
+        style={{ background: r.settings?.headerBg || r.settings?.primaryColor || "linear-gradient(to right, #4338ca, #4f46e5, #c026d3)" }}
+        data-color-target="header"
+        data-color-label="Indigo Creative Header"
+        data-current-color={r.settings?.headerBg || r.settings?.primaryColor || "#4338ca"}
+        title={update ? "Click to change color" : undefined}
+      >
+        {update && (
+          <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/header:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+            <span>🎨 Color</span>
+          </div>
+        )}
         <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-extrabold text-2xl tracking-tight" />
         <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-indigo-100 text-[11px]" />
         <div className="flex flex-wrap gap-x-3 mt-2 text-[10px] text-indigo-50">
@@ -2355,7 +2380,7 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       <div className="grid grid-cols-[minmax(0,1fr)_240px] h-full">
         <div className="p-6">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-2xl tracking-tight" />
@@ -2367,7 +2392,19 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           </div>
           {sectionOrder.filter(k => leftKeys.includes(k)).map(k => renderMainSection(k))}
         </div>
-        <div className="bg-teal-800 text-teal-50 p-5">
+        <div
+          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#115e59" }}
+          data-color-target="sidebar"
+          data-color-label="Dark Teal Sidebar"
+          data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#115e59"}
+          title={update ? "Click to change color" : undefined}
+        >
+          {update && (
+            <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/sidebar:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+              <span>🎨 Color</span>
+            </div>
+          )}
           <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-teal-600 flex items-center justify-center text-xl font-bold text-white ring-2 ring-teal-300/40">
             {initials(r.name)}
           </div>
@@ -2545,7 +2582,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       <div
         className="relative text-white px-6 py-5 flex items-center gap-4 group/header cursor-pointer transition-colors"
         style={{ backgroundColor: r.settings?.headerBg || r.settings?.primaryColor || "#1e293b" }}
@@ -2854,8 +2891,20 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
-      <div className="bg-[#0f2340] text-white px-6 py-6 flex items-center gap-5">
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+      <div
+        className="text-white px-6 py-6 flex items-center gap-5 relative group/header cursor-pointer transition-colors"
+        style={{ backgroundColor: r.settings?.headerBg || r.settings?.primaryColor || "#0f2340" }}
+        data-color-target="header"
+        data-color-label="Navy Header Banner"
+        data-current-color={r.settings?.headerBg || r.settings?.primaryColor || "#0f2340"}
+        title={update ? "Click to change color" : undefined}
+      >
+        {update && (
+          <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/header:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+            <span>🎨 Color</span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-2xl tracking-tight uppercase" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-sky-200 text-[11px] mt-1" />
@@ -3013,9 +3062,21 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   };
 
   return (
-    <div className="bg-white text-neutral-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
+    <div className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       <div className="grid grid-cols-[240px_minmax(0,1fr)] h-full">
-        <div className="bg-teal-700 text-teal-50 p-5">
+        <div
+          className="text-teal-50 p-5 relative group/sidebar cursor-pointer transition-colors"
+          style={{ backgroundColor: r.settings?.sidebarBg || r.settings?.primaryColor || "#0f766e" }}
+          data-color-target="sidebar"
+          data-color-label="Teal Left Sidebar"
+          data-current-color={r.settings?.sidebarBg || r.settings?.primaryColor || "#0f766e"}
+          title={update ? "Click to change color" : undefined}
+        >
+          {update && (
+            <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/sidebar:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+              <span>🎨 Color</span>
+            </div>
+          )}
           <Editable as="div" value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} className="font-bold text-lg leading-tight uppercase" />
           <Editable as="div" value={r.title} onChange={update && (v => on({ title: v }))} className="text-teal-100 text-[10px] mt-1" />
           <div className="mt-3 text-[10px] space-y-1 break-words">
@@ -3852,14 +3913,26 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
   return (
     <div
-      className="bg-white text-slate-900 shadow-elegant rounded-lg overflow-hidden font-sans text-[11px] leading-snug w-full"
+      className="bg-white text-slate-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug w-full"
       style={{
         minHeight: "var(--page-h, auto)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
         fontFamily: r.settings?.fontFamily || undefined,
       }}
     >
-      <div className="bg-slate-950 text-white p-6 border-b-2 border-cyan-500">
+      <div
+        className="text-white p-6 border-b-2 border-cyan-500 relative group/header cursor-pointer transition-colors"
+        style={{ backgroundColor: r.settings?.headerBg || r.settings?.primaryColor || "#020617" }}
+        data-color-target="header"
+        data-color-label="Dark Tech Header"
+        data-current-color={r.settings?.headerBg || r.settings?.primaryColor || "#020617"}
+        title={update ? "Click to change color" : undefined}
+      >
+        {update && (
+          <div className="preview-only-badge absolute top-2 right-2 opacity-0 group-hover/header:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 pointer-events-none shadow backdrop-blur-sm z-10">
+            <span>🎨 Color</span>
+          </div>
+        )}
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-2">
@@ -5284,6 +5357,7 @@ export function tagSections(root: HTMLElement | null, customTitles?: Partial<Rec
 
 function sectionCss(scope: string, settings?: ResumeSettings) {
   const baseRules: string[] = [
+    `${scope} .resume-page-sheet, ${scope} [data-rs-export], ${scope} > div > div:first-child, ${scope} .rounded-lg, ${scope} .rounded-xl, ${scope} .rounded-2xl { border-radius: 0 !important; }`,
     `${scope} ul.list-disc { list-style-type: none !important; list-style: none !important; padding-left: 0 !important; }`,
     `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
     `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
@@ -5294,6 +5368,20 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
 
   if (settings.fontFamily) {
     baseRules.push(`${scope}, ${scope} * { font-family: ${settings.fontFamily} !important; }`);
+  }
+  if (settings.textOpacity != null && settings.textOpacity < 1) {
+    baseRules.push(`${scope} p, ${scope} li, ${scope} span, ${scope} div:not([data-color-target]):not([data-page-badge]) { opacity: ${settings.textOpacity} !important; }`);
+  }
+  if (settings.primaryColor) {
+    baseRules.push(`${scope} [data-rs-head] { color: ${settings.primaryColor} !important; border-color: ${settings.primaryColor} !important; }`);
+    baseRules.push(`${scope} .text-primary, ${scope} .text-emerald-800, ${scope} .text-sky-700, ${scope} .text-indigo-700, ${scope} .text-teal-700, ${scope} .text-amber-800 { color: ${settings.primaryColor} !important; }`);
+    baseRules.push(`${scope} .border-primary, ${scope} .border-emerald-800, ${scope} .border-sky-200, ${scope} .border-sky-300, ${scope} .border-indigo-600, ${scope} .border-teal-600, ${scope} .border-amber-600 { border-color: ${settings.primaryColor} !important; }`);
+  }
+  if (settings.headerBg) {
+    baseRules.push(`${scope} [data-color-target="header"], ${scope} .bg-slate-800, ${scope} .bg-slate-900, ${scope} .bg-indigo-900, ${scope} .bg-emerald-900, ${scope} .bg-teal-900 { background-color: ${settings.headerBg} !important; }`);
+  }
+  if (settings.sidebarBg) {
+    baseRules.push(`${scope} [data-color-target="sidebar"], ${scope} .bg-emerald-800, ${scope} .bg-teal-800 { background-color: ${settings.sidebarBg} !important; }`);
   }
   if (settings.fontSize) {
     baseRules.push(`${scope} p, ${scope} li, ${scope} div:not([data-rs-head]):not(h1):not(h2):not(h3), ${scope} span:not([data-rs-head]) { font-size: ${settings.fontSize}px; }`);
@@ -5604,6 +5692,9 @@ export function ResumePreview({
     }
 
     const colorTarget = target.closest("[data-color-target]") as HTMLElement | null;
+    const headTarget = target.closest("[data-rs-head], h1, h2, h3") as HTMLElement | null;
+    const bannerTarget = target.closest("header, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-emerald-800, .bg-emerald-900, .bg-indigo-900, .bg-teal-700, .bg-teal-800, .bg-teal-900") as HTMLElement | null;
+
     if (colorTarget) {
       const targetType = (colorTarget.getAttribute("data-color-target") || "header") as "header" | "sidebar" | "primary" | "accent";
       const label = colorTarget.getAttribute("data-color-label") || "Design Element";
@@ -5615,6 +5706,20 @@ export function ResumePreview({
         targetKey: key,
         label,
         currentColor,
+      });
+    } else if (headTarget) {
+      setColorPrompt({
+        isOpen: true,
+        targetKey: "primaryColor",
+        label: "Section Heading & Accent Color",
+        currentColor: data.settings?.primaryColor || "#0f172a",
+      });
+    } else if (bannerTarget) {
+      setColorPrompt({
+        isOpen: true,
+        targetKey: "headerBg",
+        label: "Header / Banner Color",
+        currentColor: data.settings?.headerBg || data.settings?.primaryColor || "#1e293b",
       });
     }
   };
