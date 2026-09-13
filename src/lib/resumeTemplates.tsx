@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -5788,7 +5789,7 @@ export function ResumePreview({
       )}
 
       {/* Interactive Color Change Prompt Modal */}
-      {!isMini && !isExport && colorPrompt?.isOpen && (
+      {!isMini && !isExport && colorPrompt?.isOpen && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
           onClick={() => setColorPrompt(null)}
@@ -5925,7 +5926,8 @@ export function ResumePreview({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

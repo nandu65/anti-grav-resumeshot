@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Bold, Italic, Underline, Strikethrough,
   ArrowUp, ArrowDown, Copy, Plus, Minus, Trash2,
@@ -124,6 +125,7 @@ export function ResumeContextMenu({
   }, [position, onClose]);
 
   if (!position) return null;
+  if (typeof document === "undefined") return null;
 
   const restoreSelection = () => {
     const sel = window.getSelection();
@@ -202,7 +204,7 @@ export function ResumeContextMenu({
     onMoveLineUp || onMoveLineDown || onDuplicateLine || onAddLineBelow || onDeleteLine
   );
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
       role="menu"
@@ -551,6 +553,7 @@ export function ResumeContextMenu({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
