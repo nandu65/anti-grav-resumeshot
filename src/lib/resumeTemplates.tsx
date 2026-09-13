@@ -215,128 +215,128 @@ export const SAMPLE_RESUME_DATA: ResumeData = {
 };
 
 export const TEMPLATES: TemplateDefinition[] = [
-  { 
-    id: "modern", 
-    name: "Modern Professional", 
+  {
+    id: "modern",
+    name: "Modern Professional",
     desc: "Clean sidebar layout with emerald accents, ideal for technology and design roles.",
     tag: "Most Popular",
     category: "popular",
   },
-  { 
-    id: "classic", 
-    name: "Classic ATS-Optimized", 
+  {
+    id: "classic",
+    name: "Classic ATS-Optimized",
     desc: "Single-column format designed for maximum compatibility with tracking systems.",
     tag: "ATS Friendly",
     category: "ats",
   },
-  { 
-    id: "compact", 
-    name: "Compact Density", 
+  {
+    id: "compact",
+    name: "Compact Density",
     desc: "High-density clean single column, ideal for technical resumes and 1-page limits.",
     tag: "Compact",
     category: "modern",
   },
-  { 
-    id: "executive", 
-    name: "Executive Serif", 
+  {
+    id: "executive",
+    name: "Executive Serif",
     desc: "Distinguished typography with amber-toned headers for senior leadership positions.",
     tag: "Senior Roles",
     category: "executive",
   },
-  { 
-    id: "creative", 
-    name: "Creative Indigo", 
+  {
+    id: "creative",
+    name: "Creative Indigo",
     desc: "Bold gradient header and two-column structure for marketing and creative professionals.",
     tag: "Creative",
     category: "creative",
   },
-  { 
-    id: "minimal", 
-    name: "Ultra Minimal", 
+  {
+    id: "minimal",
+    name: "Ultra Minimal",
     desc: "Sophisticated use of whitespace and light weights for a modern, airy aesthetic.",
     tag: "Minimal",
     category: "modern",
   },
-  { 
-    id: "timeline", 
-    name: "Timeline Rail", 
+  {
+    id: "timeline",
+    name: "Timeline Rail",
     desc: "Left date rail with teal accents, perfect for showing clear career progression.",
     tag: "Timeline",
     category: "modern",
   },
-  { 
-    id: "elegant", 
-    name: "Warm Editorial", 
+  {
+    id: "elegant",
+    name: "Warm Editorial",
     desc: "Centered serif header with warm stone tones and refined editorial typography.",
     tag: "Editorial",
     category: "executive",
   },
-  { 
-    id: "sidebar-dark", 
-    name: "Dark Sidebar Pro", 
+  {
+    id: "sidebar-dark",
+    name: "Dark Sidebar Pro",
     desc: "Deep teal right sidebar with avatar, structured summary, and visual chips.",
     tag: "Sidebar",
     category: "modern",
   },
-  { 
-    id: "photo-header", 
-    name: "Header Slate & Photo", 
+  {
+    id: "photo-header",
+    name: "Header Slate & Photo",
     desc: "Slate header banner with avatar circle and balanced 2-column layout.",
     tag: "Photo Ready",
     category: "creative",
   },
-  { 
-    id: "centered-serif", 
-    name: "Centered Classic Serif", 
+  {
+    id: "centered-serif",
+    name: "Centered Classic Serif",
     desc: "Alexander Taylor style with clean dividing rules and centered classic header.",
     tag: "Traditional",
     category: "ats",
   },
-  { 
-    id: "banner-photo", 
-    name: "Navy Banner Modern", 
+  {
+    id: "banner-photo",
+    name: "Navy Banner Modern",
     desc: "Navy header banner with profile initials badge and achievement highlights.",
     tag: "Modern",
     category: "modern",
   },
-  { 
-    id: "teal-left", 
-    name: "Teal Split Sidebar", 
+  {
+    id: "teal-left",
+    name: "Teal Split Sidebar",
     desc: "Solid teal left rail with achievement stars and crisp white main section.",
     tag: "Split View",
     category: "modern",
   },
-  { 
-    id: "photo-grid", 
-    name: "Grid & Highlights", 
+  {
+    id: "photo-grid",
+    name: "Grid & Highlights",
     desc: "Centered header with 3-column key achievement boxes and clean timeline.",
     tag: "Visual Grid",
     category: "creative",
   },
-  { 
-    id: "logo-boxed", 
-    name: "Brand Boxed", 
+  {
+    id: "logo-boxed",
+    name: "Brand Boxed",
     desc: "Centered header with company initial badges for clear brand recognition.",
     tag: "Branded",
     category: "ats",
   },
-  { 
-    id: "nordic", 
-    name: "Nordic Crisp Minimal", 
+  {
+    id: "nordic",
+    name: "Nordic Crisp Minimal",
     desc: "Clean Scandinavian aesthetic with slate-gray accents, pill tags, and sleek lines.",
     tag: "New",
     category: "modern",
   },
-  { 
-    id: "ivy-league", 
-    name: "Ivy League Academic", 
+  {
+    id: "ivy-league",
+    name: "Ivy League Academic",
     desc: "Prestigious academic serif layout with centered header and formal divider rules.",
     tag: "Academic",
     category: "academic",
   },
-  { 
-    id: "tech-dark", 
-    name: "Modern Tech Lead", 
+  {
+    id: "tech-dark",
+    name: "Modern Tech Lead",
     desc: "Dark charcoal slate header, cyan tech accents, and monospace code-styled skills.",
     tag: "Tech Lead",
     category: "modern",
@@ -426,7 +426,7 @@ export const Editable = React.memo(function Editable({
   style?: React.CSSProperties;
 }) {
   const ref = useRef<HTMLElement>(null);
-  
+
   useEffect(() => {
     if (ref.current) {
       const isHtml = value?.includes("<") && value?.includes(">");
@@ -497,13 +497,13 @@ export const Editable = React.memo(function Editable({
       onBlur={
         editable
           ? (e: any) => {
-              const html = e.currentTarget.innerHTML as string;
-              const hasMarkup = /<(b|i|u|strong|em|span|font)\b/i.test(html);
-              const txt = multiline || hasMarkup
-                ? html.replace(/<div>/gi, multiline ? "\n" : " ").replace(/<\/div>/gi, "").replace(/<br\s*[\/]?>/gi, multiline ? "\n" : " ").trim()
-                : (e.currentTarget.innerText as string).replace(/\s+/g, " ").trim();
-              if (txt !== value) onChange!(txt);
-            }
+            const html = e.currentTarget.innerHTML as string;
+            const hasMarkup = /<(b|i|u|strong|em|span|font)\b/i.test(html);
+            const txt = multiline || hasMarkup
+              ? html.replace(/<div>/gi, multiline ? "\n" : " ").replace(/<\/div>/gi, "").replace(/<br\s*[\/]?>/gi, multiline ? "\n" : " ").trim()
+              : (e.currentTarget.innerText as string).replace(/\s+/g, " ").trim();
+            if (txt !== value) onChange!(txt);
+          }
           : undefined
       }
       dangerouslySetInnerHTML={value?.includes("<") ? { __html: value } : undefined}
@@ -522,7 +522,7 @@ export function BulletsEditor({
   const editable = !!onChange;
   const ref = useRef<HTMLUListElement>(null);
   const text = bullets.join("\n");
-  
+
   useEffect(() => {
     if (!ref.current) return;
     const current = Array.from(ref.current.querySelectorAll("li"))
@@ -602,11 +602,11 @@ export function BulletsEditor({
       onBlur={
         editable
           ? (e) => {
-              const items = Array.from(e.currentTarget.querySelectorAll("li"))
-                .map((li) => (li.innerHTML || "").trim())
-                .filter(Boolean);
-              onChange!(items);
-            }
+            const items = Array.from(e.currentTarget.querySelectorAll("li"))
+              .map((li) => (li.innerHTML || "").trim())
+              .filter(Boolean);
+            onChange!(items);
+          }
           : undefined
       }
     />
@@ -765,10 +765,10 @@ export function richToPlain(html: string) {
 }
 
 export function getNormalizedSectionOrder(order?: string[], r?: ResumeData): string[] {
-  const baseOrder = Array.isArray(order) && order.length > 0 
-    ? [...order] 
+  const baseOrder = Array.isArray(order) && order.length > 0
+    ? [...order]
     : ["summary", "experience", "leadership", "projects", "education", "skills", "certifications"];
-  
+
   if (!baseOrder.includes("leadership")) {
     const expIdx = baseOrder.indexOf("experience");
     if (expIdx !== -1) {
@@ -877,9 +877,8 @@ export function SortableSection({
   return (
     <div
       data-section-key={keyId}
-      className={`group/sec relative transition-all duration-150 ${className} ${
-        isDragging ? "opacity-85 ring-2 ring-primary ring-offset-2 bg-primary/5 rounded-lg shadow-xl scale-[1.01]" : ""
-      } ${isDragOver ? "border-t-2 border-primary pt-0.5" : ""}`}
+      className={`group/sec relative transition-all duration-150 ${className} ${isDragging ? "opacity-85 ring-2 ring-primary ring-offset-2 bg-primary/5 rounded-lg shadow-xl scale-[1.01]" : ""
+        } ${isDragOver ? "border-t-2 border-primary pt-0.5" : ""}`}
       onDragOver={(e) => {
         if (!isEditable) return;
         e.preventDefault();
@@ -953,8 +952,8 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const renderSection = (key: string, index: number) => {
     let content = null;
     let title = "";
-    
-    switch(key) {
+
+    switch (key) {
       case "summary":
         if (r.summary && r.summary.trim()) {
           title = "Summary";
@@ -1080,9 +1079,9 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   };
 
   return (
-    <div 
-      className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug flex flex-col flex-1 w-full" 
-      style={{ 
+    <div
+      className="bg-white text-neutral-900 shadow-elegant rounded-none overflow-hidden font-sans text-[11px] leading-snug flex flex-col flex-1 w-full"
+      style={{
         minHeight: "var(--page-h, 1123px)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
         fontFamily: r.settings?.fontFamily || undefined
@@ -1165,7 +1164,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let content = null;
     let title = "";
 
-    switch(key) {
+    switch (key) {
       case "summary":
         if (r.summary && r.summary.trim()) {
           title = "Summary";
@@ -1290,9 +1289,9 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   };
 
   return (
-    <div 
-      className="bg-white text-neutral-900 shadow-elegant rounded-lg p-8 font-serif text-[11px] leading-snug" 
-      style={{ 
+    <div
+      className="bg-white text-neutral-900 shadow-elegant rounded-lg p-8 font-serif text-[11px] leading-snug"
+      style={{
         minHeight: "var(--page-h, auto)",
         fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
         fontFamily: r.settings?.fontFamily || undefined
@@ -1313,7 +1312,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             })} />
         </div>
       </div>
-      
+
       <div>
         {sectionOrder.map((key, index) => renderSection(key, index))}
       </div>
@@ -1332,7 +1331,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let content = null;
     let title = "";
 
-    switch(key) {
+    switch (key) {
       case "summary":
         if (r.summary && r.summary.trim()) {
           title = "Summary";
@@ -1469,7 +1468,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           ))}
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 gap-1">
         {sectionOrder.map((key, index) => renderSection(key, index))}
       </div>
@@ -1489,7 +1488,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let content = null;
     let title = "";
 
-    switch(key) {
+    switch (key) {
       case "summary":
         if (r.summary && r.summary.trim()) {
           title = "Profile";
@@ -1622,7 +1621,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           </div>
         </div>
       </div>
-      
+
       <div>
         {sectionOrder.map((key, index) => renderSection(key, index))}
       </div>
@@ -1824,7 +1823,7 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     let content = null;
     let title = "";
 
-    switch(key) {
+    switch (key) {
       case "summary":
         if (r.summary && r.summary.trim()) {
           title = "Summary";
@@ -1960,12 +1959,14 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             onChange={update && (v => {
               const parts = v.split("·").map(s => s.trim()).filter(Boolean);
               const [email, phone, location, ...linkUrls] = parts;
-              on({ email: email || "", phone: phone || "", location: location || "",
-                links: linkUrls.map((url, i) => ({ label: r.links?.[i]?.label || "Link", url })) });
+              on({
+                email: email || "", phone: phone || "", location: location || "",
+                links: linkUrls.map((url, i) => ({ label: r.links?.[i]?.label || "Link", url }))
+              });
             })} />
         </div>
       </div>
-      
+
       <div>
         {sectionOrder.map((key, index) => renderSection(key, index))}
       </div>
@@ -2225,7 +2226,7 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           ))}
         </div>
       </div>
-      
+
       <div>
         {sectionOrder.map((key, index) => renderSection(key, index))}
       </div>
@@ -5507,7 +5508,7 @@ export function tagSections(root: HTMLElement | null, customTitles?: Partial<Rec
   for (const el of headings) {
     const txt = (el.textContent || "").trim();
     if (!txt || txt.length > 50) continue;
-    
+
     // Check user custom titles first
     let matchKey: ResumeSectionKey | null = null;
     if (customTitles) {
@@ -5635,33 +5636,33 @@ export function ResumePreview({
 
   const inner =
     template === "modern" ? <ModernPreview r={data} update={update} /> :
-    template === "compact" ? <CompactPreview r={data} update={update} /> :
-    template === "executive" ? <ExecutivePreview r={data} update={update} /> :
-    template === "creative" ? <CreativePreview r={data} update={update} /> :
-    template === "minimal" ? <MinimalPreview r={data} update={update} /> :
-    template === "timeline" ? <TimelinePreview r={data} update={update} /> :
-    template === "elegant" ? <ElegantPreview r={data} update={update} /> :
-    template === "sidebar-dark" ? <SidebarDarkPreview r={data} update={update} /> :
-    template === "photo-header" ? <PhotoHeaderPreview r={data} update={update} /> :
-    template === "centered-serif" ? <CenteredSerifPreview r={data} update={update} /> :
-    template === "banner-photo" ? <BannerPhotoPreview r={data} update={update} /> :
-    template === "teal-left" ? <TealLeftPreview r={data} update={update} /> :
-    template === "photo-grid" ? <PhotoGridPreview r={data} update={update} /> :
-    template === "logo-boxed" ? <LogoBoxedPreview r={data} update={update} /> :
-    template === "nordic" ? <NordicPreview r={data} update={update} /> :
-    template === "ivy-league" ? <IvyLeaguePreview r={data} update={update} /> :
-    template === "tech-dark" ? <TechDarkPreview r={data} update={update} /> :
-    template === "monogram-blue-frame" ? <MonogramBlueFramePreview r={data} update={update} /> :
-    template === "emerald-timeline" ? <EmeraldTimelinePreview r={data} update={update} /> :
-    template === "hexagon-editorial" ? <HexagonEditorialPreview r={data} update={update} /> :
-    template === "slate-node-timeline" ? <SlateNodeTimelinePreview r={data} update={update} /> :
-    template === "centered-dual-column" ? <CenteredDualColumnPreview r={data} update={update} /> :
-    template === "teal-duo-banner" ? <TealDuoBannerPreview r={data} update={update} /> :
-    template === "taupe-header-split" ? <TaupeHeaderSplitPreview r={data} update={update} /> :
-    template === "amber-ribbon" ? <AmberRibbonPreview r={data} update={update} /> :
-    template === "slate-frame-sidebar" ? <SlateFrameSidebarPreview r={data} update={update} /> :
-    template === "burgundy-boxed-monogram" ? <BurgundyBoxedMonogramPreview r={data} update={update} /> :
-    <ClassicPreview r={data} update={update} />;
+      template === "compact" ? <CompactPreview r={data} update={update} /> :
+        template === "executive" ? <ExecutivePreview r={data} update={update} /> :
+          template === "creative" ? <CreativePreview r={data} update={update} /> :
+            template === "minimal" ? <MinimalPreview r={data} update={update} /> :
+              template === "timeline" ? <TimelinePreview r={data} update={update} /> :
+                template === "elegant" ? <ElegantPreview r={data} update={update} /> :
+                  template === "sidebar-dark" ? <SidebarDarkPreview r={data} update={update} /> :
+                    template === "photo-header" ? <PhotoHeaderPreview r={data} update={update} /> :
+                      template === "centered-serif" ? <CenteredSerifPreview r={data} update={update} /> :
+                        template === "banner-photo" ? <BannerPhotoPreview r={data} update={update} /> :
+                          template === "teal-left" ? <TealLeftPreview r={data} update={update} /> :
+                            template === "photo-grid" ? <PhotoGridPreview r={data} update={update} /> :
+                              template === "logo-boxed" ? <LogoBoxedPreview r={data} update={update} /> :
+                                template === "nordic" ? <NordicPreview r={data} update={update} /> :
+                                  template === "ivy-league" ? <IvyLeaguePreview r={data} update={update} /> :
+                                    template === "tech-dark" ? <TechDarkPreview r={data} update={update} /> :
+                                      template === "monogram-blue-frame" ? <MonogramBlueFramePreview r={data} update={update} /> :
+                                        template === "emerald-timeline" ? <EmeraldTimelinePreview r={data} update={update} /> :
+                                          template === "hexagon-editorial" ? <HexagonEditorialPreview r={data} update={update} /> :
+                                            template === "slate-node-timeline" ? <SlateNodeTimelinePreview r={data} update={update} /> :
+                                              template === "centered-dual-column" ? <CenteredDualColumnPreview r={data} update={update} /> :
+                                                template === "teal-duo-banner" ? <TealDuoBannerPreview r={data} update={update} /> :
+                                                  template === "taupe-header-split" ? <TaupeHeaderSplitPreview r={data} update={update} /> :
+                                                    template === "amber-ribbon" ? <AmberRibbonPreview r={data} update={update} /> :
+                                                      template === "slate-frame-sidebar" ? <SlateFrameSidebarPreview r={data} update={update} /> :
+                                                        template === "burgundy-boxed-monogram" ? <BurgundyBoxedMonogramPreview r={data} update={update} /> :
+                                                          <ClassicPreview r={data} update={update} />;
 
   useEffect(() => {
     if (isMini) return;
@@ -6011,11 +6012,10 @@ export function ResumePreview({
                         toast.success(`${colorPrompt.label} color updated!`);
                       }}
                       title={p.label}
-                      className={`w-9 h-9 rounded-xl border-2 transition-all transform hover:scale-110 flex items-center justify-center ${
-                        colorPrompt.currentColor.toLowerCase() === p.color.toLowerCase()
+                      className={`w-9 h-9 rounded-xl border-2 transition-all transform hover:scale-110 flex items-center justify-center ${colorPrompt.currentColor.toLowerCase() === p.color.toLowerCase()
                           ? "border-emerald-400 ring-2 ring-emerald-400/50 shadow-lg scale-105"
                           : "border-white/20 hover:border-white/60"
-                      }`}
+                        }`}
                       style={{ backgroundColor: p.color }}
                     >
                       {colorPrompt.currentColor.toLowerCase() === p.color.toLowerCase() && (
@@ -6138,7 +6138,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     if (document.fonts) {
       try {
         await document.fonts.ready;
-      } catch (_) {}
+      } catch (_) { }
     }
     await new Promise(r => setTimeout(r, 250));
 
@@ -6235,7 +6235,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     if (root) {
       try {
         root.unmount();
-      } catch (_) {}
+      } catch (_) { }
     }
     if (wrapper.parentNode) {
       wrapper.parentNode.removeChild(wrapper);
@@ -6826,7 +6826,7 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
           out.push(H(getSectionTitle(data, "skills", "Skills"), isSidebar));
           const secStyle = secStyles?.skills;
           const fontSize = secStyle?.fontSize ? secStyle.fontSize * 2 : (isSidebar ? Math.round(baseSize * 0.9) : baseSize);
-          
+
           if (isSidebar) {
             const allItems = data.skills.flatMap(s => s.items);
             allItems.forEach(it => {
@@ -7054,8 +7054,10 @@ export function buildResumeDocument(rawData: ResumeData, template: TemplateId) {
     numbering: {
       config: [{
         reference: "bullets",
-        levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT,
-          style: { paragraph: { indent: { left: 480, hanging: 260 } } } }],
+        levels: [{
+          level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT,
+          style: { paragraph: { indent: { left: 480, hanging: 260 } } }
+        }],
       }],
     },
     sections: [{

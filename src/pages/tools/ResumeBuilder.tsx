@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
+import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
@@ -136,6 +136,8 @@ export default function ResumeBuilder() {
   const [useSampleDataInModal, setUseSampleDataInModal] = useState(false);
   const dragCounterStarter = useRef(0);
   const dragCounterWorkspace = useRef(0);
+
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
 
   // Canonical A4 preview zoom & viewport scale
   const [zoomMode, setZoomMode] = useState<"fit" | "custom">("fit");
@@ -1160,36 +1162,52 @@ export default function ResumeBuilder() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 grid lg:grid-cols-[0.82fr_1.38fr] xl:grid-cols-[0.85fr_1.45fr] gap-5 overflow-hidden">
+            <div className={`flex-1 min-h-0 transition-all duration-300 ${
+              isEditorCollapsed
+                ? "flex flex-col overflow-hidden"
+                : "grid lg:grid-cols-[0.82fr_1.38fr] xl:grid-cols-[0.85fr_1.45fr] gap-5 overflow-hidden"
+            }`}>
               {/* LEFT COLUMN: FORM EDITOR */}
-              <div className="h-full overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-6 min-h-0">
-                {/* NAVIGATION */}
-                <nav className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-md py-2 px-1 -mx-1 border-b">
-                  {[
-                    { id: "basics", label: "Basics", icon: CheckCircle2 },
-                    { id: "summary", label: "Summary", icon: Sparkles },
-                    { id: "experience", label: "Experience", icon: FileText },
-                    { id: "leadership", label: "Leadership", icon: Award },
-                    { id: "education", label: "Education", icon: ArrowDown },
-                    { id: "skills", label: "Skills", icon: Wand },
-                    { id: "projects", label: "Projects", icon: Link2 },
-                    { id: "certs", label: "Certs", icon: CheckCircle2 },
-                  ].map((s) => (
-                    <button 
-                      key={s.id} 
-                      onClick={() => {
-                        const el = document.getElementById(`section-${s.id}`);
-                        if (el) {
-                          el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
+              {!isEditorCollapsed && (
+                <div className="h-full overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-6 min-h-0 animate-in fade-in-50 duration-200">
+                  {/* NAVIGATION */}
+                  <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-md py-2 px-1 -mx-1 border-b">
+                    {[
+                      { id: "basics", label: "Basics", icon: CheckCircle2 },
+                      { id: "summary", label: "Summary", icon: Sparkles },
+                      { id: "experience", label: "Experience", icon: FileText },
+                      { id: "leadership", label: "Leadership", icon: Award },
+                      { id: "education", label: "Education", icon: ArrowDown },
+                      { id: "skills", label: "Skills", icon: Wand },
+                      { id: "projects", label: "Projects", icon: Link2 },
+                      { id: "certs", label: "Certs", icon: CheckCircle2 },
+                    ].map((s) => (
+                      <button 
+                        key={s.id} 
+                        onClick={() => {
+                          const el = document.getElementById(`section-${s.id}`);
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
+                      >
+                        <s.icon className="h-3 w-3" />
+                        {s.label}
+                      </button>
+                    ))}
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditorCollapsed(true)}
+                      className="hidden lg:flex items-center gap-1 ml-auto h-7 px-2 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
+                      title="Collapse Editor Sidebar (◀)"
                     >
-                      <s.icon className="h-3 w-3" />
-                      {s.label}
-                    </button>
-                  ))}
-                </nav>
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                      <span>Hide</span>
+                    </Button>
+                  </nav>
 
 
 
@@ -1912,12 +1930,34 @@ export default function ResumeBuilder() {
                               </div>
                         </div>
                      </div>
-                  </div>
+                   </div>
+                )}
                 {/* RIGHT COLUMN: INDEPENDENT PREVIEW PANE */}
-                <div className="hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0">
+                <div className={`hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0 ${isEditorCollapsed ? 'flex-1 w-full' : ''}`}>
 
                   {/* Rich Text Toolbar */}
                   <div className="shrink-0 flex items-center gap-1 p-2 bg-background/80 backdrop-blur-sm border-b">
+                    <Button 
+                      variant={isEditorCollapsed ? "secondary" : "ghost"}
+                      size="sm" 
+                      className={`h-8 px-2.5 gap-1.5 text-xs font-bold rounded-lg border transition-all ${
+                        isEditorCollapsed 
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90" 
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                      title={isEditorCollapsed ? "Expand Editor Panel (▶)" : "Collapse Editor (Focus Mode ◀)"}
+                    >
+                      {isEditorCollapsed ? (
+                        <>
+                          <PanelLeftOpen className="h-4 w-4" />
+                          <span>Show Editor</span>
+                        </>
+                      ) : (
+                        <PanelLeftClose className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
                     <Button 
                       variant="ghost" 
                       size="sm" 
