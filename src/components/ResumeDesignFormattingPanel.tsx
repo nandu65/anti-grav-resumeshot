@@ -86,7 +86,7 @@ export function ResumeDesignFormattingPanel({
   return (
     <aside
       aria-label="Resume Design & Formatting"
-      className={`w-full lg:w-72 shrink-0 bg-[#11141b]/95 backdrop-blur-xl text-zinc-100 rounded-2xl shadow-2xl p-4 flex flex-col gap-4 border border-white/[0.08] select-none custom-scrollbar overflow-y-auto max-h-[calc(100vh-140px)] ${className}`}
+      className={`w-72 xl:w-80 shrink-0 h-full max-h-full bg-[#11141b]/95 backdrop-blur-xl text-zinc-100 rounded-2xl shadow-2xl p-4 flex flex-col gap-4 border border-white/[0.08] select-none custom-scrollbar overflow-y-auto ${className}`}
     >
       {/* Top Tabs */}
       <div className="flex bg-[#161922] p-1 rounded-xl gap-1 border border-white/[0.06]">

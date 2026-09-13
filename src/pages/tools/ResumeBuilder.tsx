@@ -175,7 +175,7 @@ export default function ResumeBuilder() {
 
   const fitScale = useMemo(() => {
     const available = Math.max(200, containerWidth - 32);
-    return Math.min(1.2, Math.max(0.35, available / A4_WIDTH_PX));
+    return Math.min(1.4, Math.max(0.35, available / A4_WIDTH_PX));
   }, [containerWidth]);
 
   const effectiveScale = zoomMode === "fit" ? fitScale : customZoom / 100;
@@ -942,7 +942,7 @@ export default function ResumeBuilder() {
               </div>
             </div>
           )}
-        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 max-w-[1750px] mx-auto h-full flex flex-col overflow-hidden">
+        <div className="w-full px-2 sm:px-4 py-2 h-full flex flex-col overflow-hidden">
           <div className="shrink-0 bg-background/95 backdrop-blur-md border rounded-2xl p-3 mb-3 shadow-sm flex items-center justify-between gap-4 ring-1 ring-border z-20">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => setStarter("choose")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Button>
@@ -2069,24 +2069,24 @@ export default function ResumeBuilder() {
                       <Type className="h-4 w-4" />
                     </Button>
 
-                    {/* A4 Canonical Zoom Controls */}
-                    <div className="flex items-center gap-1 ml-auto pl-2 border-l border-border/50">
+                    {/* A4 Canonical Zoom Controls & Presets */}
+                    <div className="flex items-center gap-1 ml-auto pl-2 border-l border-white/[0.08]">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0"
+                        className="h-7 w-7 p-0 text-zinc-400 hover:text-white"
                         onClick={() => {
                           setZoomMode("custom");
-                          setCustomZoom((prev) => Math.max(30, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) - 10)));
+                          setCustomZoom((prev) => Math.max(30, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) - 5)));
                         }}
-                        title="Zoom Out"
+                        title="Zoom Out (-5%)"
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
                       <button
                         type="button"
                         onClick={() => setZoomMode(zoomMode === "fit" ? "custom" : "fit")}
-                        className="px-1.5 py-0.5 text-[10.5px] font-mono font-medium rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                        className="px-2 py-0.5 text-[10.5px] font-mono font-medium rounded-md hover:bg-white/10 transition-colors text-zinc-300 hover:text-white bg-[#161922] border border-white/[0.06]"
                         title="Click to toggle Fit / Custom Zoom"
                       >
                         {zoomMode === "fit" ? `Fit (${Math.round(effectiveScale * 100)}%)` : `${Math.round(customZoom)}%`}
@@ -2094,19 +2094,23 @@ export default function ResumeBuilder() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0"
+                        className="h-7 w-7 p-0 text-zinc-400 hover:text-white"
                         onClick={() => {
                           setZoomMode("custom");
-                          setCustomZoom((prev) => Math.min(150, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) + 10)));
+                          setCustomZoom((prev) => Math.min(160, Math.round((zoomMode === "fit" ? effectiveScale * 100 : prev) + 5)));
                         }}
-                        title="Zoom In"
+                        title="Zoom In (+5%)"
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                       <Button
                         variant={zoomMode === "fit" ? "secondary" : "ghost"}
                         size="sm"
-                        className="h-6 px-1.5 text-[9.5px] font-bold"
+                        className={`h-6 px-2 text-[10px] font-bold rounded-md transition-all ${
+                          zoomMode === "fit"
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        }`}
                         onClick={() => setZoomMode("fit")}
                         title="Auto-fit to available window width"
                       >
@@ -2115,14 +2119,50 @@ export default function ResumeBuilder() {
                       <Button
                         variant={zoomMode === "custom" && customZoom === 100 ? "secondary" : "ghost"}
                         size="sm"
-                        className="h-6 px-1.5 text-[9.5px] font-bold"
+                        className={`h-6 px-2 text-[10px] font-bold rounded-md transition-all ${
+                          zoomMode === "custom" && customZoom === 100
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        }`}
                         onClick={() => {
                           setZoomMode("custom");
                           setCustomZoom(100);
                         }}
-                        title="100% Actual A4 Scale"
+                        title="100% Actual A4 Print Scale"
                       >
                         100%
+                      </Button>
+                      <Button
+                        variant={zoomMode === "custom" && customZoom === 85 ? "secondary" : "ghost"}
+                        size="sm"
+                        className={`hidden sm:inline-flex h-6 px-2 text-[10px] font-bold rounded-md transition-all ${
+                          zoomMode === "custom" && customZoom === 85
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        }`}
+                        onClick={() => {
+                          setZoomMode("custom");
+                          setCustomZoom(85);
+                        }}
+                        title="85% Comfortable Desktop Scale"
+                      >
+                        85%
+                      </Button>
+                      <Button
+                        variant={zoomMode === "custom" && customZoom === 75 ? "secondary" : "ghost"}
+                        size="sm"
+                        className={`hidden md:inline-flex h-6 px-2 text-[10px] font-bold rounded-md transition-all ${
+                          zoomMode === "custom" && customZoom === 75
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        }`}
+                        onClick={() => {
+                          setZoomMode("custom");
+                          setCustomZoom(75);
+                        }}
+                        title="75% Overview Scale"
+                      >
+                        75%
                       </Button>
                     </div>
                   </div>
