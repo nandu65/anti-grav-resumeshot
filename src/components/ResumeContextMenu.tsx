@@ -82,7 +82,7 @@ export function ResumeContextMenu({
   const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const savedRangeRef = useRef<Range | null>(null);
 
-  // Capture selection range on open and calculate clamped position
+  // Capture selection range on open and calculate intelligent, unobtrusive position
   useEffect(() => {
     if (!position) return;
     if (position.savedRange) {
@@ -94,21 +94,74 @@ export function ResumeContextMenu({
       }
     }
 
-    const menuWidth = 340;
-    const menuHeight = 400;
-
-    let x = position.x;
-    let y = position.y;
-
-    if (x + menuWidth > window.innerWidth - 12) {
-      x = window.innerWidth - menuWidth - 12;
+    let targetRect: { left: number; right: number; top: number; bottom: number; width: number; height: number } | null = null;
+    if (savedRangeRef.current) {
+      const r = savedRangeRef.current.getBoundingClientRect();
+      if (r.width > 0 || r.height > 0) {
+        targetRect = r;
+      }
     }
-    if (y + menuHeight > window.innerHeight - 12) {
-      y = window.innerHeight - menuHeight - 12;
+    if (!targetRect && position.targetElement) {
+      targetRect = position.targetElement.getBoundingClientRect();
+    }
+    if (!targetRect) {
+      targetRect = {
+        left: position.x,
+        right: position.x,
+        top: position.y,
+        bottom: position.y,
+        width: 0,
+        height: 0,
+      };
     }
 
-    setCoords({ x: Math.max(12, x), y: Math.max(12, y) });
-  }, [position]);
+    const menuEl = menuRef.current;
+    const menuWidth = menuEl?.offsetWidth || 340;
+    const menuHeight = Math.min(menuEl?.scrollHeight || 420, window.innerHeight - 32);
+
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+
+    const roomAbove = targetRect.top - 16;
+    const roomBelow = viewportH - targetRect.bottom - 16;
+
+    let posX = targetRect.left + (targetRect.width / 2) - (menuWidth / 2);
+    let posY = targetRect.bottom + 10;
+
+    // Prioritize not obscuring the selected line
+    if (roomAbove >= menuHeight + 10) {
+      // Comfortably fits above selected text
+      posY = targetRect.top - menuHeight - 10;
+    } else if (roomBelow >= menuHeight + 10) {
+      // Comfortably fits below selected text
+      posY = targetRect.bottom + 10;
+    } else {
+      // Screen is tight vertically, try horizontal offset first to leave text visible
+      const canFitRight = targetRect.right + 16 + menuWidth <= viewportW - 16;
+      const canFitLeft = targetRect.left - 16 - menuWidth >= 16;
+
+      if (canFitRight) {
+        posX = targetRect.right + 16;
+        posY = Math.max(16, Math.min(viewportH - menuHeight - 16, targetRect.top - 20));
+      } else if (canFitLeft) {
+        posX = targetRect.left - menuWidth - 16;
+        posY = Math.max(16, Math.min(viewportH - menuHeight - 16, targetRect.top - 20));
+      } else {
+        // Fallback: pick the side with more room and clamp
+        if (roomBelow >= roomAbove) {
+          posY = targetRect.bottom + 8;
+        } else {
+          posY = Math.max(16, targetRect.top - menuHeight - 8);
+        }
+      }
+    }
+
+    // Strict clamping within viewport boundaries
+    posX = Math.max(16, Math.min(viewportW - menuWidth - 16, posX));
+    posY = Math.max(16, Math.min(viewportH - menuHeight - 16, posY));
+
+    setCoords({ x: Math.round(posX), y: Math.round(posY) });
+  }, [position, showColorPicker, showHighlightPicker, showOpacityPicker]);
 
   // Click outside or Escape to close
   useEffect(() => {
@@ -372,8 +425,9 @@ export function ResumeContextMenu({
         left: `${coords.x}px`,
         top: `${coords.y}px`,
         zIndex: 99999,
+        maxHeight: "calc(100vh - 28px)",
       }}
-      className="w-[340px] max-w-[calc(100vw-24px)] bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-2xl p-2.5 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none ring-1 ring-border/50"
+      className="w-[340px] max-w-[calc(100vw-28px)] max-h-[calc(100vh-28px)] overflow-y-auto overscroll-contain bg-popover/95 text-popover-foreground backdrop-blur-md border border-border shadow-2xl rounded-2xl p-2.5 font-sans text-xs animate-in fade-in-50 zoom-in-95 duration-100 select-none ring-1 ring-border/50"
       onContextMenu={e => e.preventDefault()}
       onMouseDown={e => {
         // Prevent clicking context menu from de-selecting or blurring editable text

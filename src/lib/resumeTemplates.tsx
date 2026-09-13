@@ -5541,6 +5541,7 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
     `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
     `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
     `${scope} [data-rs-head] { display: block !important; }`,
+    `${scope} ::selection, ${scope} *::selection { background: rgba(59, 130, 246, 0.22) !important; color: inherit !important; }`,
   ];
   if (!settings) return baseRules.join("\n");
   const sections = settings.sections;
@@ -5701,13 +5702,9 @@ export function ResumePreview({
               lineIdx = lis.indexOf(li);
             }
 
-            const menuHeight = 360;
-            const y = rect.top > menuHeight + 20 ? rect.top - 10 : rect.bottom + 10;
-            const x = rect.left + rect.width / 2;
-
             setContextMenu({
-              x,
-              y,
+              x: rect.left,
+              y: rect.bottom,
               targetElement: targetElem,
               targetLineIndex: lineIdx,
               selectedText: selection.toString(),

@@ -284,4 +284,14 @@
   }
 }
 
+/* Subtle transparent text selection so selected text and formatting stay clearly visible in real-time */
+.resume-root-container ::selection,
+.resume-page-sheet ::selection,
+[contenteditable="true"]::selection,
+[data-rs-root] ::selection {
+  background: rgba(59, 130, 246, 0.22) !important;
+  color: inherit !important;
+}
+
+
 
