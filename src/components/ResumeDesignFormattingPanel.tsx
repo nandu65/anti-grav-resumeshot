@@ -86,20 +86,20 @@ export function ResumeDesignFormattingPanel({
   return (
     <aside
       aria-label="Resume Design & Formatting"
-      className={`w-full lg:w-72 shrink-0 bg-[#28334f] text-white rounded-2xl shadow-xl p-4 flex flex-col gap-4 border border-white/10 select-none custom-scrollbar overflow-y-auto max-h-[calc(100vh-140px)] ${className}`}
+      className={`w-full lg:w-72 shrink-0 bg-[#11141b]/95 backdrop-blur-xl text-zinc-100 rounded-2xl shadow-2xl p-4 flex flex-col gap-4 border border-white/[0.08] select-none custom-scrollbar overflow-y-auto max-h-[calc(100vh-140px)] ${className}`}
     >
       {/* Top Tabs */}
-      <div className="flex bg-[#1c243c] p-1 rounded-xl gap-1">
+      <div className="flex bg-[#161922] p-1 rounded-xl gap-1 border border-white/[0.06]">
         <button
           type="button"
           onClick={() => setActiveTab("formatting")}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-bold rounded-lg transition-all ${
             activeTab === "formatting"
-              ? "bg-[#fceed6] text-neutral-900 shadow-sm"
-              : "text-white/80 hover:text-white"
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
           }`}
         >
-          <Type className="h-3 w-3" />
+          <Type className="h-3.5 w-3.5" />
           Format
         </button>
         <button
@@ -107,11 +107,11 @@ export function ResumeDesignFormattingPanel({
           onClick={() => setActiveTab("sections")}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-bold rounded-lg transition-all ${
             activeTab === "sections"
-              ? "bg-[#fceed6] text-neutral-900 shadow-sm"
-              : "text-white/80 hover:text-white"
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
           }`}
         >
-          <LayoutList className="h-3 w-3" />
+          <LayoutList className="h-3.5 w-3.5" />
           Sections
         </button>
         <button
@@ -119,11 +119,11 @@ export function ResumeDesignFormattingPanel({
           onClick={() => setActiveTab("design")}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-bold rounded-lg transition-all ${
             activeTab === "design"
-              ? "bg-[#fceed6] text-neutral-900 shadow-sm"
-              : "text-white/80 hover:text-white"
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
           }`}
         >
-          <Palette className="h-3 w-3" />
+          <Palette className="h-3.5 w-3.5" />
           Themes
         </button>
       </div>
@@ -132,24 +132,24 @@ export function ResumeDesignFormattingPanel({
         <div className="space-y-4">
           {/* FONT FORMATTING */}
           <div className="space-y-3">
-            <h4 className="font-bold text-sm text-white tracking-tight">Font Formatting</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Font Formatting</h4>
 
             {/* Font Style */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/90">Font Style</Label>
+              <Label className="text-xs font-semibold text-zinc-200">Font Style</Label>
               <div className="relative">
                 <select
                   value={currentFontFamily}
                   onChange={(e) => updateSetting("fontFamily", e.target.value)}
-                  className="w-full h-9 px-3 bg-[#1c243c] border border-white/20 rounded-xl text-xs font-medium text-white appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="w-full h-9 px-3 bg-[#161922] border border-white/10 rounded-xl text-xs font-medium text-zinc-100 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/50"
                 >
                   {RESUME_FONTS.map((f) => (
-                    <option key={f.value} value={f.value} style={{ fontFamily: f.value }} className="bg-[#1c243c] text-white py-1">
+                    <option key={f.value} value={f.value} style={{ fontFamily: f.value }} className="bg-[#161922] text-zinc-100 py-1">
                       {f.label}
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-white/60">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
                     <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                   </svg>
@@ -160,12 +160,12 @@ export function ResumeDesignFormattingPanel({
             {/* Font Size */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Font Size</span>
+                <span className="font-semibold text-zinc-200">Font Size</span>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => updateSetting("fontSize", Math.max(4, currentFontSize - 1))}
-                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-zinc-100 text-xs font-bold transition-colors"
                   >
                     -
                   </button>
@@ -175,13 +175,13 @@ export function ResumeDesignFormattingPanel({
                     max={100}
                     value={currentFontSize}
                     onChange={(e) => updateSetting("fontSize", Math.max(4, Number(e.target.value) || 4))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">pt</span>
+                  <span className="text-[10px] text-zinc-400">pt</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("fontSize", Math.min(100, currentFontSize + 1))}
-                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-zinc-100 text-xs font-bold transition-colors"
                   >
                     +
                   </button>
@@ -190,7 +190,7 @@ export function ResumeDesignFormattingPanel({
                     onClick={() => updateSetting("fontSize", DEFAULT_FORMATTING_SETTINGS.fontSize)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.fontSize} pt)`}
                     aria-label="Reset font size to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -203,19 +203,19 @@ export function ResumeDesignFormattingPanel({
                 step={1}
                 value={currentFontSize}
                 onChange={(e) => updateSetting("fontSize", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Heading Size */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Heading Size</span>
+                <span className="font-semibold text-zinc-200">Heading Size</span>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => updateSetting("headingSize", Math.max(6, currentHeadingSize - 1))}
-                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-zinc-100 text-xs font-bold transition-colors"
                   >
                     -
                   </button>
@@ -225,13 +225,13 @@ export function ResumeDesignFormattingPanel({
                     max={120}
                     value={currentHeadingSize}
                     onChange={(e) => updateSetting("headingSize", Math.max(6, Number(e.target.value) || 6))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">pt</span>
+                  <span className="text-[10px] text-zinc-400">pt</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("headingSize", Math.min(120, currentHeadingSize + 1))}
-                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-zinc-100 text-xs font-bold transition-colors"
                   >
                     +
                   </button>
@@ -240,7 +240,7 @@ export function ResumeDesignFormattingPanel({
                     onClick={() => updateSetting("headingSize", DEFAULT_FORMATTING_SETTINGS.headingSize)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.headingSize} pt)`}
                     aria-label="Reset heading size to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -253,22 +253,22 @@ export function ResumeDesignFormattingPanel({
                 step={1}
                 value={currentHeadingSize}
                 onChange={(e) => updateSetting("headingSize", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
           </div>
 
           {/* Dotted separator */}
-          <div className="border-t border-dashed border-white/25 my-3" />
+          <div className="border-t border-dashed border-white/10 my-3" />
 
           {/* DOCUMENT FORMATTING */}
           <div className="space-y-3.5">
-            <h4 className="font-bold text-sm text-white tracking-tight">Document Formatting</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Document Formatting</h4>
 
             {/* Section Spacing */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Section Spacing</span>
+                <span className="font-semibold text-zinc-200">Section Spacing</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -276,15 +276,15 @@ export function ResumeDesignFormattingPanel({
                     max={120}
                     value={currentSectionSpacing}
                     onChange={(e) => updateSetting("sectionSpacing", Math.max(0, Number(e.target.value) || 0))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">px</span>
+                  <span className="text-[10px] text-zinc-400">px</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("sectionSpacing", DEFAULT_FORMATTING_SETTINGS.sectionSpacing)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.sectionSpacing} px)`}
                     aria-label="Reset section spacing to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -297,14 +297,14 @@ export function ResumeDesignFormattingPanel({
                 step={1}
                 value={currentSectionSpacing}
                 onChange={(e) => updateSetting("sectionSpacing", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Paragraph Spacing */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Paragraph Spacing</span>
+                <span className="font-semibold text-zinc-200">Paragraph Spacing</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -312,15 +312,15 @@ export function ResumeDesignFormattingPanel({
                     max={60}
                     value={currentParagraphSpacing}
                     onChange={(e) => updateSetting("paragraphSpacing", Math.max(0, Number(e.target.value) || 0))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">px</span>
+                  <span className="text-[10px] text-zinc-400">px</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("paragraphSpacing", DEFAULT_FORMATTING_SETTINGS.paragraphSpacing)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.paragraphSpacing} px)`}
                     aria-label="Reset paragraph spacing to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -333,22 +333,22 @@ export function ResumeDesignFormattingPanel({
                 step={1}
                 value={currentParagraphSpacing}
                 onChange={(e) => updateSetting("paragraphSpacing", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Line Spacing */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Line Spacing</span>
+                <span className="font-semibold text-zinc-200">Line Spacing</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-white/80 text-[11px]">{Number(currentLineSpacing).toFixed(2)}</span>
+                  <span className="font-mono text-zinc-300 text-[11px]">{Number(currentLineSpacing).toFixed(2)}</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("lineSpacing", DEFAULT_FORMATTING_SETTINGS.lineSpacing)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.lineSpacing})`}
                     aria-label="Reset line spacing to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -361,14 +361,14 @@ export function ResumeDesignFormattingPanel({
                 step={0.05}
                 value={currentLineSpacing}
                 onChange={(e) => updateSetting("lineSpacing", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Top & Bottom Margin */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Top & Bottom Margin</span>
+                <span className="font-semibold text-zinc-200">Top & Bottom Margin</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -376,15 +376,15 @@ export function ResumeDesignFormattingPanel({
                     max={120}
                     value={currentMarginTB}
                     onChange={(e) => updateSetting("marginTopBottom", Math.max(0, Number(e.target.value) || 0))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">px</span>
+                  <span className="text-[10px] text-zinc-400">px</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("marginTopBottom", DEFAULT_FORMATTING_SETTINGS.marginTopBottom)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.marginTopBottom} px)`}
                     aria-label="Reset top and bottom margin to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -397,14 +397,14 @@ export function ResumeDesignFormattingPanel({
                 step={2}
                 value={currentMarginTB}
                 onChange={(e) => updateSetting("marginTopBottom", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Side Margins */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Side Margins</span>
+                <span className="font-semibold text-zinc-200">Side Margins</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -412,15 +412,15 @@ export function ResumeDesignFormattingPanel({
                     max={120}
                     value={currentMarginSide}
                     onChange={(e) => updateSetting("marginSide", Math.max(0, Number(e.target.value) || 0))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">px</span>
+                  <span className="text-[10px] text-zinc-400">px</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("marginSide", DEFAULT_FORMATTING_SETTINGS.marginSide)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.marginSide} px)`}
                     aria-label="Reset side margins to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -433,14 +433,14 @@ export function ResumeDesignFormattingPanel({
                 step={2}
                 value={currentMarginSide}
                 onChange={(e) => updateSetting("marginSide", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
 
             {/* Paragraph Indent */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Paragraph Indent</span>
+                <span className="font-semibold text-zinc-200">Paragraph Indent</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -448,15 +448,15 @@ export function ResumeDesignFormattingPanel({
                     max={60}
                     value={currentIndent}
                     onChange={(e) => updateSetting("paragraphIndent", Math.max(0, Number(e.target.value) || 0))}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-12 h-6 px-1 text-center bg-[#161922] border border-white/10 rounded font-mono text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-white/60">px</span>
+                  <span className="text-[10px] text-zinc-400">px</span>
                   <button
                     type="button"
                     onClick={() => updateSetting("paragraphIndent", DEFAULT_FORMATTING_SETTINGS.paragraphIndent)}
                     title={`Reset to default (${DEFAULT_FORMATTING_SETTINGS.paragraphIndent} px)`}
                     aria-label="Reset paragraph indent to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
+                    className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
@@ -469,7 +469,7 @@ export function ResumeDesignFormattingPanel({
                 step={2}
                 value={currentIndent}
                 onChange={(e) => updateSetting("paragraphIndent", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
               />
             </div>
           </div>
@@ -480,7 +480,7 @@ export function ResumeDesignFormattingPanel({
               variant="ghost"
               size="sm"
               onClick={handleResetDefaults}
-              className="w-full text-xs text-white/70 hover:text-white hover:bg-white/10 gap-1.5 h-8"
+              className="w-full text-xs text-zinc-400 hover:text-white hover:bg-white/10 gap-1.5 h-8 rounded-xl"
             >
               <RotateCcw className="h-3 w-3" />
               Reset to Defaults
@@ -493,8 +493,8 @@ export function ResumeDesignFormattingPanel({
       {activeTab === "sections" && (
         <div className="space-y-3">
           <div>
-            <h4 className="font-bold text-sm text-white tracking-tight">Section Order</h4>
-            <p className="text-[11px] text-white/60 mt-0.5">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Section Order</h4>
+            <p className="text-[11px] text-zinc-400 mt-0.5">
               Drag to reorder sections or use arrows. Changes sync live with the preview.
             </p>
           </div>
@@ -514,14 +514,14 @@ export function ResumeDesignFormattingPanel({
                         {...prov.draggableProps}
                         className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
                           snap.isDragging
-                            ? "bg-[#1c243c] border-emerald-400 text-white shadow-2xl scale-[1.03] z-50 ring-2 ring-emerald-400"
-                            : "bg-[#1c243c]/70 border-white/10 text-white/90 hover:bg-[#1c243c]"
+                            ? "bg-[#1a1e29] border-emerald-400 text-white shadow-2xl scale-[1.03] z-50 ring-2 ring-emerald-400"
+                            : "bg-[#161922] border-white/10 text-zinc-200 hover:border-white/20"
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <div
                             {...prov.dragHandleProps}
-                            className="text-white/40 hover:text-white cursor-grab active:cursor-grabbing p-0.5"
+                            className="text-zinc-500 hover:text-zinc-300 cursor-grab active:cursor-grabbing p-0.5"
                             title="Drag to reorder"
                           >
                             <GripVertical className="h-4 w-4" />
@@ -536,7 +536,7 @@ export function ResumeDesignFormattingPanel({
                             type="button"
                             disabled={idx === 0}
                             onClick={() => moveSection(idx, "up")}
-                            className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent"
+                            className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent"
                             title="Move Up"
                           >
                             <ArrowUp className="h-3 w-3" />
@@ -545,7 +545,7 @@ export function ResumeDesignFormattingPanel({
                             type="button"
                             disabled={idx === sectionOrder.length - 1}
                             onClick={() => moveSection(idx, "down")}
-                            className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent"
+                            className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent"
                             title="Move Down"
                           >
                             <ArrowDown className="h-3 w-3" />
@@ -566,11 +566,11 @@ export function ResumeDesignFormattingPanel({
       {activeTab === "design" && (
         <div className="space-y-4">
           {/* Theme & Design Colors */}
-          <div className="space-y-2.5 bg-[#1c243c] p-3 rounded-xl border border-white/10">
+          <div className="space-y-2.5 bg-[#161922] p-3 rounded-xl border border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5 text-emerald-400" />
-                <h4 className="font-bold text-xs text-white">Theme & Header Colors</h4>
+                <h4 className="font-bold text-xs text-zinc-200">Theme & Header Colors</h4>
               </div>
               {(settings.headerBg || settings.primaryColor || settings.sidebarBg) && (
                 <button
@@ -583,7 +583,7 @@ export function ResumeDesignFormattingPanel({
                     delete next.accentColor;
                     onChangeSettings(next);
                   }}
-                  className="text-[10px] text-white/60 hover:text-white flex items-center gap-1 hover:underline"
+                  className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 hover:underline"
                   title="Reset to template default colors"
                 >
                   <RotateCcw className="w-2.5 h-2.5" />
@@ -625,7 +625,7 @@ export function ResumeDesignFormattingPanel({
                     className={`h-7 rounded-lg border transition-all flex items-center justify-center transform hover:scale-105 ${
                       isSelected
                         ? "border-emerald-400 ring-2 ring-emerald-400/50 scale-105 shadow-md"
-                        : "border-white/20 hover:border-white/50"
+                        : "border-white/10 hover:border-white/40"
                     }`}
                     style={{ backgroundColor: p.color }}
                   >
@@ -648,7 +648,7 @@ export function ResumeDesignFormattingPanel({
                     sidebarBg: e.target.value,
                   });
                 }}
-                className="w-8 h-7 p-0.5 bg-[#28334f] border border-white/20 rounded-lg cursor-pointer shrink-0"
+                className="w-8 h-7 p-0.5 bg-[#161922] border border-white/10 rounded-lg cursor-pointer shrink-0"
               />
               <input
                 type="text"
@@ -662,13 +662,13 @@ export function ResumeDesignFormattingPanel({
                   });
                 }}
                 placeholder="#1E293B"
-                className="flex-1 h-7 px-2 bg-[#28334f] border border-white/20 rounded-lg font-mono text-[11px] text-white uppercase focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                className="flex-1 h-7 px-2 bg-[#161922] border border-white/10 rounded-lg font-mono text-[11px] text-zinc-100 uppercase focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between">
-            <h4 className="font-bold text-sm text-white tracking-tight">Resume Templates</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Resume Templates</h4>
             <span className="text-[11px] text-emerald-400 font-semibold">{TEMPLATES.length} Styles</span>
           </div>
           <div className="grid grid-cols-2 gap-2.5 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
@@ -681,8 +681,8 @@ export function ResumeDesignFormattingPanel({
                   onClick={() => onChangeTemplate(t.id)}
                   className={`group relative flex flex-col rounded-xl border text-left transition-all overflow-hidden ${
                     active
-                      ? "bg-[#1c243c] border-emerald-400 text-white shadow-lg ring-2 ring-emerald-400/50"
-                      : "bg-[#1c243c]/60 border-white/10 text-white/80 hover:bg-[#1c243c] hover:border-white/30"
+                      ? "bg-[#1a1e29] border-emerald-400 text-white shadow-lg ring-2 ring-emerald-400/50"
+                      : "bg-[#161922] border-white/10 text-zinc-300 hover:border-white/30"
                   }`}
                 >
                   <div className="aspect-[1/1.3] w-full bg-white relative overflow-hidden flex items-start justify-center p-1 border-b border-white/10">
@@ -700,7 +700,7 @@ export function ResumeDesignFormattingPanel({
                   </div>
                   <div className="p-2">
                     <p className="text-[11px] font-bold truncate group-hover:text-emerald-300 transition-colors">{t.name}</p>
-                    <p className="text-[9px] text-white/50 line-clamp-1 mt-0.5">{t.desc}</p>
+                    <p className="text-[9px] text-zinc-400 line-clamp-1 mt-0.5">{t.desc}</p>
                   </div>
                 </button>
               );
@@ -711,4 +711,3 @@ export function ResumeDesignFormattingPanel({
     </aside>
   );
 }
-

@@ -1030,27 +1030,27 @@ export default function ResumeBuilder() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => fileRef.current?.click()} 
-                  className="h-9 rounded-full gap-2 border-primary/20 hover:bg-primary/5"
+                  className="h-9 rounded-xl gap-2 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 transition-all shadow-sm"
                   title="Import or drag a resume file (PDF, DOCX, TXT)"
                 >
-                  <Upload className="h-4 w-4 text-primary" />
+                  <Upload className="h-4 w-4 text-emerald-400" />
                   <span className="hidden sm:inline">Import</span>
                 </Button>
 
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 rounded-full gap-2 border-primary/20 hover:bg-primary/5">
-                      <Palette className="h-4 w-4 text-primary" />
+                    <Button variant="outline" size="sm" className="h-9 rounded-xl gap-2 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 transition-all shadow-sm">
+                      <Palette className="h-4 w-4 text-emerald-400" />
                       <span className="hidden sm:inline">Design & Layout</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-                    <SheetHeader><SheetTitle>Design & Layout</SheetTitle></SheetHeader>
-                    <div className="py-6 space-y-8 overflow-y-auto max-h-[calc(100vh-100px)] px-1">
+                  <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#11141b] border-white/10 text-zinc-100">
+                    <SheetHeader><SheetTitle className="text-zinc-100">Design & Layout</SheetTitle></SheetHeader>
+                    <div className="py-6 space-y-8 overflow-y-auto max-h-[calc(100vh-100px)] px-1 custom-scrollbar">
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <Label className="text-base font-bold">Templates</Label>
-                          <span className="text-xs text-primary font-semibold">{TEMPLATES.length} Styles</span>
+                          <Label className="text-sm font-bold uppercase tracking-wider text-zinc-400">Templates</Label>
+                          <span className="text-xs text-emerald-400 font-semibold">{TEMPLATES.length} Styles</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           {TEMPLATES.map(t => (
@@ -1060,59 +1060,59 @@ export default function ResumeBuilder() {
                               onClick={() => {
                                 setTemplate(t.id);
                               }} 
-                              className={`group relative rounded-xl border-2 transition-all overflow-hidden flex flex-col text-left ${template === t.id ? "border-primary shadow-glow bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40 bg-card hover:bg-accent/40"}`}
+                              className={`group relative rounded-xl border transition-all overflow-hidden flex flex-col text-left ${template === t.id ? "border-emerald-400 shadow-lg bg-[#1a1e29] ring-2 ring-emerald-400/50" : "border-white/10 hover:border-white/30 bg-[#161922] hover:bg-[#1a1e29]"}`}
                             >
-                              <div className="aspect-[1/1.35] w-full bg-slate-100 relative overflow-hidden flex items-start justify-center p-1 border-b">
+                              <div className="aspect-[1/1.35] w-full bg-white relative overflow-hidden flex items-start justify-center p-1 border-b border-white/10">
                                 <TemplateMiniPreview template={t.id} data={resumeData} scale={0.17} className="pointer-events-none" />
                                 {t.tag && (
-                                  <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-slate-900/90 text-primary-foreground text-[8px] font-bold tracking-wider uppercase border border-white/10">
+                                  <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-slate-900/90 text-emerald-400 text-[8px] font-bold tracking-wider uppercase border border-white/10">
                                     {t.tag}
                                   </div>
                                 )}
                                 {template === t.id && (
-                                  <div className="absolute top-1.5 right-1.5 z-20 bg-primary text-primary-foreground rounded-full p-0.5 shadow-md">
+                                  <div className="absolute top-1.5 right-1.5 z-20 bg-emerald-500 text-slate-950 rounded-full p-0.5 shadow-md">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                   </div>
                                 )}
                               </div>
-                              <div className="p-2.5 bg-background">
-                                <span className="text-[11px] font-bold block truncate group-hover:text-primary transition-colors">{t.name}</span>
-                                <span className="text-[9px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">{t.desc}</span>
+                              <div className="p-2.5 bg-[#161922]">
+                                <span className="text-[11px] font-bold block truncate group-hover:text-emerald-300 transition-colors">{t.name}</span>
+                                <span className="text-[9px] text-zinc-400 leading-tight mt-0.5 line-clamp-1">{t.desc}</span>
                               </div>
                             </button>
                           ))}
                         </div>
                       </div>
-                      <Separator />
+                      <Separator className="bg-white/10" />
                       <PreferenceFilterBar prefs={prefs} onChange={setPrefs} onOpenWizard={() => setStarter("wizard")} />
-                      <Separator />
+                      <Separator className="bg-white/10" />
                       <div className="space-y-4">
-                        <Label className="text-base font-bold block">Global Typography</Label>
+                        <Label className="text-sm font-bold uppercase tracking-wider text-zinc-400 block">Global Typography</Label>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className="text-xs">Font Family</Label>
-                            <select className="w-full bg-background border border-border rounded-lg px-2 py-2 text-sm outline-none" value={resumeData.settings?.fontFamily} onChange={e => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontFamily: e.target.value } }))}>
-                              {fontFamilies.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                            <Label className="text-xs text-zinc-300">Font Family</Label>
+                            <select className="w-full bg-[#161922] border border-white/10 rounded-xl px-2 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-emerald-500" value={resumeData.settings?.fontFamily} onChange={e => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontFamily: e.target.value } }))}>
+                              {fontFamilies.map(f => <option key={f.value} value={f.value} className="bg-[#161922] text-zinc-100">{f.label}</option>)}
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-xs">Base Size ({resumeData.settings?.fontSize}px)</Label>
-                            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.max(8, (prev.settings?.fontSize || 11) - 1) } }))}>-</Button>
-                              <span className="flex-1 text-center font-bold">{resumeData.settings?.fontSize}</span>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.min(16, (prev.settings?.fontSize || 11) + 1) } }))}>+</Button>
+                            <Label className="text-xs text-zinc-300">Base Size ({resumeData.settings?.fontSize}px)</Label>
+                            <div className="flex items-center gap-1 bg-[#161922] rounded-xl p-1 border border-white/10">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.max(8, (prev.settings?.fontSize || 11) - 1) } }))}>-</Button>
+                              <span className="flex-1 text-center font-bold text-zinc-100">{resumeData.settings?.fontSize}</span>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white" onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, fontSize: Math.min(16, (prev.settings?.fontSize || 11) + 1) } }))}>+</Button>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border">
+                        <div className="flex items-center justify-between p-3 bg-[#161922] rounded-xl border border-white/10">
                            <div className="flex items-center gap-2">
-                              <SpellCheck className={`h-4 w-4 ${spellCheckEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-                              <Label className="text-sm">Spell Check</Label>
+                              <SpellCheck className={`h-4 w-4 ${spellCheckEnabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                              <Label className="text-sm text-zinc-200">Spell Check</Label>
                            </div>
-                           <input type="checkbox" checked={spellCheckEnabled} onChange={e => setSpellCheckEnabled(e.target.checked)} className="h-4 w-4 accent-primary" />
+                           <input type="checkbox" checked={spellCheckEnabled} onChange={e => setSpellCheckEnabled(e.target.checked)} className="h-4 w-4 accent-emerald-500" />
                         </div>
                       </div>
-                      <Separator />
+                      <Separator className="bg-white/10" />
                       <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} />
                     </div>
                   </SheetContent>
@@ -1120,14 +1120,14 @@ export default function ResumeBuilder() {
                 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button className="h-9 rounded-full bg-gradient-primary shadow-glow gap-2">
+                    <Button className="h-9 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-md shadow-emerald-500/20 gap-2 cursor-pointer transition-all">
                       <Download className="h-4 w-4" />
                       <span className="hidden sm:inline">Export</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2" align="end">
-                    <Button variant="ghost" className="w-full justify-start gap-2" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-4 w-4" /> PDF Document</Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-4 w-4" /> Word (DOCX)</Button>
+                  <PopoverContent className="w-48 p-2 bg-[#161922] border-white/10 text-zinc-100" align="end">
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-4 w-4 text-emerald-400" /> PDF Document</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-4 w-4 text-emerald-400" /> Word (DOCX)</Button>
                   </PopoverContent>
                 </Popover>
 
@@ -1173,7 +1173,7 @@ export default function ResumeBuilder() {
               >
                 <div className="h-full overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar space-y-6 min-h-0">
                   {/* NAVIGATION */}
-                  <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-md py-2 px-1 -mx-1 border-b">
+                  <nav className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-hide sticky top-0 z-20 bg-background/95 backdrop-blur-xl py-2 px-1 -mx-1 border-b border-white/[0.06]">
                     {[
                       { id: "basics", label: "Basics", icon: CheckCircle2 },
                       { id: "summary", label: "Summary", icon: Sparkles },
@@ -1192,48 +1192,50 @@ export default function ResumeBuilder() {
                             el.scrollIntoView({ behavior: "smooth", block: "start" });
                           }
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 border border-transparent rounded-xl text-[11px] font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary/20 transition-all shrink-0 shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#161922] border border-white/[0.08] hover:border-emerald-500/40 text-zinc-300 hover:text-white rounded-xl text-[11px] font-semibold transition-all shrink-0 shadow-sm"
                       >
-                        <s.icon className="h-3 w-3" />
+                        <s.icon className="h-3 w-3 text-emerald-400" />
                         {s.label}
                       </button>
                     ))}
                   </nav>
 
-
-
                 {/* BASICS */}
-                <div id="section-basics" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                  <div className="flex items-center gap-2 mb-6 border-b pb-4">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    <h3 className="font-display text-lg font-bold">1. Personal Information</h3>
+                <div id="section-basics" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center gap-2 mb-6 border-b border-white/[0.06] pb-4">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </div>
+                    <h3 className="font-display text-base font-bold text-zinc-100">1. Personal Information</h3>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Full Name</Label>
-                      <Input value={resumeData.name} onChange={e => setResumeData({ ...resumeData, name: e.target.value })} placeholder="John Doe" className="rounded-xl border-border/60" name="resume-name" />
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Full Name</Label>
+                      <Input value={resumeData.name} onChange={e => setResumeData({ ...resumeData, name: e.target.value })} placeholder="John Doe" className="rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" name="resume-name" />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Job Title</Label>
-                      <Input value={resumeData.title} onChange={e => setResumeData({ ...resumeData, title: e.target.value })} placeholder="Software Engineer" className="rounded-xl border-border/60" name="resume-title" />
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Job Title</Label>
+                      <Input value={resumeData.title} onChange={e => setResumeData({ ...resumeData, title: e.target.value })} placeholder="Software Engineer" className="rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" name="resume-title" />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Email</Label>
-                      <Input value={resumeData.email} onChange={e => setResumeData({ ...resumeData, email: e.target.value })} placeholder="john@example.com" className="rounded-xl border-border/60" name="resume-email" />
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Email</Label>
+                      <Input value={resumeData.email} onChange={e => setResumeData({ ...resumeData, email: e.target.value })} placeholder="john@example.com" className="rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" name="resume-email" />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground ml-1">Phone</Label>
-                      <Input value={resumeData.phone} onChange={e => setResumeData({ ...resumeData, phone: e.target.value })} placeholder="+1 (555) 000-0000" className="rounded-xl border-border/60" name="resume-phone" />
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Phone</Label>
+                      <Input value={resumeData.phone} onChange={e => setResumeData({ ...resumeData, phone: e.target.value })} placeholder="+1 (555) 000-0000" className="rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" name="resume-phone" />
                     </div>
                   </div>
                 </div>
 
                 {/* SUMMARY */}
-                <div id="section-summary" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <Sparkles className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">2.</span>
+                <div id="section-summary" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                   <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Sparkles className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">2.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.summary ?? "Professional Summary"}
                           onChange={e => {
@@ -1249,14 +1251,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[240px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                             </PopoverTrigger>
@@ -1264,7 +1266,7 @@ export default function ResumeBuilder() {
                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="summary" hideHeader />
                             </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                             <Wand2 className="h-3 w-3" />
                             AI POLISH
                         </Button>
@@ -1274,18 +1276,20 @@ export default function ResumeBuilder() {
                      value={resumeData.summary} 
                      onChange={e => setResumeData({ ...resumeData, summary: e.target.value })} 
                      placeholder="A brief overview of your professional background..." 
-                     className="min-h-[120px] rounded-xl border-border/60 resize-none" 
+                     className="min-h-[120px] rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none" 
                      spellCheck={spellCheckEnabled} 
                      name="resume-summary"
                    />
                 </div>
 
                 {/* EXPERIENCE */}
-                <div id="section-experience" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                  <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <FileText className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">3.</span>
+                <div id="section-experience" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">3.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.experience ?? "Work Experience"}
                           onChange={e => {
@@ -1301,14 +1305,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[240px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                             </PopoverTrigger>
@@ -1316,13 +1320,13 @@ export default function ResumeBuilder() {
                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="experience" hideHeader />
                             </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="sm" onClick={addExp} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                        <Button variant="outline" size="sm" onClick={addExp} className="h-8 rounded-full gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                             <Plus className="h-3 w-3" />
                             <span className="text-[10px] font-bold">ADD ROLE</span>
                         </Button>
                      </div>
                    </div>
-                                 <Droppable droppableId="experience-list">
+                   <Droppable droppableId="experience-list">
                      {(provided) => (
                        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
                          {resumeData.experience.map((exp, i) => (
@@ -1331,14 +1335,14 @@ export default function ResumeBuilder() {
                                <div
                                  ref={prov.innerRef}
                                  {...prov.draggableProps}
-                                 className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
-                                   snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                 className={`group p-5 rounded-2xl border border-white/[0.08] bg-[#161922]/70 hover:border-white/20 relative transition-all ${
+                                   snap.isDragging ? "shadow-2xl ring-2 ring-emerald-500 bg-[#161922] z-50 scale-[1.02]" : ""
                                  }`}
                                >
-                                 <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                 <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2">
                                    <div
                                      {...prov.dragHandleProps}
-                                     className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                     className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-grab active:cursor-grabbing text-xs font-semibold"
                                      title="Drag to reorder role"
                                    >
                                      <GripVertical className="h-4 w-4" />
@@ -1354,40 +1358,40 @@ export default function ResumeBuilder() {
                                    </Button>
                                  </div>
                                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Company</Label>
-                                     <Input value={exp.company} onChange={e => { const n = [...resumeData.experience]; n[i].company = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Company" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Company</Label>
+                                     <Input value={exp.company} onChange={e => { const n = [...resumeData.experience]; n[i].company = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Company" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
-                                     <Input value={exp.role} onChange={e => { const n = [...resumeData.experience]; n[i].role = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Role</Label>
+                                     <Input value={exp.role} onChange={e => { const n = [...resumeData.experience]; n[i].role = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Role" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
                                  </div>
                                  <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
-                                     <Input value={exp.location} onChange={e => { const n = [...resumeData.experience]; n[i].location = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Remote / City" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Location</Label>
+                                     <Input value={exp.location} onChange={e => { const n = [...resumeData.experience]; n[i].location = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Remote / City" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
-                                     <Input value={exp.start} onChange={e => { const n = [...resumeData.experience]; n[i].start = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Jan 2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Start Date</Label>
+                                     <Input value={exp.start} onChange={e => { const n = [...resumeData.experience]; n[i].start = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Jan 2022" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
-                                     <Input value={exp.end} onChange={e => { const n = [...resumeData.experience]; n[i].end = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Present" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">End Date</Label>
+                                     <Input value={exp.end} onChange={e => { const n = [...resumeData.experience]; n[i].end = e.target.value; setResumeData({ ...resumeData, experience: n }); }} placeholder="Present" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
                                  </div>
-                                 <div className="relative space-y-1">
-                                   <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
+                                 <div className="relative space-y-1.5">
+                                   <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Description</Label>
                                    <Textarea 
                                      value={exp.bullets.join('\n')} 
                                      onChange={e => { const n = [...resumeData.experience]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, experience: n }); }} 
                                      placeholder="Bullet points describing your achievements..." 
-                                     className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none pb-10" 
+                                     className="min-h-[100px] rounded-xl border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none pb-10" 
                                      spellCheck={spellCheckEnabled} 
                                    />
                                    <div className="absolute bottom-2 right-2 flex gap-1">
-                                     <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-primary hover:bg-primary/10">
+                                     <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10">
                                        <Sparkles className="h-3 w-3 mr-1" />
                                        IMPROVE
                                      </Button>
@@ -1399,7 +1403,7 @@ export default function ResumeBuilder() {
                          ))}
                          {provided.placeholder}
                          {resumeData.experience.length === 0 && (
-                           <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No experience added.</div>
+                           <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 italic">No experience added.</div>
                          )}
                        </div>
                      )}
@@ -1407,11 +1411,13 @@ export default function ResumeBuilder() {
                  </div>
 
                 {/* LEADERSHIP EXPERIENCE */}
-                <div id="section-leadership" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <Award className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">4.</span>
+                <div id="section-leadership" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                   <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Award className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">4.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.leadership ?? "Leadership Experience"}
                           onChange={e => {
@@ -1427,14 +1433,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[260px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[260px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                             </PopoverTrigger>
@@ -1442,7 +1448,7 @@ export default function ResumeBuilder() {
                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="leadership" hideHeader />
                             </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="sm" onClick={addLeadership} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                        <Button variant="outline" size="sm" onClick={addLeadership} className="h-8 rounded-full gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                             <Plus className="h-3 w-3" />
                             <span className="text-[10px] font-bold">ADD ROLE</span>
                         </Button>
@@ -1457,14 +1463,14 @@ export default function ResumeBuilder() {
                                <div
                                  ref={prov.innerRef}
                                  {...prov.draggableProps}
-                                 className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
-                                   snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                 className={`group p-5 rounded-2xl border border-white/[0.08] bg-[#161922]/70 hover:border-white/20 relative transition-all ${
+                                   snap.isDragging ? "shadow-2xl ring-2 ring-emerald-500 bg-[#161922] z-50 scale-[1.02]" : ""
                                  }`}
                                >
-                                 <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                 <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2">
                                    <div
                                      {...prov.dragHandleProps}
-                                     className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                     className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-grab active:cursor-grabbing text-xs font-semibold"
                                      title="Drag to reorder leadership role"
                                    >
                                      <GripVertical className="h-4 w-4" />
@@ -1475,18 +1481,18 @@ export default function ResumeBuilder() {
                                    </Button>
                                  </div>
                                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Organization</Label>
-                                     <Input value={lead.organization} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].organization = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Organization" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Organization</Label>
+                                     <Input value={lead.organization} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].organization = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Organization" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
-                                   <div className="space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Role</Label>
-                                     <Input value={lead.role} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].role = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Role" className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Role</Label>
+                                     <Input value={lead.role} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].role = e.target.value; setResumeData({ ...resumeData, leadership: n }); }} placeholder="Role" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
                                  </div>
-                                 <div className="relative space-y-1">
-                                     <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Description</Label>
-                                     <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-lg border-border/60 bg-background resize-none" spellCheck={spellCheckEnabled} />
+                                 <div className="relative space-y-1.5">
+                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Description</Label>
+                                     <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-xl border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none" spellCheck={spellCheckEnabled} />
                                  </div>
                                </div>
                              )}
@@ -1494,7 +1500,7 @@ export default function ResumeBuilder() {
                          ))}
                          {provided.placeholder}
                          {(!resumeData.leadership || resumeData.leadership.length === 0) && (
-                           <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No leadership added.</div>
+                           <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 italic">No leadership added.</div>
                          )}
                        </div>
                      )}
@@ -1502,11 +1508,13 @@ export default function ResumeBuilder() {
                 </div>
 
                 {/* EDUCATION */}
-                <div id="section-education" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                  <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <ArrowDown className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">5.</span>
+                <div id="section-education" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <ArrowDown className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">5.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.education ?? "Education"}
                           onChange={e => {
@@ -1522,14 +1530,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[240px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                          <Popover>
                              <PopoverTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                  <Settings2 className="h-4 w-4" />
                              </Button>
                              </PopoverTrigger>
@@ -1537,7 +1545,7 @@ export default function ResumeBuilder() {
                                  <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="education" hideHeader />
                              </PopoverContent>
                          </Popover>
-                         <Button variant="outline" size="sm" onClick={addEdu} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                         <Button variant="outline" size="sm" onClick={addEdu} className="h-8 rounded-full gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                              <Plus className="h-3 w-3" />
                              <span className="text-[10px] font-bold">ADD SCHOOL</span>
                          </Button>
@@ -1552,14 +1560,14 @@ export default function ResumeBuilder() {
                                  <div
                                    ref={prov.innerRef}
                                    {...prov.draggableProps}
-                                   className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
-                                     snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                   className={`group p-5 rounded-2xl border border-white/[0.08] bg-[#161922]/70 hover:border-white/20 relative transition-all ${
+                                     snap.isDragging ? "shadow-2xl ring-2 ring-emerald-500 bg-[#161922] z-50 scale-[1.02]" : ""
                                    }`}
                                  >
-                                   <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                   <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2">
                                      <div
                                        {...prov.dragHandleProps}
-                                       className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                       className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-grab active:cursor-grabbing text-xs font-semibold"
                                        title="Drag to reorder school"
                                      >
                                        <GripVertical className="h-4 w-4" />
@@ -1570,32 +1578,32 @@ export default function ResumeBuilder() {
                                      </Button>
                                    </div>
                                    <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                     <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">School</Label>
-                                       <Input value={edu.school} onChange={e => { const n = [...resumeData.education]; n[i].school = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="University Name" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">School</Label>
+                                       <Input value={edu.school} onChange={e => { const n = [...resumeData.education]; n[i].school = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="University Name" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                      </div>
-                                     <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Degree</Label>
-                                       <Input value={edu.degree} onChange={e => { const n = [...resumeData.education]; n[i].degree = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="B.S. in Computer Science" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Degree</Label>
+                                       <Input value={edu.degree} onChange={e => { const n = [...resumeData.education]; n[i].degree = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="B.S. in Computer Science" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                      </div>
                                    </div>
                                    <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                                     <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Location</Label>
-                                       <Input value={edu.location} onChange={e => { const n = [...resumeData.education]; n[i].location = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="City, State" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Location</Label>
+                                       <Input value={edu.location} onChange={e => { const n = [...resumeData.education]; n[i].location = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="City, State" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                      </div>
-                                     <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Start Date</Label>
-                                       <Input value={edu.start} onChange={e => { const n = [...resumeData.education]; n[i].start = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2018" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Start Date</Label>
+                                       <Input value={edu.start} onChange={e => { const n = [...resumeData.education]; n[i].start = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2018" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                      </div>
-                                     <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">End Date</Label>
-                                       <Input value={edu.end} onChange={e => { const n = [...resumeData.education]; n[i].end = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2022" className="h-9 rounded-lg border-border/60 bg-background" />
+                                     <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">End Date</Label>
+                                       <Input value={edu.end} onChange={e => { const n = [...resumeData.education]; n[i].end = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="2022" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                      </div>
                                    </div>
-                                   <div className="space-y-1">
-                                       <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Details / Honors</Label>
-                                       <Input value={edu.details} onChange={e => { const n = [...resumeData.education]; n[i].details = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="GPA: 3.9, Dean's List..." className="h-9 rounded-lg border-border/60 bg-background" />
+                                   <div className="space-y-1.5">
+                                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Details / Honors</Label>
+                                       <Input value={edu.details} onChange={e => { const n = [...resumeData.education]; n[i].details = e.target.value; setResumeData({ ...resumeData, education: n }); }} placeholder="GPA: 3.9, Dean's List..." className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                    </div>
                                  </div>
                                )}
@@ -1603,7 +1611,7 @@ export default function ResumeBuilder() {
                            ))}
                            {provided.placeholder}
                            {resumeData.education.length === 0 && (
-                             <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No education added.</div>
+                             <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 italic">No education added.</div>
                            )}
                          </div>
                        )}
@@ -1611,11 +1619,13 @@ export default function ResumeBuilder() {
                 </div>
 
                 {/* PROJECTS */}
-                <div id="section-projects" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                  <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <Link2 className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">6.</span>
+                <div id="section-projects" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Link2 className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">6.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.projects ?? "Projects"}
                           onChange={e => {
@@ -1631,14 +1641,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[240px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                             </PopoverTrigger>
@@ -1646,7 +1656,7 @@ export default function ResumeBuilder() {
                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="projects" hideHeader />
                             </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="sm" onClick={addProj} className="h-8 rounded-full gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                        <Button variant="outline" size="sm" onClick={addProj} className="h-8 rounded-full gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                             <Plus className="h-3 w-3" />
                             <span className="text-[10px] font-bold">ADD PROJECT</span>
                         </Button>
@@ -1661,14 +1671,14 @@ export default function ResumeBuilder() {
                                 <div
                                   ref={prov.innerRef}
                                   {...prov.draggableProps}
-                                  className={`group p-5 rounded-2xl border bg-muted/20 relative transition-all ${
-                                    snap.isDragging ? "shadow-2xl ring-2 ring-primary bg-background z-50 scale-[1.02]" : ""
+                                  className={`group p-5 rounded-2xl border border-white/[0.08] bg-[#161922]/70 hover:border-white/20 relative transition-all ${
+                                    snap.isDragging ? "shadow-2xl ring-2 ring-emerald-500 bg-[#161922] z-50 scale-[1.02]" : ""
                                   }`}
                                 >
-                                  <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                                  <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2">
                                     <div
                                       {...prov.dragHandleProps}
-                                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing text-xs font-semibold"
+                                      className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-grab active:cursor-grabbing text-xs font-semibold"
                                       title="Drag to reorder project"
                                     >
                                       <GripVertical className="h-4 w-4" />
@@ -1679,18 +1689,18 @@ export default function ResumeBuilder() {
                                     </Button>
                                   </div>
                                   <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                    <div className="space-y-1">
-                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Name</Label>
-                                      <Input value={proj.name} onChange={e => { const n = [...resumeData.projects]; n[i].name = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="Project Alpha" className="h-9 rounded-lg border-border/60 bg-background" />
+                                    <div className="space-y-1.5">
+                                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Project Name</Label>
+                                      <Input value={proj.name} onChange={e => { const n = [...resumeData.projects]; n[i].name = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="Project Alpha" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                     </div>
-                                    <div className="space-y-1">
-                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Technologies</Label>
-                                      <Input value={proj.tech} onChange={e => { const n = [...resumeData.projects]; n[i].tech = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="React, Node.js, AWS" className="h-9 rounded-lg border-border/60 bg-background" />
+                                    <div className="space-y-1.5">
+                                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Technologies</Label>
+                                      <Input value={proj.tech} onChange={e => { const n = [...resumeData.projects]; n[i].tech = e.target.value; setResumeData({ ...resumeData, projects: n }); }} placeholder="React, Node.js, AWS" className="h-9 rounded-lg border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" />
                                     </div>
                                   </div>
-                                  <div className="space-y-1">
-                                      <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Project Description</Label>
-                                      <Textarea value={proj.bullets.join('\n')} onChange={e => { const n = [...resumeData.projects]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, projects: n }); }} placeholder="Describe the impact and technical challenges..." className="min-h-[80px] rounded-lg border-border/60 bg-background resize-none" />
+                                  <div className="space-y-1.5">
+                                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Project Description</Label>
+                                      <Textarea value={proj.bullets.join('\n')} onChange={e => { const n = [...resumeData.projects]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, projects: n }); }} placeholder="Describe the impact and technical challenges..." className="min-h-[80px] rounded-xl border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none" />
                                   </div>
                                 </div>
                               )}
@@ -1698,7 +1708,7 @@ export default function ResumeBuilder() {
                           ))}
                           {provided.placeholder}
                           {resumeData.projects.length === 0 && (
-                            <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground italic">No projects added.</div>
+                            <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 italic">No projects added.</div>
                           )}
                         </div>
                       )}
@@ -1706,11 +1716,13 @@ export default function ResumeBuilder() {
                 </div>
 
                 {/* SKILLS & GENERATE */}
-                <div id="section-skills" className="bg-card border-2 border-border rounded-2xl p-6 shadow-card transition-all hover:border-primary/20">
-                  <div className="flex items-center justify-between mb-6 border-b pb-4">
-                     <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-                        <Wand className="h-5 w-5 text-primary shrink-0" />
-                        <span className="font-display text-sm font-bold text-muted-foreground shrink-0">7.</span>
+                <div id="section-skills" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-4">
+                     <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Wand className="h-4 w-4" />
+                        </div>
+                        <span className="font-display text-sm font-bold text-zinc-400 shrink-0">7.</span>
                         <Input
                           value={resumeData.settings?.customSectionTitles?.skills ?? "Skills & Optimization"}
                           onChange={e => {
@@ -1726,14 +1738,14 @@ export default function ResumeBuilder() {
                               }
                             }));
                           }}
-                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[240px] rounded-lg transition-colors"
+                          className="h-8 font-display text-base font-bold bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-2 max-w-[240px] rounded-lg transition-colors text-zinc-100"
                           title="Click to rename section heading"
                         />
                      </div>
                      <div className="flex gap-2 shrink-0">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5 text-primary" title="Typography">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white" title="Typography">
                                     <Settings2 className="h-4 w-4" />
                                 </Button>
                             </PopoverTrigger>
@@ -1741,7 +1753,7 @@ export default function ResumeBuilder() {
                                 <SectionStyleControls value={resumeData.settings?.sections || {}} onChange={sections => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, sections } }))} baseSize={resumeData.settings?.fontSize || 11} sectionKey="skills" hideHeader />
                             </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1 border-primary/20 hover:bg-primary/5 text-primary">
+                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[10px] font-bold gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm transition-all">
                             <Sparkles className="h-3 w-3" />
                             ATS OPTIMIZE
                         </Button>
@@ -1750,7 +1762,7 @@ export default function ResumeBuilder() {
                    <div className="space-y-6">
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
+                        <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
                         <Textarea 
                           value={resumeData.skills.map(s => isGenericSkillCategory(s.category) ? s.items.join(', ') : `${s.category}: ${s.items.join(', ')}`).join('\n')} 
                           onChange={e => {
@@ -1765,9 +1777,9 @@ export default function ResumeBuilder() {
                             setResumeData({ ...resumeData, skills: newSkills });
                           }} 
                           placeholder="Languages: TypeScript, JavaScript&#10;Frameworks: React, Node.js" 
-                          className="min-h-[120px] rounded-xl border-border/60" 
+                          className="min-h-[120px] rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" 
                         />
-                        <p className="text-[10px] text-muted-foreground ml-1">Tip: Use "Category: skill1, skill2" for grouping.</p>
+                        <p className="text-[10px] text-zinc-500 ml-1">Tip: Use "Category: skill1, skill2" for grouping.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -1788,13 +1800,13 @@ export default function ResumeBuilder() {
                                     }
                                   }));
                                 }}
-                                className="h-7 text-xs font-bold text-muted-foreground bg-transparent border-transparent hover:border-border/60 focus:border-primary focus:bg-background px-1.5 max-w-[200px] rounded transition-colors"
+                                className="h-7 text-xs font-bold text-zinc-400 bg-transparent border-transparent hover:border-white/10 focus:border-emerald-500 focus:bg-[#161922] px-1.5 max-w-[200px] rounded transition-colors"
                                 title="Click to rename certifications heading"
                               />
                             </div>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Typography">
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-zinc-400 hover:text-white" title="Typography">
                                         <Settings2 className="h-3 w-3" />
                                     </Button>
                                 </PopoverTrigger>
@@ -1807,44 +1819,42 @@ export default function ResumeBuilder() {
                           value={resumeData.certifications.join('\n')} 
                           onChange={e => setResumeData({ ...resumeData, certifications: e.target.value.split('\n').filter(Boolean) })} 
                           placeholder="AWS Certified Developer, PMP..." 
-                          className="min-h-[60px] rounded-xl border-border/60" 
+                          className="min-h-[60px] rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" 
                         />
                       </div>
                       
-                      <Separator />
+                      <Separator className="bg-white/[0.06]" />
 
-
-                      
-                      <div className="p-6 rounded-2xl bg-primary/[0.03] border border-primary/10 space-y-6 relative overflow-hidden group/ai">
+                      <div className="p-6 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/20 space-y-6 relative overflow-hidden group/ai shadow-lg">
                         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover/ai:opacity-20 transition-opacity">
-                          <Sparkles className="h-20 w-20 text-primary" />
+                          <Sparkles className="h-20 w-20 text-emerald-400" />
                         </div>
                         
-                        <div className="space-y-2 relative">
+                        <div className="space-y-1.5 relative">
                           <div className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            <h3 className="font-display font-bold text-primary tracking-tight">✨ AI RESUME POLISH</h3>
+                            <Sparkles className="h-5 w-5 text-emerald-400" />
+                            <h3 className="font-display font-bold text-emerald-400 tracking-tight text-base">✨ AI RESUME POLISH</h3>
                           </div>
-                          <p className="text-xs text-muted-foreground ml-7">
+                          <p className="text-xs text-zinc-400 ml-7">
                             "Let AI transform your resume into stronger, job-ready content."
                           </p>
                         </div>
 
-                        <div className="space-y-3 relative">
+                        <div className="space-y-2 relative">
                           <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center"><Target className="h-3 w-3 text-primary" /></div>
-                            <Label className="font-bold text-sm">Target Job Description</Label>
+                            <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20"><Target className="h-3 w-3 text-emerald-400" /></div>
+                            <Label className="font-bold text-xs uppercase tracking-wider text-zinc-300">Target Job Description</Label>
                           </div>
                           <Textarea 
                             value={targetJd} 
                             onChange={e => setTargetJd(e.target.value)} 
                             placeholder="Paste the job description you're applying for to optimize your resume bullets and skills..." 
-                            className="min-h-[120px] bg-background rounded-xl border-primary/10 focus:border-primary/30 text-sm leading-relaxed" 
+                            className="min-h-[120px] bg-[#0d0f14] rounded-xl border-white/10 focus:border-emerald-500/50 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-500" 
                           />
                         </div>
 
-                        <div className="bg-background/50 rounded-xl p-4 border border-primary/5 space-y-3">
-                          <div className="flex items-center gap-2 text-primary">
+                        <div className="bg-[#0d0f14]/80 rounded-xl p-4 border border-white/[0.06] space-y-3">
+                          <div className="flex items-center gap-2 text-emerald-400">
                             <Sparkles className="h-3.5 w-3.5" />
                             <span className="text-[11px] font-bold uppercase tracking-wider">✨ AI will:</span>
                           </div>
@@ -1859,8 +1869,8 @@ export default function ResumeBuilder() {
                               "Optimize content for ATS"
                             ].map((text, idx) => (
                               <div key={idx} className="flex items-start gap-2 group/item">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-primary/60 mt-0.5 shrink-0 group-hover/item:text-primary transition-colors" />
-                                <span className="text-[11px] text-muted-foreground leading-snug">✓ {text}</span>
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400/70 mt-0.5 shrink-0 group-hover/item:text-emerald-400 transition-colors" />
+                                <span className="text-[11px] text-zinc-300 leading-snug">✓ {text}</span>
                               </div>
                             ))}
                           </div>
@@ -1870,19 +1880,19 @@ export default function ResumeBuilder() {
                           <Button 
                             onClick={generate} 
                             disabled={loading} 
-                            className="w-full h-14 text-lg font-bold bg-gradient-primary shadow-glow rounded-2xl group overflow-hidden relative"
+                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/20 rounded-xl group overflow-hidden relative cursor-pointer"
                           >
                             {loading ? (
                               <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
                                 <div className="relative">
                                   <Loader2 className="h-5 w-5 animate-spin" />
-                                  <Sparkles className="absolute -top-1 -right-1 h-2 w-2 text-primary-foreground animate-pulse" />
+                                  <Sparkles className="absolute -top-1 -right-1 h-2 w-2 text-slate-950 animate-pulse" />
                                 </div>
-                                <span className="text-base">✨ AI is polishing your resume...</span>
+                                <span className="text-sm font-bold">✨ AI is polishing your resume...</span>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 transition-transform group-hover:scale-[1.02]">
-                                <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                              <div className="flex items-center gap-2 transition-transform group-hover:scale-[1.01]">
+                                <Sparkles className="h-4 w-4 transition-transform group-hover:rotate-12" />
                                 <span>✨ Generate Polished Resume with AI</span>
                               </div>
                             )}
@@ -1898,10 +1908,10 @@ export default function ResumeBuilder() {
                               ].map((text, idx) => (
                                 <div 
                                   key={idx} 
-                                  className="flex items-center gap-2 text-[10px] text-primary/80"
+                                  className="flex items-center gap-2 text-[10px] text-emerald-400"
                                   style={{ animationDelay: `${idx * 150}ms` }}
                                 >
-                                  <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                   <span>{text}</span>
                                 </div>
                               ))}
@@ -1909,20 +1919,20 @@ export default function ResumeBuilder() {
                           )}
 
                            {resumeData && resumeData.name && !loading && resumeData._isPolished && (
-                              <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95">
-                                <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                              <div className="flex items-start gap-3 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 animate-in zoom-in-95">
+                                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                                 <div>
-                                  <p className="text-xs font-bold text-primary">✓ Resume polished successfully</p>
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">"Your content has been improved for clarity, impact, and ATS relevance."</p>
+                                  <p className="text-xs font-bold text-emerald-400">✓ Resume polished successfully</p>
+                                  <p className="text-[10px] text-zinc-400 mt-0.5">"Your content has been improved for clarity, impact, and ATS relevance."</p>
                                 </div>
                               </div>
                             )}
                          </div>
-                              </div>
-                        </div>
-                     </div>
-                   </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
                 {/* SLIDE TOGGLE ARROW HANDLE ON THE BORDER */}
                 <div className="hidden lg:flex items-center justify-center relative z-30 shrink-0 select-none py-2">
@@ -1944,10 +1954,10 @@ export default function ResumeBuilder() {
                 </div>
 
                 {/* RIGHT COLUMN: INDEPENDENT PREVIEW PANE */}
-                <div className={`hidden lg:flex flex-col h-full overflow-hidden bg-muted/15 rounded-3xl border border-border/70 shadow-card min-h-0 flex-1 min-w-0 transition-all duration-500 ease-in-out ${isEditorCollapsed ? 'flex-1 w-full' : ''}`}>
+                <div className={`hidden lg:flex flex-col h-full overflow-hidden bg-[#11141b]/95 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-2xl min-h-0 flex-1 min-w-0 transition-all duration-500 ease-in-out ${isEditorCollapsed ? 'flex-1 w-full' : ''}`}>
 
                   {/* Rich Text Toolbar */}
-                  <div className="shrink-0 flex items-center gap-1 p-2 bg-background/80 backdrop-blur-sm border-b">
+                  <div className="shrink-0 flex items-center gap-1 p-2 bg-[#161922]/90 backdrop-blur-md border-b border-white/[0.06]">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -2118,7 +2128,7 @@ export default function ResumeBuilder() {
                   </div>
 
                   {/* Independent Scrollable Preview Area with Formatting Sidebar docked on the left of resume */}
-                  <div className="flex-1 overflow-hidden flex min-h-0 p-3 sm:p-4 gap-4 bg-muted/10">
+                  <div className="flex-1 overflow-hidden flex min-h-0 p-3 sm:p-4 gap-4 bg-[#090b0e]">
                     {/* LEFT OF RESUME: DESIGN & FORMATTING PANEL */}
                     <div className="shrink-0 h-full overflow-y-auto custom-scrollbar">
                       <ResumeDesignFormattingPanel
@@ -2132,7 +2142,7 @@ export default function ResumeBuilder() {
                     {/* RESUME A4 SHEET PREVIEW VIEWPORT (Strict A4 single source of truth with non-clipping center layout) */}
                     <div
                       ref={previewContainerRef}
-                      className="flex-1 overflow-y-auto overflow-x-auto p-4 custom-scrollbar min-h-0 bg-muted/20"
+                      className="flex-1 overflow-y-auto overflow-x-auto p-4 custom-scrollbar min-h-0 bg-[#090b0e]/90 flex flex-col items-center"
                     >
                       {resumeData ? (
                         <div className="min-w-full w-fit flex flex-col items-center justify-start pb-12">
@@ -2145,7 +2155,7 @@ export default function ResumeBuilder() {
                           >
                             <div
                               ref={sheetWrapRef}
-                              className="resume-export-target bg-white shadow-2xl transition-transform duration-150"
+                              className="resume-export-target bg-white shadow-2xl shadow-black/80 ring-1 ring-black/10 transition-transform duration-150 rounded-[2px]"
                               style={{
                                 width: `${A4_WIDTH_PX}px`,
                                 minWidth: `${A4_WIDTH_PX}px`,
