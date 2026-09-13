@@ -9,14 +9,14 @@ import {
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { MousePointer2 } from "lucide-react";
 import { toast } from "sonner";
-import { ResumeContextMenu, ContextMenuPosition } from "@/components/ResumeContextMenu";
+import { ResumeContextMenu, ContextMenuPosition } from "../components/ResumeContextMenu";
 import {
   applyFormatToSelection,
   copyFormatFromSelection,
   pasteFormatToSelection,
   describeFormat,
   TextFormat,
-} from "@/lib/richFormat";
+} from "./richFormat";
 
 
 export function saveBlob(blob: Blob, filename: string) {
@@ -455,7 +455,7 @@ export const Editable = React.memo(function Editable({
               const html = e.currentTarget.innerHTML as string;
               const hasMarkup = /<(b|i|u|strong|em|span|font)\b/i.test(html);
               const txt = multiline || hasMarkup
-                ? html.replace(/<div>/gi, multiline ? "<div>" : " ").replace(/<\/div>/gi, "").trim()
+                ? html.replace(/<div>/gi, multiline ? "\n" : " ").replace(/<\/div>/gi, "").replace(/<br\s*[\/]?>/gi, multiline ? "\n" : " ").trim()
                 : (e.currentTarget.innerText as string).replace(/\s+/g, " ").trim();
               if (txt !== value) onChange!(txt);
             }
@@ -463,7 +463,7 @@ export const Editable = React.memo(function Editable({
       }
       dangerouslySetInnerHTML={value?.includes("<") ? { __html: value } : undefined}
     >
-      {!value?.includes("<") ? value : null}
+      {!value?.includes("<") ? (value || (multiline ? "\u00A0" : "")) : null}
     </Tag>
 
   );
@@ -626,19 +626,14 @@ function SkillCat({ value, onChange, className, as, colon }: {
   );
 }
 
-/** Merge all generic-category skill groups into a single group so "Skills" appears once. */
+/** Normalize skill groups while preserving user-defined distinct groups and multiline formatting. */
 export function normalizeResumeSkills<T extends { skills?: { category: string; items: string[] }[] }>(r: T): T {
   if (!r?.skills?.length) return r;
-  const generic: string[] = [];
-  const named: { category: string; items: string[] }[] = [];
-  for (const g of r.skills) {
-    if (isGenericSkillCategory(g.category)) generic.push(...(g.items || []));
-    else named.push(g);
-  }
-  if (generic.length === 0) return r;
-  const seen = new Set<string>();
-  const items = generic.filter(i => { const k = i.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
-  return { ...r, skills: [{ category: "Skills", items }, ...named] };
+  const skills = r.skills.map(g => ({
+    category: isGenericSkillCategory(g.category) ? "Skills" : g.category,
+    items: Array.isArray(g.items) ? g.items : (g.items ? [g.items] : []),
+  }));
+  return { ...r, skills };
 }
 
 
@@ -1049,7 +1044,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -1215,7 +1210,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = r.skills.map((s, i) => {
             const upd = makeSkillUpdater(update, r, i);
             return (
-              <div key={i} className="mb-1"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold" colon /> <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} /></div>
+              <div key={i} className="mb-1"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold" colon /> <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" /></div>
             );
           });
         }
@@ -1380,7 +1375,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = r.skills.map((s, i) => {
             const upd = makeSkillUpdater(update, r, i);
             return (
-              <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} /></div>
+              <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" /></div>
             );
           });
         }
@@ -1541,7 +1536,7 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="mb-1">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 mt-0.5" />
+                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 mt-0.5 whitespace-pre-wrap leading-relaxed" />
                     </div>
                   );
                 })}
@@ -1712,7 +1707,7 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             return (
               <div key={i} className={isGenericSkillCategory(s.category) ? "mb-1" : "grid grid-cols-[80px_1fr] gap-4 mb-1"}>
                 <div className="text-[10px] text-neutral-500"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} /></div>
-                <div className="text-[10px]"><Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} /></div>
+                <div className="text-[10px]"><Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap leading-relaxed" /></div>
               </div>
             );
           });
@@ -1956,7 +1951,7 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-teal-800" colon />{" "}
-                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2122,7 +2117,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i} className="text-[10.5px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-stone-700" colon />{" "}
-                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2401,11 +2396,11 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "summary":
         if (r.summary && r.summary.trim()) {
           return (
-            <section key="summary" className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">
+            <section key="summary" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "summary", "Summary")} onChange={update && (v => updateSectionTitle(r, on, "summary", v))} />
               </h3>
-              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px]" />
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="whitespace-pre-wrap text-[10.5px] leading-relaxed" />
             </section>
           );
         }
@@ -2413,20 +2408,20 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "experience":
         if (r.experience?.length > 0) {
           return (
-            <section key="experience" className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">
+            <section key="experience" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "experience", "Experience")} onChange={update && (v => updateSectionTitle(r, on, "experience", v))} />
               </h3>
               {r.experience.map((e, i) => {
                 const upd = makeExpUpdater(update, r, i);
                 return (
-                  <div key={i} className="mb-2">
-                    <div className="font-semibold text-[11px]"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></div>
-                    <div className="flex justify-between text-[10px] text-slate-600">
-                      <span><Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span>
-                      <span><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                  <div key={i} className="mb-2.5 last:mb-0">
+                    <div className="font-semibold text-[11px] leading-tight mb-0.5"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} /></div>
+                    <div className="flex justify-between items-baseline text-[10px] text-slate-600 gap-2 mb-1">
+                      <span className="min-w-0"><Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span>
+                      <span className="shrink-0 text-right whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
                     </div>
-                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5 text-[10px] space-y-0.5" />
+                    <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-1" />
                   </div>
                 );
               })}
@@ -2437,20 +2432,20 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "leadership":
         if (r.leadership && r.leadership.length > 0) {
           return (
-            <section key="leadership" className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">
+            <section key="leadership" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "leadership", "Leadership")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
               </h3>
               {r.leadership.map((l, i) => {
                 const upd = makeLeadershipUpdater(update, r, i);
                 return (
-                  <div key={i} className="mb-2">
-                    <div className="font-semibold text-[11px]"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></div>
-                    <div className="flex justify-between text-[10px] text-slate-600">
-                      <span><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
-                      <span><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
+                  <div key={i} className="mb-2.5 last:mb-0">
+                    <div className="font-semibold text-[11px] leading-tight mb-0.5"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></div>
+                    <div className="flex justify-between items-baseline text-[10px] text-slate-600 gap-2 mb-1">
+                      <span className="min-w-0"><Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
+                      <span className="shrink-0 text-right whitespace-nowrap"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
                     </div>
-                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5 text-[10px] space-y-0.5" />
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-1" />
                   </div>
                 );
               })}
@@ -2461,16 +2456,37 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "education":
         if (r.education?.length > 0) {
           return (
-            <section key="education">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2">
+            <section key="education" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "education", "Education")} onChange={update && (v => updateSectionTitle(r, on, "education", v))} />
               </h3>
               {r.education.map((e, i) => {
                 const upd = makeEduUpdater(update, r, i);
                 return (
-                  <div key={i} className="mb-1">
-                    <div className="font-semibold text-[10.5px]"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
-                    <div className="text-[10px] text-slate-600"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> · <Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></div>
+                  <div key={i} className="mb-2 last:mb-0">
+                    <div className="font-semibold text-[10.5px] leading-tight mb-0.5"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} /></div>
+                    <div className="text-[10px] text-slate-600 leading-snug"><Editable value={e.school} onChange={update && (v => upd({ school: v }))} /> · <Editable value={e.start} onChange={update && (v => upd({ start: v }))} />–<Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></div>
+                  </div>
+                );
+              })}
+            </section>
+          );
+        }
+        return null;
+      case "projects":
+        if (r.projects?.length > 0) {
+          return (
+            <section key="projects" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 border-b border-slate-300 pb-1 mb-2.5">
+                <Editable value={getSectionTitle(r, "projects", "Projects")} onChange={update && (v => updateSectionTitle(r, on, "projects", v))} />
+              </h3>
+              {r.projects.map((p, i) => {
+                const upd = makeProjUpdater(update, r, i);
+                return (
+                  <div key={i} className="mb-2.5 last:mb-0">
+                    <div className="font-semibold text-[11px] leading-tight mb-0.5"><Editable value={p.name} onChange={update && (v => upd({ name: v }))} /></div>
+                    {p.tech && <div className="text-[10px] text-slate-600 mb-1"><Editable value={p.tech} onChange={update && (v => upd({ tech: v }))} /></div>}
+                    <BulletsEditor bullets={p.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-1 text-[10px] space-y-1" />
                   </div>
                 );
               })}
@@ -2488,17 +2504,17 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "skills":
         if (r.skills?.length > 0) {
           return (
-            <section key="skills" className="mb-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2">
+            <section key="skills" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {r.skills.map((s, i) => {
                   const upd = makeSkillUpdater(update, r, i);
                   return (
                     <div key={i} className="text-[10px]">
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700" />
+                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px] mb-0.5 text-slate-800" />
+                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 whitespace-pre-wrap leading-relaxed" />
                     </div>
                   );
                 })}
@@ -2510,11 +2526,11 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
       case "certifications":
         if (r.certifications?.length > 0) {
           return (
-            <section key="certifications">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2">
+            <section key="certifications" className="mb-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "certifications", "Certifications")} onChange={update && (v => updateSectionTitle(r, on, "certifications", v))} />
               </h3>
-              <Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] whitespace-pre-wrap" />
+              <Editable as="div" multiline value={r.certifications.join("\n")} onChange={update && (v => on({ certifications: v.split("\n").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] whitespace-pre-wrap leading-relaxed" />
             </section>
           );
         }
@@ -2618,7 +2634,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
                 return (
                   <div key={i} className="text-[10.5px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -2796,7 +2812,7 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
                 return (
                   <div key={i} className="mb-2">
                     <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-emerald-900" />
-                    <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[10px] text-emerald-800" />
+                    <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[10px] text-emerald-800 whitespace-pre-wrap leading-relaxed" />
                   </div>
                 );
               })}
@@ -2873,7 +2889,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                     <div className="h-6 w-6 rounded-full bg-teal-500/30 border border-teal-300 flex items-center justify-center text-[10px] font-bold shrink-0">★</div>
                     <div className="flex-1">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-teal-100 leading-snug" />
+                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-teal-100 leading-snug whitespace-pre-wrap" />
                     </div>
                   </div>
                 );
@@ -3035,7 +3051,7 @@ function PhotoGridPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="border border-neutral-200 rounded-lg p-3 bg-neutral-50">
                       <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-sky-800 mb-1" />
-                      <Editable as="div" value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 leading-snug" />
+                      <Editable as="div" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="text-[9.5px] text-neutral-700 leading-snug whitespace-pre-wrap" />
                     </div>
                   );
                 })}
@@ -3238,7 +3254,7 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   return (
                     <div key={i} className="text-[10px] leading-relaxed">
                       <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-sky-800" colon />{" "}
-                      <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                      <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                     </div>
                   );
                 })}
@@ -3583,7 +3599,7 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 return (
                   <div key={i}>
                     <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
+                    <Editable as="span" multiline value={s.items.join(", ")} onChange={update && (v => upd({ items: v.split(/[\n,]/).map(x => x.trim()).filter(Boolean) }))} className="whitespace-pre-wrap" />
                   </div>
                 );
               })}
@@ -5221,13 +5237,10 @@ const SECTION_MATCHERS: { key: ResumeSectionKey; re: RegExp }[] = [
 
 export function tagSections(root: HTMLElement | null, customTitles?: Partial<Record<string, string>>) {
   if (!root) return;
-  root.querySelectorAll("[data-rs-sec],[data-rs-head]").forEach(el => {
-    // Preserve static declarations from templates
-  });
-  const els = Array.from(root.querySelectorAll<HTMLElement>("*"));
-  for (const el of els) {
+  const headings = Array.from(root.querySelectorAll<HTMLElement>("h1, h2, h3, [data-rs-head], section > div:first-child"));
+  for (const el of headings) {
     const txt = (el.textContent || "").trim();
-    if (!txt || txt.length > 50 || el.children.length > 0) continue;
+    if (!txt || txt.length > 50) continue;
     
     // Check user custom titles first
     let matchKey: ResumeSectionKey | null = null;
@@ -5249,14 +5262,6 @@ export function tagSections(root: HTMLElement | null, customTitles?: Partial<Rec
     const container = el.closest("section");
     if (container && container !== root) {
       container.setAttribute("data-rs-sec", matchKey);
-    } else {
-      let n = el.parentElement?.nextElementSibling ?? el.nextElementSibling;
-      let guard = 0;
-      while (n && guard++ < 12) {
-        if (n.querySelector("[data-rs-head]") || n.hasAttribute("data-rs-head")) break;
-        n.setAttribute("data-rs-sec", matchKey);
-        n = n.nextElementSibling;
-      }
     }
   }
 }
@@ -5266,6 +5271,7 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
     `${scope} ul.list-disc { list-style-type: none !important; list-style: none !important; padding-left: 0 !important; }`,
     `${scope} ul.list-disc > li { position: relative !important; list-style-type: none !important; list-style: none !important; padding-left: 0.95rem !important; line-height: inherit !important; }`,
     `${scope} ul.list-disc > li::before { content: "•" !important; position: absolute !important; left: 0.1rem !important; top: 0 !important; line-height: inherit !important; font-size: 1.1em !important; color: inherit !important; display: inline-block !important; vertical-align: baseline !important; pointer-events: none !important; }`,
+    `${scope} [data-rs-head] { display: block !important; }`,
   ];
   if (!settings) return baseRules.join("\n");
   const sections = settings.sections;
@@ -5274,13 +5280,13 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
     baseRules.push(`${scope}, ${scope} * { font-family: ${settings.fontFamily} !important; }`);
   }
   if (settings.fontSize) {
-    baseRules.push(`${scope}, ${scope} * { font-size: ${settings.fontSize}px; }`);
+    baseRules.push(`${scope} p, ${scope} li, ${scope} div:not([data-rs-head]):not(h1):not(h2):not(h3), ${scope} span:not([data-rs-head]) { font-size: ${settings.fontSize}px; }`);
   }
   if (settings.lineSpacing) {
-    baseRules.push(`${scope}, ${scope} * { line-height: ${settings.lineSpacing} !important; }`);
+    baseRules.push(`${scope} p, ${scope} li, ${scope} .resume-root-container { line-height: ${settings.lineSpacing} !important; }`);
   }
   if (settings.headingSize) {
-    baseRules.push(`${scope} h1, ${scope} h2, ${scope} h3, ${scope} [data-rs-head] { font-size: ${settings.headingSize}px !important; }`);
+    baseRules.push(`${scope} h1, ${scope} h2, ${scope} h3, ${scope} [data-rs-head] { font-size: ${settings.headingSize}px !important; line-height: 1.3 !important; }`);
   }
   if (settings.sectionSpacing != null) {
     baseRules.push(`${scope} section, ${scope} [data-rs-sec] { margin-bottom: ${settings.sectionSpacing}px !important; }`);
@@ -5602,7 +5608,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   // 1. Create an isolated off-screen export container to render exact data without interference from DOM previews
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper";
-  wrapper.style.cssText = "position: fixed; left: -9999px; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -99999; margin: 0; padding: 0; overflow: visible;";
+  wrapper.style.cssText = "position: absolute; left: 0; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;";
   document.body.appendChild(wrapper);
 
   let root: any = null;
@@ -5621,7 +5627,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
         await document.fonts.ready;
       } catch (_) {}
     }
-    await new Promise(r => setTimeout(r, 250));
+    await new Promise(r => setTimeout(r, 300));
 
     // Tag sections synchronously to ensure all custom headings, spacing, and typography rules apply
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
@@ -5629,7 +5635,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     const targetHeight = Math.max(wrapper.scrollHeight, 1123);
 
     const canvas = await html2canvas(wrapper, {
-      scale: 3.5, // 300+ DPI print-grade ultra-sharp resolution
+      scale: 3, // 300+ DPI print-grade ultra-sharp resolution
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
@@ -5643,6 +5649,8 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       onclone: (clonedDoc) => {
         const el = clonedDoc.getElementById("rs-pdf-export-wrapper");
         if (el) {
+          el.style.opacity = "1";
+          el.style.zIndex = "99999";
           el.style.textRendering = "geometricPrecision";
           (el.style as any).webkitFontSmoothing = "antialiased";
           (el.style as any).mozOsxFontSmoothing = "grayscale";

@@ -29,7 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import {
   TEMPLATES, TemplateId, ResumeData, ResumePreview, TemplateMiniPreview, SAMPLE_RESUME_DATA,
   downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
-  normalizeResumeSkills, getNormalizedSectionOrder,
+  normalizeResumeSkills, getNormalizedSectionOrder, isGenericSkillCategory,
 } from "@/lib/resumeTemplates";
 import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
 import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
@@ -1618,15 +1618,15 @@ export default function ResumeBuilder() {
                       <div className="space-y-2">
                         <Label className="text-xs font-bold text-muted-foreground ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
                         <Textarea 
-                          value={resumeData.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')} 
+                          value={resumeData.skills.map(s => isGenericSkillCategory(s.category) ? s.items.join(', ') : `${s.category}: ${s.items.join(', ')}`).join('\n')} 
                           onChange={e => {
                             const lines = e.target.value.split('\n').filter(Boolean);
                             const newSkills = lines.map(line => {
                                 const parts = line.split(':');
-                                if (parts.length > 1) {
-                                    return { category: parts[0].trim(), items: parts[1].split(',').map(i => i.trim()).filter(Boolean) };
+                                if (parts.length > 1 && parts[0].trim() && !parts[0].includes(',')) {
+                                    return { category: parts[0].trim(), items: parts.slice(1).join(':').split(',').map(i => i.trim()).filter(Boolean) };
                                 }
-                                return { category: "Other", items: line.split(',').map(i => i.trim()).filter(Boolean) };
+                                return { category: "Skills", items: line.split(',').map(i => i.trim()).filter(Boolean) };
                             });
                             setResumeData({ ...resumeData, skills: newSkills });
                           }} 

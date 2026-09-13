@@ -51,7 +51,7 @@ export async function downloadResumePdf(opt: ExportData) {
 
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper-opt";
-  wrapper.style.cssText = "position: fixed; left: -9999px; top: 0; width: 794px; min-height: 1123px; background: #ffffff; z-index: -99999; margin: 0; padding: 0; overflow: visible;";
+  wrapper.style.cssText = "position: absolute; left: 0; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;";
 
   const clone = element.cloneNode(true) as HTMLElement;
   clone.style.cssText = "transform: none !important; margin: 0 !important; width: 794px !important; max-width: 794px !important; min-height: 1123px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;";
@@ -77,12 +77,12 @@ export async function downloadResumePdf(opt: ExportData) {
         await document.fonts.ready;
       } catch (_) {}
     }
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 250));
 
     const targetHeight = Math.max(clone.scrollHeight, 1123);
 
     const canvas = await html2canvas(clone, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
@@ -93,6 +93,16 @@ export async function downloadResumePdf(opt: ExportData) {
       height: targetHeight,
       windowWidth: 794,
       windowHeight: targetHeight,
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById("rs-pdf-export-wrapper-opt");
+        if (el) {
+          el.style.opacity = "1";
+          el.style.zIndex = "99999";
+          el.style.textRendering = "geometricPrecision";
+          (el.style as any).webkitFontSmoothing = "antialiased";
+          (el.style as any).mozOsxFontSmoothing = "grayscale";
+        }
+      },
     });
 
     const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
