@@ -1,7 +1,14 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
-import { saveBlob } from "./resumeTemplates";
+import {
+  saveBlob,
+  A4_WIDTH_PX,
+  A4_HEIGHT_PX,
+  A4_RATIO,
+  A4_WIDTH_PT,
+  A4_HEIGHT_PT,
+} from "./resumeTemplates";
 
 export interface ExportData {
   title?: string | null;
@@ -51,10 +58,10 @@ export async function downloadResumePdf(opt: ExportData) {
 
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper-opt";
-  wrapper.style.cssText = "position: absolute; left: 0; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;";
+  wrapper.style.cssText = `position: absolute; left: 0; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
 
   const clone = element.cloneNode(true) as HTMLElement;
-  clone.style.cssText = "transform: none !important; margin: 0 !important; width: 794px !important; max-width: 794px !important; min-height: 1123px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;";
+  clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
 
   clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => {
     if (el.textContent?.includes("Page") || el.querySelector(".border-dashed") || el.classList.contains("border-dashed")) {
@@ -63,10 +70,7 @@ export async function downloadResumePdf(opt: ExportData) {
   });
   clone.querySelectorAll('[data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
 
-  const pageH = element.style.getPropertyValue("--page-h");
-  if (pageH) {
-    clone.style.setProperty("--page-h", pageH);
-  }
+  clone.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
 
   wrapper.appendChild(clone);
   document.body.appendChild(wrapper);
@@ -79,7 +83,9 @@ export async function downloadResumePdf(opt: ExportData) {
     }
     await new Promise(r => setTimeout(r, 250));
 
-    const targetHeight = Math.max(clone.scrollHeight, 1123);
+    const rawHeight = Math.max(clone.scrollHeight, wrapper.scrollHeight, A4_HEIGHT_PX);
+    const totalPages = Math.max(1, Math.ceil((rawHeight - 25) / A4_HEIGHT_PX));
+    const targetHeight = totalPages * A4_HEIGHT_PX;
 
     const canvas = await html2canvas(clone, {
       scale: 3,
@@ -89,9 +95,9 @@ export async function downloadResumePdf(opt: ExportData) {
       logging: false,
       scrollX: 0,
       scrollY: 0,
-      width: 794,
+      width: A4_WIDTH_PX,
       height: targetHeight,
-      windowWidth: 794,
+      windowWidth: A4_WIDTH_PX,
       windowHeight: targetHeight,
       onclone: (clonedDoc) => {
         const el = clonedDoc.getElementById("rs-pdf-export-wrapper-opt");
@@ -106,17 +112,13 @@ export async function downloadResumePdf(opt: ExportData) {
     });
 
     const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = doc.internal.pageSize.getHeight();
-    const a4Ratio = pdfHeight / pdfWidth;
-
-    const pageCanvasHeight = canvas.width * a4Ratio;
-    const totalPages = Math.max(1, Math.ceil((canvas.height - 15) / pageCanvasHeight));
+    const pdfWidth = A4_WIDTH_PT;
+    const pdfHeight = A4_HEIGHT_PT;
+    const pageCanvasHeight = Math.round(canvas.width * A4_RATIO);
 
     if (totalPages === 1) {
       const imgData = canvas.toDataURL("image/png", 1.0);
-      const renderHeight = (canvas.height * pdfWidth) / canvas.width;
-      doc.addImage(imgData, "PNG", 0, 0, pdfWidth, renderHeight, undefined, "FAST");
+      doc.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
     } else {
       for (let i = 0; i < totalPages; i++) {
         const sliceCanvas = document.createElement("canvas");
@@ -136,7 +138,7 @@ export async function downloadResumePdf(opt: ExportData) {
 
         const sliceData = sliceCanvas.toDataURL("image/png", 1.0);
         if (i > 0) doc.addPage("a4", "portrait");
-        doc.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+        doc.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
       }
     }
 

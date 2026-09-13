@@ -30,6 +30,7 @@ import {
   TEMPLATES, TemplateId, ResumeData, ResumePreview, TemplateMiniPreview, SAMPLE_RESUME_DATA,
   downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
   normalizeResumeSkills, getNormalizedSectionOrder, isGenericSkillCategory,
+  A4_WIDTH_PX, A4_HEIGHT_PX,
 } from "@/lib/resumeTemplates";
 import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
 import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/components/TemplatePreferencesWizard";
@@ -92,6 +93,47 @@ export default function ResumeBuilder() {
   const [useSampleDataInModal, setUseSampleDataInModal] = useState(false);
   const dragCounterStarter = useRef(0);
   const dragCounterWorkspace = useRef(0);
+
+  // Canonical A4 preview zoom & viewport scale
+  const [zoomMode, setZoomMode] = useState<"fit" | "custom">("fit");
+  const [customZoom, setCustomZoom] = useState<number>(100);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(600);
+  const [sheetHeight, setSheetHeight] = useState<number>(A4_HEIGHT_PX);
+  const sheetWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = previewContainerRef.current;
+    if (!el) return;
+    const updateSize = () => {
+      if (el.clientWidth > 0) setContainerWidth(el.clientWidth);
+    };
+    updateSize();
+    const ro = new ResizeObserver(() => updateSize());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = sheetWrapRef.current;
+    if (!el) return;
+    const updateHeight = () => {
+      const sh = el.scrollHeight || el.offsetHeight || A4_HEIGHT_PX;
+      setSheetHeight(sh);
+    };
+    updateHeight();
+    const ro = new ResizeObserver(() => updateHeight());
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [template, resumeData]);
+
+  const fitScale = useMemo(() => {
+    const available = Math.max(200, containerWidth - 32);
+    return Math.min(1.2, Math.max(0.35, available / A4_WIDTH_PX));
+  }, [containerWidth]);
+
+  const effectiveScale = zoomMode === "fit" ? fitScale : customZoom / 100;
 
   const handleStarterDragEnter = (e: React.DragEvent) => {
     if (e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) {
@@ -1897,12 +1939,69 @@ export default function ResumeBuilder() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 w-8 p-0 ml-auto" 
+                      className="h-8 w-8 p-0" 
                       onClick={() => handleFormat('removeFormat')}
                       title="Clear Formatting"
                     >
                       <Type className="h-4 w-4" />
                     </Button>
+
+                    {/* A4 Canonical Zoom Controls */}
+                    <div className="flex items-center gap-1 ml-auto pl-2 border-l border-border/50">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => {
+                          setZoomMode("custom");
+                          setCustomZoom((prev) => Math.max(40, Math.round(prev - 10)));
+                        }}
+                        title="Zoom Out"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => setZoomMode(zoomMode === "fit" ? "custom" : "fit")}
+                        className="px-1.5 py-0.5 text-[10.5px] font-mono font-medium rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                        title="Click to toggle Fit / Custom Zoom"
+                      >
+                        {zoomMode === "fit" ? `Fit (${Math.round(effectiveScale * 100)}%)` : `${Math.round(customZoom)}%`}
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => {
+                          setZoomMode("custom");
+                          setCustomZoom((prev) => Math.min(150, Math.round(prev + 10)));
+                        }}
+                        title="Zoom In"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant={zoomMode === "fit" ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 px-1.5 text-[9.5px] font-bold"
+                        onClick={() => setZoomMode("fit")}
+                        title="Auto-fit to available window width"
+                      >
+                        Fit
+                      </Button>
+                      <Button
+                        variant={zoomMode === "custom" && customZoom === 100 ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-6 px-1.5 text-[9.5px] font-bold"
+                        onClick={() => {
+                          setZoomMode("custom");
+                          setCustomZoom(100);
+                        }}
+                        title="100% Actual A4 Scale"
+                      >
+                        100%
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Independent Scrollable Preview Area with Formatting Sidebar docked on the left of resume */}
@@ -1917,11 +2016,33 @@ export default function ResumeBuilder() {
                       />
                     </div>
 
-                    {/* RESUME A4 SHEET PREVIEW */}
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-1 custom-scrollbar flex justify-center items-start min-h-0">
+                    {/* RESUME A4 SHEET PREVIEW VIEWPORT (Strict A4 single source of truth) */}
+                    <div
+                      ref={previewContainerRef}
+                      className="flex-1 overflow-y-auto overflow-x-auto p-2 sm:p-4 custom-scrollbar flex justify-center items-start min-h-0 bg-muted/20"
+                    >
                       {resumeData ? (
-                        <div className="w-full max-w-[794px] min-w-0 mx-auto resume-export-target bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-200">
-                          <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                        <div
+                          className="relative shrink-0 flex justify-center items-start transition-all duration-150"
+                          style={{
+                            width: `${Math.round(A4_WIDTH_PX * effectiveScale)}px`,
+                            height: `${Math.round(sheetHeight * effectiveScale)}px`,
+                          }}
+                        >
+                          <div
+                            ref={sheetWrapRef}
+                            className="resume-export-target bg-white shadow-2xl transition-transform duration-150"
+                            style={{
+                              width: `${A4_WIDTH_PX}px`,
+                              minWidth: `${A4_WIDTH_PX}px`,
+                              maxWidth: `${A4_WIDTH_PX}px`,
+                              minHeight: `${A4_HEIGHT_PX}px`,
+                              transform: `scale(${effectiveScale})`,
+                              transformOrigin: "top left",
+                            }}
+                          >
+                            <ResumePreview template={template} data={resumeData} onChange={setResumeData} />
+                          </div>
                         </div>
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-12 text-center">

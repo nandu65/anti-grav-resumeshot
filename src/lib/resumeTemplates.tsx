@@ -32,6 +32,14 @@ export function saveBlob(blob: Blob, filename: string) {
   }
 }
 
+/** Canonical ISO A4 Portrait Dimensions (Single Source of Truth across Preview & PDF Export) */
+export const A4_WIDTH_PX = 794; // 210mm at 96 CSS DPI
+export const A4_HEIGHT_PX = 1123; // 297mm at 96 CSS DPI (794 * 297 / 210 = 1122.94 ≈ 1123px)
+export const A4_RATIO = 297 / 210; // 1.414285714
+export const A4_WIDTH_PT = 595.28; // 210mm at 72 PDF points/in
+export const A4_HEIGHT_PT = 841.89; // 297mm at 72 PDF points/in
+
+
 
 
 export interface ResumeSettings {
@@ -1808,44 +1816,59 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 
 /**
  * Wraps a template preview and:
- *  - sets --page-h so the sheet always shows a full US-Letter page even when empty
- *  - overlays dashed "Page 2 / 3 / ..." break lines when content overflows one page
+ *  - sets --page-h strictly to A4_HEIGHT_PX (1123px) so the sheet always shows a full canonical A4 page
+ *  - overlays dashed "Page 2 / 3 / ..." break lines when content overflows one A4 page (1123px)
  *    so users can visually confirm content spilling onto additional pages.
  */
 function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode; isMini?: boolean; isExport?: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [pageH, setPageH] = React.useState(1123);
-  const [totalH, setTotalH] = React.useState(0);
+  const [totalH, setTotalH] = React.useState(A4_HEIGHT_PX);
 
   React.useLayoutEffect(() => {
-    if (isMini || isExport) return;
     const el = wrapRef.current;
     if (!el) return;
+    el.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
+
+    if (isMini || isExport) return;
+
+    const measure = () => {
+      const sh = el.scrollHeight || el.offsetHeight || A4_HEIGHT_PX;
+      setTotalH(sh);
+    };
+
+    measure();
+
     const ro = new ResizeObserver(() => {
-      const w = el.clientWidth || 794;
-      // Standard ISO A4 aspect ratio: 297mm / 210mm = 1.4142857 (exactly 1123px at 794px width)
-      const ph = Math.round(w * (297 / 210));
-      setPageH(ph);
-      setTotalH(el.scrollHeight);
-      el.style.setProperty("--page-h", `${ph}px`);
+      measure();
     });
     ro.observe(el);
-    // observe children growth too
     if (el.firstElementChild) ro.observe(el.firstElementChild as Element);
     return () => ro.disconnect();
   }, [isMini, isExport]);
 
   if (isMini || isExport) {
-    return <div ref={wrapRef} className="relative w-full">{children}</div>;
+    return (
+      <div
+        ref={wrapRef}
+        className="relative w-full"
+        style={{ minHeight: `${A4_HEIGHT_PX}px`, "--page-h": `${A4_HEIGHT_PX}px` } as React.CSSProperties}
+      >
+        {children}
+      </div>
+    );
   }
 
   // 25px buffer tolerance prevents sub-pixel rounding or margin collapse from prematurely creating a 2nd page
-  const pageCount = pageH > 0 ? Math.max(1, Math.ceil((totalH - 25) / pageH)) : 1;
+  const pageCount = Math.max(1, Math.ceil((totalH - 25) / A4_HEIGHT_PX));
   const breaks: number[] = [];
-  for (let i = 1; i < pageCount; i++) breaks.push(i * pageH);
+  for (let i = 1; i < pageCount; i++) breaks.push(i * A4_HEIGHT_PX);
 
   return (
-    <div ref={wrapRef} className="relative w-full">
+    <div
+      ref={wrapRef}
+      className="relative w-full"
+      style={{ minHeight: `${A4_HEIGHT_PX}px`, "--page-h": `${A4_HEIGHT_PX}px` } as React.CSSProperties}
+    >
       {children}
       {breaks.map((top, i) => (
         <div
@@ -5732,7 +5755,15 @@ export function ResumePreview({
       data-rs-export={isExport ? "true" : undefined}
       data-main-resume-preview={!isMini && !isExport ? "true" : undefined}
       data-rs-template={template}
-      className={`resume-root-container relative w-full ${isMini ? "pointer-events-none" : ""}`}
+      className={`resume-root-container resume-page-sheet relative ${isMini ? "pointer-events-none" : ""}`}
+      style={{
+        width: `${A4_WIDTH_PX}px`,
+        minWidth: `${A4_WIDTH_PX}px`,
+        maxWidth: `${A4_WIDTH_PX}px`,
+        minHeight: `${A4_HEIGHT_PX}px`,
+        boxSizing: "border-box",
+        "--page-h": `${A4_HEIGHT_PX}px`,
+      } as React.CSSProperties}
       onContextMenu={handleContextMenu}
       onClick={handleContainerClick}
     >
@@ -5909,7 +5940,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   // 1. Create an isolated off-screen export container to render exact data without interference from DOM previews
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper";
-  wrapper.style.cssText = "position: absolute; left: 0; top: 0; width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;";
+  wrapper.style.cssText = `position: absolute; left: 0; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: -9999; opacity: 0; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
   document.body.appendChild(wrapper);
 
   let root: any = null;
@@ -5933,7 +5964,10 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     // Tag sections synchronously to ensure all custom headings, spacing, and typography rules apply
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
 
-    const targetHeight = Math.max(wrapper.scrollHeight, 1123);
+    const sheetEl = (wrapper.querySelector(".resume-root-container") as HTMLElement) || wrapper;
+    const rawHeight = Math.max(sheetEl.scrollHeight, wrapper.scrollHeight, A4_HEIGHT_PX);
+    const totalPages = Math.max(1, Math.ceil((rawHeight - 25) / A4_HEIGHT_PX));
+    const targetHeight = totalPages * A4_HEIGHT_PX;
 
     const canvas = await html2canvas(wrapper, {
       scale: 3, // 300+ DPI print-grade ultra-sharp resolution
@@ -5943,9 +5977,9 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       logging: false,
       scrollX: 0,
       scrollY: 0,
-      width: 794,
+      width: A4_WIDTH_PX,
       height: targetHeight,
-      windowWidth: 794,
+      windowWidth: A4_WIDTH_PX,
       windowHeight: targetHeight,
       onclone: (clonedDoc) => {
         const el = clonedDoc.getElementById("rs-pdf-export-wrapper");
@@ -5966,17 +6000,13 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       compress: true,
     });
 
-    const pdfWidth = pdf.internal.pageSize.getWidth(); // 595.28 pt
-    const pdfHeight = pdf.internal.pageSize.getHeight(); // 841.89 pt
-    const a4Ratio = 297 / 210; // 1.4142857
-
-    const pageCanvasHeight = canvas.width * a4Ratio;
-    const totalPages = Math.max(1, Math.ceil((canvas.height - 25) / pageCanvasHeight));
+    const pdfWidth = A4_WIDTH_PT; // 595.28 pt
+    const pdfHeight = A4_HEIGHT_PT; // 841.89 pt
+    const pageCanvasHeight = Math.round(canvas.width * A4_RATIO);
 
     if (totalPages === 1) {
       const imgData = canvas.toDataURL("image/png", 1.0);
-      const renderHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, renderHeight, undefined, "MEDIUM");
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
     } else {
       // Multi-page export with clean slice per page
       for (let i = 0; i < totalPages; i++) {
