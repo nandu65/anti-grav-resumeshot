@@ -7,8 +7,7 @@ import {
   BorderStyle, LevelFormat, PageBreak,
   Table, TableRow, TableCell, WidthType, ShadingType, VerticalAlign,
 } from "docx";
-import { Droppable, Draggable } from "react-beautiful-dnd";
-import { MousePointer2, Palette, Check, X, RotateCcw } from "lucide-react";
+import { MousePointer2, Palette, Check, X, RotateCcw, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { ResumeContextMenu, ContextMenuPosition } from "../components/ResumeContextMenu";
 import {
@@ -808,10 +807,147 @@ export function updateSectionTitle(
   });
 }
 
+export function makeSectionReorderHandler(r: ResumeData, on?: (patch: Partial<ResumeData>) => void) {
+  return (sourceKey: string, targetKey: string) => {
+    if (!on || sourceKey === targetKey) return;
+    const currentOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+    const fromIndex = currentOrder.indexOf(sourceKey);
+    const toIndex = currentOrder.indexOf(targetKey);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const newOrder = [...currentOrder];
+    const [moved] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, moved);
+
+    on({
+      settings: {
+        ...r.settings,
+        sectionOrder: newOrder,
+      },
+    });
+  };
+}
+
+export function makeSectionMoveHandler(r: ResumeData, on?: (patch: Partial<ResumeData>) => void) {
+  return (key: string, direction: "up" | "down") => {
+    if (!on) return;
+    const currentOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+    const index = currentOrder.indexOf(key);
+    if (index === -1) return;
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+
+    const newOrder = [...currentOrder];
+    const [moved] = newOrder.splice(index, 1);
+    newOrder.splice(targetIndex, 0, moved);
+
+    on({
+      settings: {
+        ...r.settings,
+        sectionOrder: newOrder,
+      },
+    });
+  };
+}
+
+export function SortableSection({
+  keyId,
+  index,
+  total,
+  onMoveUp,
+  onMoveDown,
+  onReorder,
+  children,
+  className = "mb-3",
+  isEditable = true,
+}: {
+  keyId: string;
+  index: number;
+  total: number;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onReorder?: (sourceKey: string, targetKey: string) => void;
+  children: React.ReactNode;
+  className?: string;
+  isEditable?: boolean;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  return (
+    <div
+      data-section-key={keyId}
+      className={`group/sec relative transition-all duration-150 ${className} ${
+        isDragging ? "opacity-85 ring-2 ring-primary ring-offset-2 bg-primary/5 rounded-lg shadow-xl scale-[1.01]" : ""
+      } ${isDragOver ? "border-t-2 border-primary pt-0.5" : ""}`}
+      onDragOver={(e) => {
+        if (!isEditable) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (!isDragOver) setIsDragOver(true);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={(e) => {
+        if (!isEditable) return;
+        e.preventDefault();
+        setIsDragOver(false);
+        const sourceKey = e.dataTransfer.getData("text/plain");
+        if (sourceKey && sourceKey !== keyId && onReorder) {
+          onReorder(sourceKey, keyId);
+        }
+      }}
+    >
+      {isEditable && (
+        <div className="absolute -left-7 top-0 opacity-0 group-hover/sec:opacity-100 transition-opacity flex items-center gap-0.5 bg-background/95 border border-border shadow-xs rounded-lg p-0.5 z-20 select-none">
+          <div
+            draggable
+            onDragStart={(e) => {
+              setIsDragging(true);
+              e.dataTransfer.setData("text/plain", keyId);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragEnd={() => {
+              setIsDragging(false);
+              setIsDragOver(false);
+            }}
+            className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+            title="Drag to reorder section"
+          >
+            <GripVertical className="h-3.5 w-3.5 text-primary" />
+          </div>
+          {onMoveUp && index > 0 && (
+            <button
+              type="button"
+              onClick={onMoveUp}
+              title="Move section up"
+              className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ArrowUp className="h-2.5 w-2.5" />
+            </button>
+          )}
+          {onMoveDown && index < total - 1 && (
+            <button
+              type="button"
+              onClick={onMoveDown}
+              title="Move section down"
+              className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ArrowDown className="h-2.5 w-2.5" />
+            </button>
+          )}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 /* ---------- HTML Preview components ---------- */
 function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
 
   const renderSection = (key: string, index: number) => {
@@ -919,28 +1055,27 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={key} index={index}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-4 group relative ${snapshot.isDragging ? "opacity-100 z-50 ring-2 ring-primary ring-offset-4 rounded bg-white shadow-2xl scale-[1.02]" : ""}`}
-          >
-            <div {...provided.dragHandleProps} className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
-              <MousePointer2 className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <h3 className="uppercase tracking-wider text-[10px] font-bold text-emerald-800 border-b-2 border-emerald-800 pb-1 mb-2 group-hover:bg-emerald-50 transition-colors">
-              <Editable
-                value={getSectionTitle(r, key, title)}
-                onChange={update && (v => updateSectionTitle(r, on, key, v))}
-              />
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-4"
+      >
+        <section className="relative">
+          <h3 className="uppercase tracking-wider text-[10px] font-bold text-emerald-800 border-b-2 border-emerald-800 pb-1 mb-2">
+            <Editable
+              value={getSectionTitle(r, key, title)}
+              onChange={update && (v => updateSectionTitle(r, on, key, v))}
+            />
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -1009,14 +1144,9 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           )}
         </div>
         <div className="p-5">
-          <Droppable droppableId="main-content">
-            {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef}>
-                {sectionOrder.map((key, index) => renderSection(key, index))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <div>
+            {sectionOrder.map((key, index) => renderSection(key, index))}
+          </div>
         </div>
       </div>
     </div>
@@ -1027,7 +1157,8 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
-
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -1133,28 +1264,27 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={key} index={index}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-3 group relative ${snapshot.isDragging ? "opacity-100 z-50 ring-2 ring-primary ring-offset-4 rounded bg-white shadow-2xl scale-[1.02]" : ""}`}
-          >
-            <div {...provided.dragHandleProps} className="absolute -left-7 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
-              <MousePointer2 className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 pb-1 mb-1.5 group-hover:bg-neutral-50 transition-colors">
-              <Editable
-                value={getSectionTitle(r, key, title)}
-                onChange={update && (v => updateSectionTitle(r, on, key, v))}
-              />
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-3"
+      >
+        <section className="relative">
+          <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 pb-1 mb-1.5">
+            <Editable
+              value={getSectionTitle(r, key, title)}
+              onChange={update && (v => updateSectionTitle(r, on, key, v))}
+            />
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -1183,14 +1313,9 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         </div>
       </div>
       
-      <Droppable droppableId="classic-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div>
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -1198,6 +1323,8 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
 
   const renderSection = (key: string, index: number) => {
@@ -1298,30 +1425,29 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={key} index={index}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-2 group relative ${snapshot.isDragging ? "opacity-100 z-50 ring-1 ring-primary ring-offset-2 rounded bg-white shadow-xl scale-[1.01]" : ""}`}
-          >
-            <div {...provided.dragHandleProps} className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
-              <MousePointer2 className="h-3 w-3 text-primary" />
-            </div>
-            {title && (
-              <h3 className="font-bold text-[10px] uppercase tracking-wide text-neutral-700 mb-0.5 group-hover:bg-neutral-50 transition-colors">
-                <Editable
-                  value={getSectionTitle(r, key, title)}
-                  onChange={update && (v => updateSectionTitle(r, on, key, v))}
-                />
-              </h3>
-            )}
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-2"
+      >
+        <section className="relative">
+          {title && (
+            <h3 className="font-bold text-[10px] uppercase tracking-wide text-neutral-700 mb-0.5">
+              <Editable
+                value={getSectionTitle(r, key, title)}
+                onChange={update && (v => updateSectionTitle(r, on, key, v))}
+              />
+            </h3>
+          )}
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -1343,14 +1469,9 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         </div>
       </div>
       
-      <Droppable droppableId="compact-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef} className="grid grid-cols-1 gap-1">
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div className="grid grid-cols-1 gap-1">
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -1359,6 +1480,8 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
 
   const renderSection = (key: string, index: number) => {
@@ -1461,28 +1584,27 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={key} index={index}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-3 group relative ${snapshot.isDragging ? "opacity-100 z-50 ring-2 ring-amber-800 ring-offset-4 rounded bg-white shadow-2xl scale-[1.02]" : ""}`}
-          >
-            <div {...provided.dragHandleProps} className="absolute -left-7 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
-              <MousePointer2 className="h-3.5 w-3.5 text-amber-800" />
-            </div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-800 mb-1 group-hover:bg-amber-50/30 transition-colors">
-              <Editable
-                value={getSectionTitle(r, key, title)}
-                onChange={update && (v => updateSectionTitle(r, on, key, v))}
-              />
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-3"
+      >
+        <section className="relative">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-800 mb-1">
+            <Editable
+              value={getSectionTitle(r, key, title)}
+              onChange={update && (v => updateSectionTitle(r, on, key, v))}
+            />
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -1500,14 +1622,9 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         </div>
       </div>
       
-      <Droppable droppableId="executive-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div>
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -1698,6 +1815,8 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
 
   const renderSection = (key: string, index: number) => {
@@ -1806,28 +1925,27 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={key} index={index}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-5 group relative ${snapshot.isDragging ? "opacity-100 z-50 ring-1 ring-neutral-300 ring-offset-2 rounded bg-white shadow-lg scale-[1.01]" : ""}`}
-          >
-            <div {...provided.dragHandleProps} className="absolute -left-7 top-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 bg-white/80 rounded-full shadow-sm">
-              <MousePointer2 className="h-3 w-3 text-neutral-400" />
-            </div>
-            <h3 className="text-[9px] font-semibold uppercase tracking-[0.3em] text-neutral-400 mb-2 group-hover:bg-neutral-50 transition-colors">
-              <Editable
-                value={getSectionTitle(r, key, title)}
-                onChange={update && (v => updateSectionTitle(r, on, key, v))}
-              />
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-5"
+      >
+        <section className="relative">
+          <h3 className="text-[9px] font-semibold uppercase tracking-[0.3em] text-neutral-400 mb-2">
+            <Editable
+              value={getSectionTitle(r, key, title)}
+              onChange={update && (v => updateSectionTitle(r, on, key, v))}
+            />
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -1847,14 +1965,9 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         </div>
       </div>
       
-      <Droppable droppableId="minimal-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div>
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -1952,6 +2065,8 @@ function initials(name: string) {
 function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -2068,33 +2183,30 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={`timeline-${key}`} index={index} isDragDisabled={!update}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-4 relative group/sec transition-colors rounded ${snapshot.isDragging ? "opacity-75 bg-teal-50/50 shadow-md ring-1 ring-teal-400" : ""}`}
-          >
-            <h3 className="text-[11px] font-bold tracking-widest uppercase text-teal-700 border-b border-teal-200 pb-0.5 mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 flex-1">
-                {update && (
-                  <span {...provided.dragHandleProps} className="opacity-0 group-hover/sec:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing text-neutral-400 hover:text-teal-700 select-none p-0.5" title="Drag to reorder section">
-                    ⠿
-                  </span>
-                )}
-                <Editable
-                  value={getSectionTitle(r, key, defaultTitle)}
-                  onChange={update && (v => updateSectionTitle(r, on, key, v))}
-                  className="inline-block"
-                />
-              </span>
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-4"
+      >
+        <section className="relative">
+          <h3 className="text-[11px] font-bold tracking-widest uppercase text-teal-700 border-b border-teal-200 pb-0.5 mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 flex-1">
+              <Editable
+                value={getSectionTitle(r, key, defaultTitle)}
+                onChange={update && (v => updateSectionTitle(r, on, key, v))}
+                className="inline-block"
+              />
+            </span>
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -2113,14 +2225,9 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         </div>
       </div>
       
-      <Droppable droppableId="timeline-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div>
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -2129,6 +2236,8 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
 function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
   const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+  const reorderSection = makeSectionReorderHandler(r, on);
+  const moveSection = makeSectionMoveHandler(r, on);
 
   const renderSection = (key: string, index: number) => {
     let content = null;
@@ -2212,7 +2321,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               {r.skills.map((s, i) => {
                 const upd = makeSkillUpdater(update, r, i);
                 return (
-                  <div key={i} className="text-[10.5px] leading-relaxed">
+                  <div key={i} className="text-[10px] leading-relaxed">
                     <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-stone-700" colon />{" "}
                     <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
                   </div>
@@ -2234,30 +2343,27 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
     if (!content) return null;
 
     return (
-      <Draggable key={key} draggableId={`elegant-${key}`} index={index} isDragDisabled={!update}>
-        {(provided, snapshot) => (
-          <section
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`mb-4 relative group/sec transition-colors rounded ${snapshot.isDragging ? "opacity-75 bg-stone-200/50 shadow-md ring-1 ring-stone-400" : ""}`}
-          >
-            <h3 className="text-center text-[10px] font-semibold uppercase tracking-[0.35em] text-stone-600 my-3 flex items-center justify-center gap-2">
-              {update && (
-                <span {...provided.dragHandleProps} className="opacity-0 group-hover/sec:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing text-stone-400 hover:text-stone-800 select-none p-0.5" title="Drag to reorder section">
-                  ⠿
-                </span>
-              )}
-              <Editable
-                value={getSectionTitle(r, key, defaultTitle)}
-                onChange={update && (v => updateSectionTitle(r, on, key, v))}
-              />
-            </h3>
-            <div className={snapshot.isDragging ? "pointer-events-none" : ""}>
-              {content}
-            </div>
-          </section>
-        )}
-      </Draggable>
+      <SortableSection
+        key={key}
+        keyId={key}
+        index={index}
+        total={sectionOrder.length}
+        onMoveUp={() => moveSection(key, "up")}
+        onMoveDown={() => moveSection(key, "down")}
+        onReorder={reorderSection}
+        isEditable={!!update}
+        className="mb-4"
+      >
+        <section className="relative">
+          <h3 className="text-center text-[10px] font-semibold uppercase tracking-[0.35em] text-stone-600 my-3 flex items-center justify-center gap-2">
+            <Editable
+              value={getSectionTitle(r, key, defaultTitle)}
+              onChange={update && (v => updateSectionTitle(r, on, key, v))}
+            />
+          </h3>
+          <div>{content}</div>
+        </section>
+      </SortableSection>
     );
   };
 
@@ -2278,14 +2384,9 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         <span>•</span><span>•</span><span>•</span>
       </div>
 
-      <Droppable droppableId="elegant-content">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            {sectionOrder.map((key, index) => renderSection(key, index))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <div>
+        {sectionOrder.map((key, index) => renderSection(key, index))}
+      </div>
     </div>
   );
 }
@@ -5438,9 +5539,6 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
 
   if (settings.fontFamily) {
     baseRules.push(`${scope}, ${scope} * { font-family: ${settings.fontFamily} !important; }`);
-  }
-  if (settings.textOpacity != null && settings.textOpacity < 1) {
-    baseRules.push(`${scope} p, ${scope} li, ${scope} span, ${scope} div:not([data-color-target]):not([data-page-badge]) { opacity: ${settings.textOpacity} !important; }`);
   }
   if (settings.primaryColor) {
     baseRules.push(`${scope} [data-rs-head] { color: ${settings.primaryColor} !important; border-color: ${settings.primaryColor} !important; }`);

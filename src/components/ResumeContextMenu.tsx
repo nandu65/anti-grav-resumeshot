@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   Bold, Italic, Underline, Strikethrough,
-  ArrowUp, ArrowDown, Copy, Plus, Minus, Trash2,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Plus, Minus, Trash2,
   RemoveFormatting, Palette, Highlighter,
   AlignLeft, AlignCenter, AlignRight,
-  Type, MoveVertical, Paintbrush, X, List
+  Type, MoveVertical, Paintbrush, X, List, Eye, Move
 } from "lucide-react";
 
 export interface ContextMenuPosition {
@@ -69,6 +69,7 @@ export function ResumeContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [showOpacityPicker, setShowOpacityPicker] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const savedRangeRef = useRef<Range | null>(null);
 
@@ -230,6 +231,60 @@ export function ResumeContextMenu({
     onClose();
   };
 
+  const applyOpacity = (val: number) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    try {
+      const range = sel.getRangeAt(0);
+      const selectedContent = range.extractContents();
+      const span = document.createElement("span");
+      span.style.opacity = `${val}`;
+      span.style.display = "inline";
+      span.appendChild(selectedContent);
+      range.insertNode(span);
+
+      const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+      if (targetEditable) {
+        targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
+        targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+      }
+    } catch (e) {
+      console.warn("Apply opacity failed:", e);
+    }
+    setShowOpacityPicker(false);
+  };
+
+  const nudge = (dir: "left" | "right" | "up" | "down") => {
+    restoreSelection();
+    const sel = window.getSelection();
+    const targetNode = position.targetElement || (sel && sel.anchorNode?.nodeType === Node.ELEMENT_NODE ? sel.anchorNode as HTMLElement : sel?.anchorNode?.parentElement);
+    if (!targetNode) return;
+
+    const targetEditable = targetNode.closest('[contenteditable="true"]') as HTMLElement | null;
+    const blockOrSpan = (targetNode.closest('span, div, p, li, h1, h2, h3') as HTMLElement) || targetNode;
+
+    if (dir === "left") {
+      const current = parseFloat(blockOrSpan.style.marginLeft || "0") || 0;
+      blockOrSpan.style.marginLeft = `${Math.max(-40, current - 8)}px`;
+    } else if (dir === "right") {
+      const current = parseFloat(blockOrSpan.style.marginLeft || "0") || 0;
+      blockOrSpan.style.marginLeft = `${Math.min(120, current + 8)}px`;
+    } else if (dir === "up") {
+      const current = parseFloat(blockOrSpan.style.marginTop || "0") || 0;
+      blockOrSpan.style.marginTop = `${Math.max(-20, current - 2)}px`;
+    } else if (dir === "down") {
+      const current = parseFloat(blockOrSpan.style.marginTop || "0") || 0;
+      blockOrSpan.style.marginTop = `${Math.min(40, current + 2)}px`;
+    }
+
+    if (targetEditable) {
+      targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
+      targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+    }
+  };
+
   const hasLineActions = Boolean(
     onMoveLineUp || onMoveLineDown || onDuplicateLine || onAddLineBelow || onDeleteLine
   );
@@ -318,13 +373,14 @@ export function ResumeContextMenu({
           </button>
         </div>
 
-        {/* Text color & Highlight */}
+        {/* Text color, Highlight & Opacity */}
         <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => {
               setShowColorPicker(!showColorPicker);
               setShowHighlightPicker(false);
+              setShowOpacityPicker(false);
             }}
             title="Text Color"
             className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${showColorPicker ? "bg-accent text-primary" : "text-foreground"}`}
@@ -336,11 +392,24 @@ export function ResumeContextMenu({
             onClick={() => {
               setShowHighlightPicker(!showHighlightPicker);
               setShowColorPicker(false);
+              setShowOpacityPicker(false);
             }}
             title="Highlight Color"
             className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${showHighlightPicker ? "bg-accent text-primary" : "text-foreground"}`}
           >
             <Highlighter className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowOpacityPicker(!showOpacityPicker);
+              setShowColorPicker(false);
+              setShowHighlightPicker(false);
+            }}
+            title="Selected Text Opacity"
+            className={`w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent transition-colors ${showOpacityPicker ? "bg-accent text-primary" : "text-foreground"}`}
+          >
+            <Eye className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -424,6 +493,33 @@ export function ResumeContextMenu({
               >
                 <span className="w-3 h-3 rounded border shadow-xs inline-block shrink-0" style={{ backgroundColor: c.color === "transparent" ? "#fff" : c.color }} />
                 <span className="text-[9px] truncate">{c.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* --- Opacity dropdown --- */}
+      {showOpacityPicker && (
+        <div className="p-2 mb-2 bg-muted/60 rounded-xl border border-border/60 animate-in fade-in-50 duration-75">
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span>Selected Text Opacity</span>
+          </div>
+          <div className="grid grid-cols-5 gap-1">
+            {[
+              { label: "100%", val: 1.0 },
+              { label: "85%", val: 0.85 },
+              { label: "70%", val: 0.70 },
+              { label: "50%", val: 0.50 },
+              { label: "30%", val: 0.30 },
+            ].map(op => (
+              <button
+                key={op.label}
+                type="button"
+                onClick={() => applyOpacity(op.val)}
+                className="py-1 px-1.5 rounded-lg bg-background/80 hover:bg-accent text-center font-mono text-[10px] font-semibold transition-colors border shadow-xs"
+              >
+                {op.label}
               </button>
             ))}
           </div>
@@ -589,6 +685,52 @@ export function ResumeContextMenu({
           >
             <RemoveFormatting className="w-3.5 h-3.5" />
           </button>
+        </div>
+
+        {/* Nudge & Move Position */}
+        <div className="pt-1.5 px-1 border-t border-border/50">
+          <div className="text-[9.5px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
+            <Move className="w-3 h-3" />
+            <span>Nudge & Move Position</span>
+          </div>
+          <div className="grid grid-cols-4 gap-1">
+            <button
+              type="button"
+              onClick={() => nudge("left")}
+              title="Move / Nudge Left (←)"
+              className="py-1 px-1 rounded-lg bg-muted/60 hover:bg-accent flex items-center justify-center gap-1 text-[10px] font-medium transition-colors"
+            >
+              <ArrowLeft className="w-3 h-3 text-primary" />
+              <span>Left</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => nudge("right")}
+              title="Move / Nudge Right (→)"
+              className="py-1 px-1 rounded-lg bg-muted/60 hover:bg-accent flex items-center justify-center gap-1 text-[10px] font-medium transition-colors"
+            >
+              <ArrowRight className="w-3 h-3 text-primary" />
+              <span>Right</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => nudge("up")}
+              title="Nudge Up (↑)"
+              className="py-1 px-1 rounded-lg bg-muted/60 hover:bg-accent flex items-center justify-center gap-1 text-[10px] font-medium transition-colors"
+            >
+              <ArrowUp className="w-3 h-3 text-primary" />
+              <span>Up</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => nudge("down")}
+              title="Nudge Down (↓)"
+              className="py-1 px-1 rounded-lg bg-muted/60 hover:bg-accent flex items-center justify-center gap-1 text-[10px] font-medium transition-colors"
+            >
+              <ArrowDown className="w-3 h-3 text-primary" />
+              <span>Down</span>
+            </button>
+          </div>
         </div>
 
         <div className="px-1 pt-1">

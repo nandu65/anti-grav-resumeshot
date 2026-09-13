@@ -256,46 +256,6 @@ export function ResumeDesignFormattingPanel({
                 className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
               />
             </div>
-
-            {/* Text Opacity */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-white/90">Text Opacity</span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    min={10}
-                    max={100}
-                    step={5}
-                    value={Math.round(currentTextOpacity * 100)}
-                    onChange={(e) => {
-                      const val = Math.max(10, Math.min(100, Number(e.target.value) || 100));
-                      updateSetting("textOpacity", val / 100);
-                    }}
-                    className="w-12 h-6 px-1 text-center bg-[#1c243c] border border-white/20 rounded font-mono text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                  <span className="text-[10px] text-white/60">%</span>
-                  <button
-                    type="button"
-                    onClick={() => updateSetting("textOpacity", DEFAULT_FORMATTING_SETTINGS.textOpacity)}
-                    title={`Reset to default (${Math.round(DEFAULT_FORMATTING_SETTINGS.textOpacity * 100)}%)`}
-                    aria-label="Reset text opacity to default"
-                    className="w-5 h-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-              <input
-                type="range"
-                min={0.1}
-                max={1.0}
-                step={0.05}
-                value={currentTextOpacity}
-                onChange={(e) => updateSetting("textOpacity", Number(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#86efac]"
-              />
-            </div>
           </div>
 
           {/* Dotted separator */}
