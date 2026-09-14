@@ -130,55 +130,99 @@ const Index = () => {
           ATS SCORE + AI RESUME BUILDER — SIDE BY SIDE PLAYGROUND
           ================================================================ */}
       <section className="relative overflow-hidden border-b border-zinc-200/80 dark:border-white/[0.08] bg-slate-100/60 dark:bg-[#0c0e14] py-16 sm:py-20 transition-colors duration-300">
-        <div className="container mx-auto px-4 sm:px-6">
+        {/* Ambient glow effects */}
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
             
-            {/* ATS Score (Try before signup) */}
-            <div data-tour="try-now" className="min-w-0 bg-white dark:bg-[#11141b] rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] p-5 sm:p-7 shadow-lg">
+            {/* Left Card: ATS Score (Try before signup) */}
+            <div data-tour="try-now" className="min-w-0 bg-white dark:bg-[#11141b] rounded-2xl border border-zinc-200/90 dark:border-white/[0.1] p-6 sm:p-8 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all duration-300">
               <TryNow />
             </div>
 
-            {/* AI Resume Builder — Compact Showcase */}
-            <div data-tour="resume-builder" className="min-w-0 rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#11141b] p-6 sm:p-8 shadow-lg flex flex-col justify-between">
+            {/* Right Card: AI Resume Builder Showcase */}
+            <div data-tour="resume-builder" className="min-w-0 rounded-2xl border border-zinc-200/90 dark:border-white/[0.1] bg-white dark:bg-[#11141b] p-6 sm:p-8 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all duration-300">
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400 mb-4">
-                  <Sparkles className="h-3.5 w-3.5" /> <span>AI Resume Builder</span>
+                {/* Header Badge */}
+                <div className="flex items-center justify-between gap-2 mb-5">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
+                    <Sparkles className="h-3.5 w-3.5" /> <span>AI Resume Builder</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] px-2.5 py-1 rounded-full">
+                    <Clock className="h-3 w-3 text-emerald-500" /> ~3 Mins
+                  </span>
                 </div>
-                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
+
+                <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
                   Build a recruiter-ready resume in <span className="text-emerald-600 dark:text-emerald-400">3 minutes</span>
                 </h2>
-                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                   No existing resume? Pick an ATS-approved template and let AI generate metric-driven, impactful bullet points for you.
                 </p>
 
-                <div className="mt-6 space-y-3">
-                  {[
-                    { n: 1, title: "Select a clean template", desc: "Pick from Modern, Classic, or Compact single-page layouts." },
-                    { n: 2, title: "Fill your key roles", desc: "AI rewrites your input into strong, metric-driven bullet points." },
-                    { n: 3, title: "Download & apply", desc: "Export a pixel-perfect ATS PDF ready for job submissions." },
-                  ].map((step) => (
-                    <div key={step.n} className="flex gap-3 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-slate-50 dark:bg-[#161922] p-3.5">
-                      <div className="h-8 w-8 text-sm shrink-0 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
-                        {step.n}
+                {/* Interactive Mini Resume Showcase Preview */}
+                <div className="mt-5 rounded-xl border border-zinc-200/90 dark:border-white/[0.08] bg-slate-50 dark:bg-[#161922] p-4 sm:p-5 shadow-inner">
+                  {/* Candidate Header preview */}
+                  <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-white/[0.08]">
+                    <div>
+                      <div className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                        Sarah Jenkins <span className="text-[11px] text-zinc-400 font-normal">· Lead Engineer</span>
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{step.title}</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{step.desc}</p>
-                      </div>
+                      <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">Stanford Template · ATS Optimized</div>
                     </div>
-                  ))}
+                    <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> ATS Pass: 98%
+                    </div>
+                  </div>
+
+                  {/* AI Bullet Rewrite Before/After */}
+                  <div className="mt-3 space-y-2">
+                    <div className="rounded-lg bg-white dark:bg-[#10131a] border border-zinc-200/80 dark:border-white/[0.06] p-2.5">
+                      <div className="flex items-center justify-between text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1">
+                        <span>BEFORE (RAW DRAFT)</span>
+                        <span className="text-rose-500 dark:text-rose-400">Generic</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-through">
+                        "Wrote React code and fixed bugs in the backend SQL database."
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-emerald-500/[0.07] border border-emerald-500/30 p-2.5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                        <span className="flex items-center gap-1"><Wand2 className="h-3 w-3" /> AI OPTIMIZED (METRIC-DRIVEN)</span>
+                        <span className="bg-emerald-500/20 px-1.5 py-0.2 rounded text-[9px]">+42% Match</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-zinc-800 dark:text-zinc-200">
+                        "Architected <span className="text-emerald-600 dark:text-emerald-400 font-bold">14+ React micro-frontends</span> and indexed PostgreSQL queries, reducing latency by <span className="text-emerald-600 dark:text-emerald-400 font-bold">42%</span> for 1M+ active users."
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Template Format Chips */}
+                  <div className="mt-3 pt-2.5 border-t border-zinc-200 dark:border-white/[0.06] flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Layout Styles:</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[9px] bg-white dark:bg-white/[0.08] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/[0.1] px-2 py-0.5 rounded font-medium">✨ Modern Tech</span>
+                      <span className="text-[9px] bg-white dark:bg-white/[0.08] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/[0.1] px-2 py-0.5 rounded font-medium">🏛️ Classic Harvard</span>
+                      <span className="text-[9px] bg-white dark:bg-white/[0.08] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/[0.1] px-2 py-0.5 rounded font-medium">⚡ Minimal Compact</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-zinc-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold h-11 px-6 text-sm rounded-xl cursor-pointer shadow-md">
+              {/* Action Footer */}
+              <div className="mt-6 pt-5 border-t border-zinc-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
+                <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold h-11 px-7 text-sm rounded-xl cursor-pointer shadow-md transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.35)]">
                   <Link to="/tools/resume-builder">
                     Launch Resume Builder <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
                 <div className="flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
-                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> ATS-Tested</span>
-                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> 1-Click PDF</span>
+                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> ATS-Tested</span>
+                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> 1-Click PDF</span>
+                  <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> AI Suggestions</span>
                 </div>
               </div>
             </div>
