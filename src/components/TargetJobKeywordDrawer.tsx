@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from "react";
-import { Sparkles, CheckCircle2, AlertCircle, Plus, Copy, X, Target, Zap, FileText } from "lucide-react";
+import { CheckCircle2, AlertCircle, Plus, Target, Zap, FileText } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { ResumeData } from "@/lib/resumeTemplates";
 
-interface TargetJobKeywordDrawerProps {
+export interface TargetJobKeywordDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   resumeData: ResumeData;
-  onUpdateResumeData: (data: ResumeData) => void;
+  targetJd?: string;
+  onTargetJdChange?: (jd: string) => void;
+  onInjectKeyword: (keyword: string) => void;
 }
 
 const COMMON_TECH_KEYWORDS = [
@@ -25,19 +26,37 @@ export function TargetJobKeywordDrawer({
   open,
   onOpenChange,
   resumeData,
-  onUpdateResumeData,
+  targetJd = "",
+  onTargetJdChange,
+  onInjectKeyword,
 }: TargetJobKeywordDrawerProps) {
-  const [jobDescription, setJobDescription] = useState("");
+  const [localJd, setLocalJd] = useState("");
+  const jobDescription = onTargetJdChange ? targetJd : localJd;
+  const setJobDescription = (val: string) => {
+    if (onTargetJdChange) {
+      onTargetJdChange(val);
+    } else {
+      setLocalJd(val);
+    }
+  };
 
   // Aggregate all text from the current resume
   const resumeFullText = useMemo(() => {
+    const skillItems = (resumeData.skills || []).flatMap((s) => [s.category, ...(s.items || [])]);
+    const expItems = (resumeData.experience || []).flatMap((e) => [e.role, e.company, e.location, ...(e.bullets || [])]);
+    const projItems = (resumeData.projects || []).flatMap((p) => [p.name, p.tech, ...(p.bullets || [])]);
+    const leadItems = (resumeData.leadership || []).flatMap((l) => [l.role, l.organization, ...(l.bullets || [])]);
+    const eduItems = (resumeData.education || []).flatMap((ed) => [ed.school, ed.degree, ed.details]);
+
     const parts: string[] = [
       resumeData.name,
-      resumeData.title,
       resumeData.summary,
-      ...(resumeData.skills || []),
-      ...(resumeData.experience || []).flatMap((e) => [e.title, e.company, e.description, ...(e.bullets || [])]),
-      ...(resumeData.projects || []).flatMap((p) => [p.name, p.description, ...(p.bullets || []), ...(p.technologies || [])]),
+      ...skillItems,
+      ...expItems,
+      ...projItems,
+      ...leadItems,
+      ...eduItems,
+      ...(resumeData.certifications || []),
     ];
     return parts.filter(Boolean).join(" ").toLowerCase();
   }, [resumeData]);
@@ -51,12 +70,6 @@ export function TargetJobKeywordDrawer({
     const jdText = jobDescription.toLowerCase();
     const foundInJd = COMMON_TECH_KEYWORDS.filter((kw) => jdText.includes(kw.toLowerCase()));
 
-    // Also pick words in JD with length >= 4 that appear frequently
-    const jdWords = jdText
-      .replace(/[^\w\s]/g, " ")
-      .split(/\s+/)
-      .filter((w) => w.length >= 4 && !["with", "this", "that", "from", "have", "will", "your", "they", "must", "work", "team", "role"].includes(w));
-    
     const uniqueKeywords = Array.from(new Set([...foundInJd]));
 
     const matched: string[] = [];
@@ -76,32 +89,12 @@ export function TargetJobKeywordDrawer({
   }, [jobDescription, resumeFullText]);
 
   const handleInsertKeyword = (kw: string) => {
-    const currentSkills = resumeData.skills || [];
-    if (!currentSkills.some((s) => s.toLowerCase() === kw.toLowerCase())) {
-      onUpdateResumeData({
-        ...resumeData,
-        skills: [...currentSkills, kw],
-      });
-      toast.success(`Added "${kw}" to Skills section!`);
-    } else {
-      toast.info(`"${kw}" is already in your skills!`);
-    }
+    onInjectKeyword(kw);
   };
 
   const handleAutoInjectAll = () => {
     if (missingKeywords.length === 0) return;
-    const currentSkills = resumeData.skills || [];
-    const newSkills = [...currentSkills];
-    for (const kw of missingKeywords) {
-      if (!newSkills.some((s) => s.toLowerCase() === kw.toLowerCase())) {
-        newSkills.push(kw);
-      }
-    }
-    onUpdateResumeData({
-      ...resumeData,
-      skills: newSkills,
-    });
-    toast.success(`Injected ${missingKeywords.length} missing keywords into Skills!`);
+    missingKeywords.forEach((kw) => onInjectKeyword(kw));
   };
 
   return (
@@ -128,7 +121,7 @@ export function TargetJobKeywordDrawer({
                 <button
                   type="button"
                   onClick={() => setJobDescription("")}
-                  className="text-[10px] text-zinc-500 hover:text-white"
+                  className="text-[10px] text-zinc-500 hover:text-white cursor-pointer"
                 >
                   Clear
                 </button>
@@ -163,7 +156,7 @@ export function TargetJobKeywordDrawer({
                   <Button
                     size="sm"
                     onClick={handleAutoInjectAll}
-                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md"
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md cursor-pointer"
                   >
                     <Zap className="h-3.5 w-3.5 mr-1" /> Inject All ({missingKeywords.length})
                   </Button>
@@ -236,7 +229,7 @@ export function TargetJobKeywordDrawer({
             variant="outline"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="border-white/[0.1] bg-[#161922] text-zinc-300"
+            className="border-white/[0.1] bg-[#161922] text-zinc-300 cursor-pointer"
           >
             Done
           </Button>

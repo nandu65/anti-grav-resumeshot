@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Search, Loader2, Briefcase, Trash2, Edit3, ExternalLink, Calendar, MapPin, LayoutGrid, List, ArrowRight, CheckCircle2, Award, Zap } from "lucide-react";
+import { Plus, Search, Loader2, Briefcase, Trash2, Edit3, ExternalLink, Calendar, MapPin, LayoutGrid, List, ArrowRight, CheckCircle2, Award, Zap, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { triggerConfetti } from "@/lib/confetti";
 

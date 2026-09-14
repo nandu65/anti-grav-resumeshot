@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Check, Sparkles, X, LayoutTemplate, ShieldCheck, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { TemplateMiniPreview, TEMPLATES, TemplateId } from "@/components/ResumeDesignFormattingPanel";
+import { TemplateMiniPreview, TEMPLATES, TemplateId } from "@/lib/resumeTemplates";
 
 interface TemplateSwitcherModalProps {
   open: boolean;
