@@ -63,12 +63,22 @@ export async function downloadResumePdf(opt: ExportData) {
   const clone = element.cloneNode(true) as HTMLElement;
   clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
 
-  clone.querySelectorAll('.border-dashed, [aria-hidden="true"]').forEach(el => {
-    if (el.textContent?.includes("Page") || el.querySelector(".border-dashed") || el.classList.contains("border-dashed")) {
+  // Clean up all preview-only badges, page indicators, and toolbar artifacts
+  clone.querySelectorAll(
+    '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"]'
+  ).forEach(el => el.remove());
+  clone.querySelectorAll('*').forEach(el => {
+    if (
+      el.classList.contains("preview-only-badge") ||
+      el.hasAttribute("data-page-badge") ||
+      el.hasAttribute("data-page-indicator") ||
+      (el.textContent && /^\s*\d+\s+pages?\s*$/i.test(el.textContent.trim())) ||
+      el.classList.contains("border-dashed") ||
+      el.querySelector(".border-dashed")
+    ) {
       el.remove();
     }
   });
-  clone.querySelectorAll('[data-rs-toolbar], .selection-toolbar, [role="tooltip"]').forEach(el => el.remove());
 
   clone.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
 
@@ -100,6 +110,21 @@ export async function downloadResumePdf(opt: ExportData) {
       windowWidth: A4_WIDTH_PX,
       windowHeight: targetHeight,
       onclone: (clonedDoc) => {
+        // Strip any residual preview artifacts from cloned document
+        clonedDoc.querySelectorAll(
+          '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"]'
+        ).forEach(el => el.remove());
+        clonedDoc.querySelectorAll('*').forEach(el => {
+          if (
+            el.classList.contains("preview-only-badge") ||
+            el.hasAttribute("data-page-badge") ||
+            el.hasAttribute("data-page-indicator") ||
+            (el.textContent && /^\s*\d+\s+pages?\s*$/i.test(el.textContent.trim()))
+          ) {
+            el.remove();
+          }
+        });
+
         const wrap = clonedDoc.getElementById("rs-pdf-export-wrapper-opt");
         if (wrap) {
           wrap.style.position = "static";
