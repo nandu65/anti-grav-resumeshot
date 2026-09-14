@@ -95,7 +95,7 @@ export function TemplateSwitcherModal({
                     <p className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
                       {t.name}
                     </p>
-                    {t.isATS && (
+                    {(t.category === "ats" || t.tag?.includes("ATS")) && (
                       <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-0.5">
                         <ShieldCheck className="h-2.5 w-2.5" /> 100% ATS
                       </span>
