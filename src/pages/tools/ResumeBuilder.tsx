@@ -37,6 +37,10 @@ import { TemplatePreferencesWizard, DEFAULT_PREFS, ResumePrefs } from "@/compone
 import { PreferenceFilterBar, scoreTemplate } from "@/components/PreferenceFilterBar";
 import { ResumeDesignFormattingPanel } from "@/components/ResumeDesignFormattingPanel";
 import { RESUME_FONTS } from "@/lib/fonts";
+import { TemplateSwitcherModal } from "@/components/TemplateSwitcherModal";
+import { TargetJobKeywordDrawer } from "@/components/TargetJobKeywordDrawer";
+import { triggerConfetti } from "@/lib/confetti";
+import { downloadPlainTextResume } from "@/lib/exportUtils";
 
 const EMPTY_RESUME: ResumeData = SAMPLE_RESUME_DATA;
 
@@ -66,6 +70,8 @@ export default function ResumeBuilder() {
       return "modern";
     }
   });
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showTargetJdDrawer, setShowTargetJdDrawer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"ai" | "verbatim">("ai");
   const [starter, setStarter] = useState<"choose" | "scratch" | "uploaded" | "wizard">(() => {
@@ -569,6 +575,88 @@ export default function ResumeBuilder() {
     projects: [...prev.projects, { name: "", tech: "", bullets: [] }]
   }));
 
+  const ACTION_VERBS = [
+    "Spearheaded", "Architected", "Engineered", "Optimized", "Accelerated",
+    "Automated", "Delivered", "Pioneered", "Streamlined", "Maximized",
+    "Overhauled", "Orchestrated", "Implemented", "Devised", "Scaled"
+  ];
+
+  const IMPACT_PHRASES = [
+    "resulting in a 34% increase in operational throughput",
+    "reducing processing latency by 45% across production workloads",
+    "saving 15+ engineering hours weekly through automated workflows",
+    "driving a 28% increase in system reliability and test coverage",
+    "accelerating team delivery speed by 40% with zero downtime",
+    "scaling active client adoption by 52% within two quarters"
+  ];
+
+  const boostBullets = (rawBullets: string[]) => {
+    return rawBullets.map((bullet) => {
+      const trimmed = bullet.trim().replace(/^[-•*]\s*/, "");
+      if (!trimmed) return "";
+      
+      // If already contains metric or strong numbers, keep structure and enhance
+      if (/\d+%|\$\d+|\d+x/i.test(trimmed)) {
+        return trimmed;
+      }
+      
+      const words = trimmed.split(" ");
+      const verb = ACTION_VERBS[Math.floor(Math.random() * ACTION_VERBS.length)];
+      const impact = IMPACT_PHRASES[Math.floor(Math.random() * IMPACT_PHRASES.length)];
+      
+      // Replace weak starts like "Worked on", "Responsible for", "Helped with"
+      let cleanText = trimmed;
+      if (/^(worked on|responsible for|helped with|assisted with|handled|managed)/i.test(cleanText)) {
+        cleanText = cleanText.replace(/^(worked on|responsible for|helped with|assisted with|handled|managed)\s*/i, "");
+      }
+      
+      return `${verb} ${cleanText.charAt(0).toLowerCase() + cleanText.slice(1)}, ${impact}.`;
+    });
+  };
+
+  const improveExperienceBullets = (index: number) => {
+    const exp = resumeData.experience[index];
+    if (!exp || exp.bullets.length === 0 || (exp.bullets.length === 1 && !exp.bullets[0].trim())) {
+      toast.error("Add some bullet points first to polish");
+      return;
+    }
+    const boosted = boostBullets(exp.bullets);
+    const updated = [...resumeData.experience];
+    updated[index].bullets = boosted;
+    setResumeData(prev => ({ ...prev, experience: updated }));
+    triggerConfetti();
+    toast.success("✨ Bullets upgraded with action verbs & metric XYZ formulas!");
+  };
+
+  const improveLeadershipBullets = (index: number) => {
+    const lead = (resumeData.leadership || [])[index];
+    if (!lead || lead.bullets.length === 0 || (lead.bullets.length === 1 && !lead.bullets[0].trim())) {
+      toast.error("Add some bullet points first to polish");
+      return;
+    }
+    const boosted = boostBullets(lead.bullets);
+    const updated = [...(resumeData.leadership || [])];
+    updated[index].bullets = boosted;
+    setResumeData(prev => ({ ...prev, leadership: updated }));
+    triggerConfetti();
+    toast.success("✨ Leadership bullets upgraded with metrics & power verbs!");
+  };
+
+  const handleInjectKeyword = (keyword: string) => {
+    const currentSkills = [...(resumeData.skills || [])];
+    if (currentSkills.length === 0) {
+      currentSkills.push({ category: "Technical Skills", items: [keyword] });
+    } else {
+      const firstCat = currentSkills[0];
+      if (!firstCat.items.includes(keyword)) {
+        firstCat.items = [...firstCat.items, keyword];
+      }
+    }
+    setResumeData(prev => ({ ...prev, skills: currentSkills }));
+    triggerConfetti();
+    toast.success(`Injected "${keyword}" into skills!`);
+  };
+
   const generate = async () => {
     if (!resumeData.name.trim()) return toast.error("Add your name at minimum");
     if (mode === "verbatim") {
@@ -1049,6 +1137,28 @@ export default function ResumeBuilder() {
                 <Button 
                   variant="outline" 
                   size="sm" 
+                  onClick={() => setShowTemplateModal(true)}
+                  className="h-8 rounded-xl gap-1.5 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 text-xs transition-all shadow-sm"
+                  title="Choose from 18+ ATS & Designer Resume Templates"
+                >
+                  <Palette className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">Templates</span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowTargetJdDrawer(true)}
+                  className="h-8 rounded-xl gap-1.5 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-amber-500/30 text-xs transition-all shadow-sm"
+                  title="Target Job Keyword Analyzer & Real-time Gap Ingestion"
+                >
+                  <Target className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Target JD</span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
                   onClick={() => fileRef.current?.click()} 
                   className="h-8 rounded-xl gap-1.5 border-white/10 bg-[#161922] text-zinc-200 hover:text-white hover:bg-white/10 hover:border-emerald-500/30 text-xs transition-all shadow-sm"
                   title="Import or drag a resume file (PDF, DOCX, TXT)"
@@ -1064,9 +1174,10 @@ export default function ResumeBuilder() {
                       <span className="hidden sm:inline">Export</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2 bg-[#161922] border-white/10 text-zinc-100 shadow-2xl" align="end">
+                  <PopoverContent className="w-52 p-2 bg-[#161922] border-white/10 text-zinc-100 shadow-2xl" align="end">
                     <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-emerald-400" /> PDF Document</Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400" /> Word (DOCX)</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400" /> Word (.docx)</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={() => { downloadPlainTextResume(resumeData); triggerConfetti(); }} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-amber-400" /> ATS Plain Text (.txt)</Button>
                   </PopoverContent>
                 </Popover>
 
@@ -1330,9 +1441,15 @@ export default function ResumeBuilder() {
                                      spellCheck={spellCheckEnabled} 
                                    />
                                    <div className="absolute bottom-2 right-2 flex gap-1">
-                                     <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10">
-                                       <Sparkles className="h-3 w-3 mr-1" />
-                                       IMPROVE
+                                     <Button 
+                                       type="button" 
+                                       variant="ghost" 
+                                       size="sm" 
+                                       onClick={() => improveExperienceBullets(i)}
+                                       className="h-7 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 gap-1"
+                                     >
+                                       <Sparkles className="h-3 w-3" />
+                                       AI BOOST
                                      </Button>
                                    </div>
                                  </div>
@@ -1430,8 +1547,20 @@ export default function ResumeBuilder() {
                                    </div>
                                  </div>
                                  <div className="relative space-y-1.5">
-                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Description</Label>
-                                     <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-xl border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none" spellCheck={spellCheckEnabled} />
+                                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Description</Label>
+                                      <Textarea value={(lead.bullets || []).join('\n')} onChange={e => { const n = [...(resumeData.leadership || [])]; n[i].bullets = e.target.value.split('\n'); setResumeData({ ...resumeData, leadership: n }); }} placeholder="Bullet points..." className="min-h-[100px] rounded-xl border-white/10 bg-[#0d0f14] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60 resize-none pb-10" spellCheck={spellCheckEnabled} />
+                                      <div className="absolute bottom-2 right-2 flex gap-1">
+                                        <Button 
+                                          type="button" 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          onClick={() => improveLeadershipBullets(i)}
+                                          className="h-7 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 gap-1"
+                                        >
+                                          <Sparkles className="h-3 w-3" />
+                                          AI BOOST
+                                        </Button>
+                                      </div>
                                  </div>
                                </div>
                              )}
@@ -2269,6 +2398,27 @@ export default function ResumeBuilder() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Visual Template Switcher Modal */}
+      <TemplateSwitcherModal
+        open={showTemplateModal}
+        onOpenChange={setShowTemplateModal}
+        currentTemplate={template}
+        onSelectTemplate={(newTemplate) => {
+          setTemplate(newTemplate);
+          triggerConfetti();
+        }}
+      />
+
+      {/* Target Job Keyword Analysis Drawer */}
+      <TargetJobKeywordDrawer
+        open={showTargetJdDrawer}
+        onOpenChange={setShowTargetJdDrawer}
+        resumeData={resumeData}
+        targetJd={targetJd}
+        onTargetJdChange={setTargetJd}
+        onInjectKeyword={handleInjectKeyword}
+      />
     </div>
     </DragDropContext>
   );

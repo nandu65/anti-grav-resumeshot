@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Search, Loader2, Briefcase, Trash2, Edit3, ExternalLink, Calendar, MapPin, LayoutGrid, List, ArrowRight } from "lucide-react";
+import { Plus, Search, Loader2, Briefcase, Trash2, Edit3, ExternalLink, Calendar, MapPin, LayoutGrid, List, ArrowRight, CheckCircle2, Award, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { triggerConfetti } from "@/lib/confetti";
 
 const STATUSES = ["wishlist", "applied", "assessment", "interview", "offer", "rejected", "withdrawn"] as const;
 type Status = typeof STATUSES[number];
@@ -224,6 +225,12 @@ export default function Applications() {
   const changeStatus = async (id: string, status: Status) => {
     const { error } = await supabase.from("job_applications").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
+    if (status === "offer") {
+      triggerConfetti();
+      toast.success("🎉 CONGRATULATIONS! Offer stage reached!");
+    } else {
+      toast.success(`Moved to ${status}`);
+    }
     load();
     if (detailId === id) openDetail(id);
   };
@@ -533,30 +540,100 @@ function ListView({ apps, onOpen, onEdit, onDelete }: { apps: App[]; onOpen: (id
 }
 
 function KanbanView({ apps, onOpen, onStatus }: { apps: App[]; onOpen: (id: string) => void; onStatus: (id: string, s: Status) => void; }) {
+  const KANBAN_COLS: { status: Status; title: string; icon: any; color: string }[] = [
+    { status: "wishlist", title: "Wishlist", icon: Briefcase, color: "text-slate-400" },
+    { status: "applied", title: "Applied", icon: CheckCircle2, color: "text-blue-400" },
+    { status: "assessment", title: "Assessment", icon: Zap, color: "text-purple-400" },
+    { status: "interview", title: "Interview", icon: Award, color: "text-amber-400" },
+    { status: "offer", title: "Offer Landed", icon: Sparkles, color: "text-emerald-400" },
+    { status: "rejected", title: "Archived", icon: Trash2, color: "text-red-400" },
+  ];
+
+  const getNextStatus = (current: Status): Status | null => {
+    switch (current) {
+      case "wishlist": return "applied";
+      case "applied": return "assessment";
+      case "assessment": return "interview";
+      case "interview": return "offer";
+      default: return null;
+    }
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <div className="grid grid-flow-col auto-cols-[minmax(240px,1fr)] gap-3 min-w-full">
-        {STATUSES.filter(s => s !== "withdrawn").map(s => {
-          const col = apps.filter(a => a.status === s);
+    <div className="overflow-x-auto pb-4 custom-scrollbar">
+      <div className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] gap-4 min-w-full">
+        {KANBAN_COLS.map(({ status, title, icon: Icon, color }) => {
+          const col = apps.filter(a => a.status === status);
           return (
-            <div key={s} className="rounded-xl border border-border bg-muted/30 p-3 min-h-[200px]">
-              <div className="flex items-center justify-between mb-3">
-                <StatusBadge status={s} />
-                <span className="text-xs text-muted-foreground">{col.length}</span>
+            <div key={status} className="rounded-2xl border border-white/[0.08] bg-[#11141b]/90 backdrop-blur-xl p-3.5 min-h-[420px] flex flex-col shadow-xl">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${color}`} />
+                  <span className="font-display text-sm font-bold text-zinc-100">{title}</span>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 font-mono font-bold">
+                  {col.length}
+                </span>
               </div>
-              <div className="space-y-2">
-                {col.map(a => (
-                  <div key={a.id} className="rounded-lg border border-border bg-background p-3 shadow-card">
-                    <button onClick={() => onOpen(a.id)} className="text-left w-full">
-                      <div className="font-medium text-sm truncate">{a.company_name}</div>
-                      <div className="text-xs text-muted-foreground truncate">{a.job_title}</div>
-                    </button>
-                    <Select value={a.status} onValueChange={(v) => onStatus(a.id, v as Status)}>
-                      <SelectTrigger className="h-7 text-xs mt-2"><SelectValue /></SelectTrigger>
-                      <SelectContent>{STATUSES.map(x => <SelectItem key={x} value={x} className="capitalize text-xs">{x}</SelectItem>)}</SelectContent>
-                    </Select>
+              <div className="space-y-3 flex-1 overflow-y-auto pr-0.5 custom-scrollbar">
+                {col.map(a => {
+                  const nextStatus = getNextStatus(a.status);
+                  return (
+                    <div 
+                      key={a.id} 
+                      className="group rounded-xl border border-white/[0.08] bg-[#161922] hover:border-emerald-500/40 p-3.5 shadow-lg transition-all hover:shadow-emerald-500/5 hover:-translate-y-0.5 flex flex-col justify-between"
+                    >
+                      <button onClick={() => onOpen(a.id)} className="text-left w-full">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="font-display font-bold text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors line-clamp-1">
+                            {a.company_name}
+                          </div>
+                          {a.ats_score != null && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono shrink-0">
+                              ATS {a.ats_score}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-zinc-400 line-clamp-1">{a.job_title}</div>
+                        {a.location && (
+                          <div className="text-[11px] text-zinc-500 mt-1 flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate">{a.location}</span>
+                          </div>
+                        )}
+                      </button>
+
+                      <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                        <Select value={a.status} onValueChange={(v) => onStatus(a.id, v as Status)}>
+                          <SelectTrigger className="h-6 text-[11px] bg-[#11141b] border-white/10 text-zinc-300 w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#161922] border-white/10 text-zinc-200">
+                            {STATUSES.map(x => <SelectItem key={x} value={x} className="capitalize text-xs">{x}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+
+                        {nextStatus && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onStatus(a.id, nextStatus)}
+                            className="h-6 px-2 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/10 gap-1 ml-auto"
+                            title={`Advance to ${nextStatus}`}
+                          >
+                            <span>Move</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {col.length === 0 && (
+                  <div className="h-32 border-2 border-dashed border-white/[0.04] rounded-xl flex items-center justify-center text-xs text-zinc-500 italic">
+                    No applications
                   </div>
-                ))}
+                )}
               </div>
             </div>
           );
