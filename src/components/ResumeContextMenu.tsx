@@ -6,8 +6,9 @@ import {
   RemoveFormatting, Palette, Highlighter,
   AlignLeft, AlignCenter, AlignRight,
   Type, MoveVertical, Paintbrush, X, List, Eye, Move, RotateCcw,
-  Undo2, Redo2
+  Undo2, Redo2, Baseline
 } from "lucide-react";
+import { RESUME_FONTS } from "@/lib/fonts";
 
 export interface ContextMenuPosition {
   x: number;
@@ -76,6 +77,7 @@ export function ResumeContextMenu({
   canRedo,
 }: ResumeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [showFontPicker, setShowFontPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [showOpacityPicker, setShowOpacityPicker] = useState(false);
@@ -161,7 +163,7 @@ export function ResumeContextMenu({
     posY = Math.max(16, Math.min(viewportH - menuHeight - 16, posY));
 
     setCoords({ x: Math.round(posX), y: Math.round(posY) });
-  }, [position, showColorPicker, showHighlightPicker, showOpacityPicker]);
+  }, [position, showFontPicker, showColorPicker, showHighlightPicker, showOpacityPicker]);
 
   // Click outside or Escape to close
   useEffect(() => {
@@ -501,8 +503,23 @@ export function ResumeContextMenu({
           </button>
         </div>
 
-        {/* Font size +/- */}
+        {/* Font family & Font size +/- */}
         <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg">
+          <button
+            type="button"
+            onClick={() => {
+              setShowFontPicker(!showFontPicker);
+              setShowColorPicker(false);
+              setShowHighlightPicker(false);
+              setShowOpacityPicker(false);
+            }}
+            title="Change font family of selected text"
+            className={`h-7 px-1.5 flex items-center gap-1 rounded-md text-[10px] font-semibold hover:bg-accent transition-colors ${showFontPicker ? "bg-accent text-primary" : "text-foreground"}`}
+          >
+            <Baseline className="w-3.5 h-3.5 text-primary" />
+            <span>Font</span>
+          </button>
+          <div className="w-[1px] h-3.5 bg-border/60 mx-0.5" />
           <button
             type="button"
             onClick={() => applyCommand("fontSize", "decrease")}
@@ -528,6 +545,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => {
               setShowColorPicker(!showColorPicker);
+              setShowFontPicker(false);
               setShowHighlightPicker(false);
               setShowOpacityPicker(false);
             }}
@@ -540,6 +558,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => {
               setShowHighlightPicker(!showHighlightPicker);
+              setShowFontPicker(false);
               setShowColorPicker(false);
               setShowOpacityPicker(false);
             }}
@@ -552,6 +571,7 @@ export function ResumeContextMenu({
             type="button"
             onClick={() => {
               setShowOpacityPicker(!showOpacityPicker);
+              setShowFontPicker(false);
               setShowColorPicker(false);
               setShowHighlightPicker(false);
             }}
@@ -595,6 +615,37 @@ export function ResumeContextMenu({
           </button>
         </div>
       </div>
+
+      {/* --- Font Family dropdown --- */}
+      {showFontPicker && (
+        <div className="p-2 mb-2 bg-muted/60 rounded-xl border border-border/60 animate-in fade-in-50 duration-75 max-h-52 overflow-y-auto overscroll-contain">
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span>Font Family</span>
+            <span className="text-[9px] font-normal text-muted-foreground">Selected text</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            {RESUME_FONTS.map(f => (
+              <button
+                key={f.label}
+                type="button"
+                onClick={() => {
+                  applyCommand("fontName", f.value);
+                  setShowFontPicker(false);
+                }}
+                className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-background/80 hover:bg-accent text-left transition-colors border border-border/40 shadow-xs group"
+                title={f.label}
+              >
+                <span className="text-[11px] truncate font-medium group-hover:text-primary" style={{ fontFamily: f.value }}>
+                  {f.label}
+                </span>
+                <span className="text-[8px] text-muted-foreground uppercase shrink-0 ml-1 opacity-70">
+                  {f.category === "serif" ? "Serif" : f.category === "monospace" ? "Mono" : "Sans"}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* --- Palette dropdown (Text Color) --- */}
       {showColorPicker && (

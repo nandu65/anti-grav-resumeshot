@@ -91,7 +91,14 @@ export function applyFormatToSelection(command: string, value?: string) {
         }
       });
     } else if (command === "fontName") {
-      document.execCommand("fontName", false, value);
+      const fontVal = value || "Arial";
+      document.execCommand("fontName", false, fontVal);
+      Array.from(document.getElementsByTagName("font")).forEach(f => {
+        if (f.getAttribute("face") === fontVal || f.face === fontVal) {
+          f.removeAttribute("face");
+          f.style.fontFamily = fontVal;
+        }
+      });
     } else if (command === "hiliteColor") {
       if (!document.execCommand("hiliteColor", false, value)) {
         document.execCommand("backColor", false, value);
