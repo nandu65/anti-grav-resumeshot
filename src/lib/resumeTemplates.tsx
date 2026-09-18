@@ -60,6 +60,8 @@ export interface ResumeSettings {
   sections?: Partial<Record<ResumeSectionKey, SectionStyle>>;
   sectionOrder?: string[];
   customSectionTitles?: Partial<Record<string, string>>;
+  photoSize?: number;
+  logoSize?: number;
 }
 
 export interface ResumeData {
@@ -5749,6 +5751,11 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
     }
   };
 
+  const photoWidth = r.settings?.photoSize || 90;
+  const photoHeight = Math.round(photoWidth * 1.28);
+  const logoWidth = r.settings?.logoSize || 130;
+  const logoMaxHeight = Math.round(logoWidth * 0.45);
+
   const hasPhoto = Boolean(r.photoUrl);
   const hasLogo = Boolean(r.logoUrl);
   const showRightHeader = hasPhoto || hasLogo || Boolean(update);
@@ -5856,21 +5863,53 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           <div className="flex flex-col items-end shrink-0 gap-2">
             {/* Optional Logo */}
             {hasLogo ? (
-              <div className="relative group/logo">
-                <img src={r.logoUrl} alt="Logo" className="max-h-12 max-w-[130px] object-contain" />
+              <div className="relative group/logo" style={{ maxWidth: `${logoWidth}px` }}>
+                <img
+                  src={r.logoUrl}
+                  alt="Logo"
+                  className="object-contain"
+                  style={{ width: `${logoWidth}px`, maxHeight: `${logoMaxHeight}px` }}
+                />
                 {update && (
-                  <div className="preview-only-badge absolute inset-0 bg-black/60 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded flex items-center justify-center gap-1 z-10">
+                  <div className="preview-only-badge absolute inset-0 bg-black/75 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded flex items-center justify-center gap-1 z-10 p-1">
+                    <button
+                      type="button"
+                      title="Reduce logo size"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const current = r.settings?.logoSize || 130;
+                        const next = Math.max(50, current - 15);
+                        on({ settings: { ...r.settings, logoSize: next } });
+                      }}
+                      className="h-5 w-5 bg-white/20 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center transition-colors"
+                    >
+                      −
+                    </button>
+                    <span className="text-[9px] text-white font-mono">{logoWidth}px</span>
+                    <button
+                      type="button"
+                      title="Increase logo size"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const current = r.settings?.logoSize || 130;
+                        const next = Math.min(260, current + 15);
+                        on({ settings: { ...r.settings, logoSize: next } });
+                      }}
+                      className="h-5 w-5 bg-white/20 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center transition-colors"
+                    >
+                      +
+                    </button>
                     <button
                       type="button"
                       onClick={() => logoInputRef.current?.click()}
-                      className="px-1.5 py-0.5 text-[9px] bg-white text-black font-sans font-bold rounded shadow"
+                      className="px-1.5 py-0.5 text-[8.5px] bg-white text-black font-sans font-bold rounded shadow"
                     >
                       Change
                     </button>
                     <button
                       type="button"
                       onClick={() => on({ logoUrl: "" })}
-                      className="px-1.5 py-0.5 text-[9px] bg-red-600 text-white font-sans font-bold rounded shadow"
+                      className="px-1.5 py-0.5 text-[8.5px] bg-red-600 text-white font-sans font-bold rounded shadow"
                     >
                       Remove
                     </button>
@@ -5890,21 +5929,53 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
 
             {/* Optional Photo Box */}
             {hasPhoto ? (
-              <div className="relative group/photo w-[90px] h-[115px] border border-black bg-slate-100 overflow-hidden shadow-xs">
+              <div
+                className="relative group/photo border border-black bg-slate-100 overflow-hidden shadow-xs shrink-0"
+                style={{ width: `${photoWidth}px`, height: `${photoHeight}px` }}
+              >
                 <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
                 {update && (
-                  <div className="preview-only-badge absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1 z-10">
+                  <div className="preview-only-badge absolute inset-0 bg-black/75 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1 z-10">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <button
+                        type="button"
+                        title="Reduce photo size"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const current = r.settings?.photoSize || 90;
+                          const next = Math.max(50, current - 10);
+                          on({ settings: { ...r.settings, photoSize: next } });
+                        }}
+                        className="h-5 w-5 bg-white/20 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center transition-colors"
+                      >
+                        −
+                      </button>
+                      <span className="text-[9px] text-white font-mono">{photoWidth}px</span>
+                      <button
+                        type="button"
+                        title="Increase photo size"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const current = r.settings?.photoSize || 90;
+                          const next = Math.min(180, current + 10);
+                          on({ settings: { ...r.settings, photoSize: next } });
+                        }}
+                        className="h-5 w-5 bg-white/20 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="w-full py-1 text-[9px] bg-white text-black font-sans font-bold rounded shadow text-center"
+                      className="w-full py-0.5 text-[8.5px] bg-white text-black font-sans font-bold rounded shadow text-center"
                     >
                       Change Photo
                     </button>
                     <button
                       type="button"
                       onClick={() => on({ photoUrl: "" })}
-                      className="w-full py-1 text-[9px] bg-red-600 text-white font-sans font-bold rounded shadow text-center"
+                      className="w-full py-0.5 text-[8.5px] bg-red-600 text-white font-sans font-bold rounded shadow text-center"
                     >
                       Remove
                     </button>
@@ -5916,11 +5987,12 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                 role="button"
                 tabIndex={0}
                 onClick={() => photoInputRef.current?.click()}
-                className="preview-only-badge w-[90px] h-[115px] border border-dashed border-slate-400 hover:border-black bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center cursor-pointer transition-colors p-2 text-center"
+                style={{ width: `${photoWidth}px`, height: `${photoHeight}px` }}
+                className="preview-only-badge border border-dashed border-slate-400 hover:border-black bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center cursor-pointer transition-colors p-2 text-center shrink-0"
                 title="Click to attach your photo"
               >
-                <div className="text-[18px] mb-1">📷</div>
-                <div className="text-[10px] font-sans font-bold text-slate-700">Attach Photo</div>
+                <div className="text-[16px] mb-0.5">📷</div>
+                <div className="text-[9.5px] font-sans font-bold text-slate-700">Attach Photo</div>
                 <div className="text-[8px] font-sans text-slate-500">(Optional)</div>
               </div>
             ) : null}

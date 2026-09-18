@@ -1323,47 +1323,113 @@ export default function ResumeBuilder() {
                         Profile Photo
                       </Label>
                       {resumeData.photoUrl ? (
-                        <div className="flex items-center gap-3">
-                          <img src={resumeData.photoUrl} alt="Photo Preview" className="h-16 w-14 rounded-lg object-cover border border-white/20 shadow-md" />
-                          <div className="space-y-1.5 flex-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
-                              onClick={() => {
-                                const input = document.createElement("input");
-                                input.type = "file";
-                                input.accept = "image/png,image/jpeg,image/jpg,image/webp";
-                                input.onchange = (e: any) => {
-                                  const f = e.target.files?.[0];
-                                  if (!f) return;
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    if (typeof reader.result === "string") {
-                                      setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
-                                      toast.success("Profile photo updated!");
-                                    }
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={resumeData.photoUrl}
+                              alt="Photo Preview"
+                              className="rounded-lg object-cover border border-white/20 shadow-md"
+                              style={{ width: `${Math.min(70, resumeData.settings?.photoSize || 90)}px`, height: `${Math.round(Math.min(70, resumeData.settings?.photoSize || 90) * 1.25)}px` }}
+                            />
+                            <div className="space-y-1.5 flex-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = "image/png,image/jpeg,image/jpg,image/webp";
+                                  input.onchange = (e: any) => {
+                                    const f = e.target.files?.[0];
+                                    if (!f) return;
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      if (typeof reader.result === "string") {
+                                        setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
+                                        toast.success("Profile photo updated!");
+                                      }
+                                    };
+                                    reader.readAsDataURL(f);
                                   };
-                                  reader.readAsDataURL(f);
-                                };
-                                input.click();
-                              }}
-                            >
-                              Change Photo
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
-                              onClick={() => {
-                                setResumeData(prev => ({ ...prev, photoUrl: "" }));
-                                toast.info("Profile photo removed");
-                              }}
-                            >
-                              Remove Photo
-                            </Button>
+                                  input.click();
+                                }}
+                              >
+                                Change Photo
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                  setResumeData(prev => ({ ...prev, photoUrl: "" }));
+                                  toast.info("Profile photo removed");
+                                }}
+                              >
+                                Remove Photo
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Photo Size Slider & Stepper */}
+                          <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="text-zinc-400 font-medium">Photo Size</span>
+                              <span className="text-emerald-400 font-mono font-bold">
+                                {resumeData.settings?.photoSize || 90}px
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
+                                onClick={() => {
+                                  const current = resumeData.settings?.photoSize || 90;
+                                  const next = Math.max(50, current - 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, photoSize: next },
+                                  }));
+                                }}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <input
+                                type="range"
+                                min={50}
+                                max={180}
+                                step={5}
+                                value={resumeData.settings?.photoSize || 90}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, photoSize: val },
+                                  }));
+                                }}
+                                className="flex-1 accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
+                                onClick={() => {
+                                  const current = resumeData.settings?.photoSize || 90;
+                                  const next = Math.min(180, current + 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, photoSize: next },
+                                  }));
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -1404,47 +1470,113 @@ export default function ResumeBuilder() {
                         Institution / Logo
                       </Label>
                       {resumeData.logoUrl ? (
-                        <div className="flex items-center gap-3">
-                          <img src={resumeData.logoUrl} alt="Logo Preview" className="h-16 w-20 rounded-lg object-contain bg-white/5 border border-white/20 p-1 shadow-md" />
-                          <div className="space-y-1.5 flex-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
-                              onClick={() => {
-                                const input = document.createElement("input");
-                                input.type = "file";
-                                input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
-                                input.onchange = (e: any) => {
-                                  const f = e.target.files?.[0];
-                                  if (!f) return;
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    if (typeof reader.result === "string") {
-                                      setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
-                                      toast.success("Logo updated!");
-                                    }
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={resumeData.logoUrl}
+                              alt="Logo Preview"
+                              className="rounded-lg object-contain bg-white/5 border border-white/20 p-1 shadow-md"
+                              style={{ width: `${Math.min(90, resumeData.settings?.logoSize || 130)}px`, height: "48px" }}
+                            />
+                            <div className="space-y-1.5 flex-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
+                                  input.onchange = (e: any) => {
+                                    const f = e.target.files?.[0];
+                                    if (!f) return;
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      if (typeof reader.result === "string") {
+                                        setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
+                                        toast.success("Logo updated!");
+                                      }
+                                    };
+                                    reader.readAsDataURL(f);
                                   };
-                                  reader.readAsDataURL(f);
-                                };
-                                input.click();
-                              }}
-                            >
-                              Change Logo
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
-                              onClick={() => {
-                                setResumeData(prev => ({ ...prev, logoUrl: "" }));
-                                toast.info("Logo removed");
-                              }}
-                            >
-                              Remove Logo
-                            </Button>
+                                  input.click();
+                                }}
+                              >
+                                Change Logo
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                  setResumeData(prev => ({ ...prev, logoUrl: "" }));
+                                  toast.info("Logo removed");
+                                }}
+                              >
+                                Remove Logo
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Logo Size Slider & Stepper */}
+                          <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="text-zinc-400 font-medium">Logo Size</span>
+                              <span className="text-emerald-400 font-mono font-bold">
+                                {resumeData.settings?.logoSize || 130}px
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
+                                onClick={() => {
+                                  const current = resumeData.settings?.logoSize || 130;
+                                  const next = Math.max(40, current - 15);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, logoSize: next },
+                                  }));
+                                }}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <input
+                                type="range"
+                                min={40}
+                                max={260}
+                                step={5}
+                                value={resumeData.settings?.logoSize || 130}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, logoSize: val },
+                                  }));
+                                }}
+                                className="flex-1 accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
+                                onClick={() => {
+                                  const current = resumeData.settings?.logoSize || 130;
+                                  const next = Math.min(260, current + 15);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, logoSize: next },
+                                  }));
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ) : (
