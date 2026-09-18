@@ -5531,9 +5531,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="summary" data-rs-sec="summary" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "summary", "PROFILE SUMMARY")} onChange={update && (v => updateSectionTitle(r, on, "summary", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "summary", "PROFILE SUMMARY")} onChange={update && (v => updateSectionTitle(r, on, "summary", v))} />
               </h3>
               <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] leading-relaxed text-black text-justify" />
             </section>
@@ -5546,9 +5544,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="skills" data-rs-sec="skills" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "skills", "SKILLS AND COMPETENCIES")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "skills", "SKILLS AND COMPETENCIES")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
                 {r.skills.map((s, i) => {
@@ -5578,9 +5574,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="education" data-rs-sec="education" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "education", "EDUCATIONAL QUALIFICATION")} onChange={update && (v => updateSectionTitle(r, on, "education", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "education", "EDUCATIONAL QUALIFICATION")} onChange={update && (v => updateSectionTitle(r, on, "education", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
                 {r.education.map((e, i) => {
@@ -5616,9 +5610,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="leadership" data-rs-sec="leadership" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "leadership", "SIGNIFICANT CONTRIBUTIONS")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "leadership", "SIGNIFICANT CONTRIBUTIONS")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
                 {r.leadership.map((l, i) => {
@@ -5674,9 +5666,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="experience" data-rs-sec="experience" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "experience", "WORK EXPERIENCE")} onChange={update && (v => updateSectionTitle(r, on, "experience", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "experience", "WORK EXPERIENCE")} onChange={update && (v => updateSectionTitle(r, on, "experience", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-2 text-[10px] text-black">
                 {r.experience.map((e, i) => {
@@ -5718,9 +5708,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="projects" data-rs-sec="projects" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "projects", "PROJECTS & RESEARCH")} onChange={update && (v => updateSectionTitle(r, on, "projects", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "projects", "PROJECTS & RESEARCH")} onChange={update && (v => updateSectionTitle(r, on, "projects", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
                 {r.projects.map((p, i) => {
@@ -5763,9 +5751,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           return (
             <section key="certifications" data-rs-sec="certifications" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
-                  <Editable value={getSectionTitle(r, "certifications", "CERTIFICATIONS & AWARDS")} onChange={update && (v => updateSectionTitle(r, on, "certifications", v))} />
-                </span>
+                <Editable value={getSectionTitle(r, "certifications", "CERTIFICATIONS & AWARDS")} onChange={update && (v => updateSectionTitle(r, on, "certifications", v))} />
               </h3>
               <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
                 {r.certifications.map((c, i) => (
