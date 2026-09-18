@@ -520,6 +520,18 @@ export const Editable = React.memo(function Editable({
           }
         }
       }}
+      onInput={
+        editable
+          ? (e: any) => {
+            const html = e.currentTarget.innerHTML as string;
+            const hasMarkup = /<(b|i|u|strong|em|span|font)\b/i.test(html);
+            const txt = multiline || hasMarkup
+              ? html.replace(/<div>/gi, multiline ? "\n" : " ").replace(/<\/div>/gi, "").replace(/<br\s*[\/]?>/gi, multiline ? "\n" : " ").trim()
+              : (e.currentTarget.innerText as string).replace(/\s+/g, " ").trim();
+            if (txt !== value) onChange!(txt);
+          }
+          : undefined
+      }
       onBlur={
         editable
           ? (e: any) => {
@@ -551,6 +563,8 @@ export function BulletsEditor({
 
   useEffect(() => {
     if (!ref.current) return;
+    const isFocused = ref.current.contains(document.activeElement);
+    if (isFocused) return;
     const current = Array.from(ref.current.querySelectorAll("li"))
       .map((li) => (li.innerHTML || "").trim())
       .join("\n");
@@ -624,6 +638,16 @@ export function BulletsEditor({
       className={
         (className || "") +
         (editable ? " outline-none focus:bg-primary/5 focus:ring-1 focus:ring-primary/40 rounded px-1 min-h-[1em]" : "")
+      }
+      onInput={
+        editable
+          ? (e) => {
+            const items = Array.from(e.currentTarget.querySelectorAll("li"))
+              .map((li) => (li.innerHTML || "").trim())
+              .filter(Boolean);
+            onChange!(items);
+          }
+          : undefined
       }
       onBlur={
         editable
@@ -2080,16 +2104,18 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
   React.useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    el.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
-
-    if (isMini || isExport) return;
 
     const measure = () => {
       const sh = el.scrollHeight || el.offsetHeight || A4_HEIGHT_PX;
       setTotalH(sh);
+      const count = Math.max(1, Math.ceil((sh - 25) / A4_HEIGHT_PX));
+      el.style.setProperty("--page-h", `${count * A4_HEIGHT_PX}px`);
+      el.style.setProperty("min-height", `${count * A4_HEIGHT_PX}px`);
     };
 
     measure();
+
+    if (isMini || isExport) return;
 
     const ro = new ResizeObserver(() => {
       measure();
@@ -2097,7 +2123,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     ro.observe(el);
     if (el.firstElementChild) ro.observe(el.firstElementChild as Element);
     return () => ro.disconnect();
-  }, [isMini, isExport]);
+  }, [isMini, isExport, children]);
 
   if (isMini || isExport) {
     return (
@@ -2111,7 +2137,6 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     );
   }
 
-  // 25px buffer tolerance prevents sub-pixel rounding or margin collapse from prematurely creating a 2nd page
   const pageCount = Math.max(1, Math.ceil((totalH - 25) / A4_HEIGHT_PX));
   const breaks: number[] = [];
   for (let i = 1; i < pageCount; i++) breaks.push(i * A4_HEIGHT_PX);
@@ -2120,7 +2145,10 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     <div
       ref={wrapRef}
       className="relative w-full min-h-full flex flex-col flex-1"
-      style={{ minHeight: `${A4_HEIGHT_PX}px`, "--page-h": `${A4_HEIGHT_PX}px` } as React.CSSProperties}
+      style={{
+        minHeight: `${pageCount * A4_HEIGHT_PX}px`,
+        "--page-h": `${pageCount * A4_HEIGHT_PX}px`,
+      } as React.CSSProperties}
     >
       {children}
       {breaks.map((top, i) => (
@@ -2131,9 +2159,9 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
           className="preview-only-badge pointer-events-none absolute left-0 right-0 z-10"
           style={{ top: top - 1 }}
         >
-          <div className="border-t-2 border-dashed border-primary/50" />
-          <div className="absolute -top-2.5 right-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold shadow">
-            Page {i + 2}
+          <div className="border-t-2 border-dashed border-emerald-500/60 shadow-sm" />
+          <div className="absolute -top-2.5 right-2 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9.5px] font-bold shadow-md flex items-center gap-1">
+            <span>📄 Page {i + 2}</span>
           </div>
         </div>
       ))}
@@ -2141,7 +2169,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
         <div
           aria-hidden="true"
           data-page-badge="true"
-          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[9px] font-semibold shadow"
+          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2.5 py-0.5 rounded-full bg-emerald-600/90 text-white text-[9.5px] font-bold shadow-md"
         >
           {pageCount} pages
         </div>
@@ -6991,6 +7019,12 @@ export function ResumePreview({
 
 /* ---------- PDF export ---------- */
 export async function downloadResumePdfFromData(rawData: ResumeData, template: TemplateId) {
+  // Commit any in-progress edits by blurring active element
+  if (typeof document !== "undefined" && (document.activeElement as HTMLElement)?.blur) {
+    (document.activeElement as HTMLElement).blur();
+  }
+  await new Promise(r => setTimeout(r, 80));
+
   const data = normalizeResumeSkills(rawData);
   const safe = safeName(data.name);
 
@@ -6999,17 +7033,22 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     '[data-main-resume-preview="true"], .resume-root-container:not([data-rs-mini="true"])'
   ) as HTMLElement | null;
 
+  // Measure actual multi-page height
+  const measuredLiveHeight = livePreview ? Math.max(livePreview.scrollHeight, livePreview.offsetHeight, A4_HEIGHT_PX) : A4_HEIGHT_PX;
+  const initialTotalPages = Math.max(1, Math.ceil((measuredLiveHeight - 30) / A4_HEIGHT_PX));
+  const initialTargetHeight = initialTotalPages * A4_HEIGHT_PX;
+
   // Create an off-screen export container with opacity: 1 and placed offscreen via left position
   const wrapper = document.createElement("div");
   wrapper.id = "rs-pdf-export-wrapper";
-  wrapper.style.cssText = `position: fixed; left: -99999px; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${A4_HEIGHT_PX}px; background: #ffffff; z-index: 1000; opacity: 1; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
+  wrapper.style.cssText = `position: fixed; left: -99999px; top: 0; width: ${A4_WIDTH_PX}px; min-width: ${A4_WIDTH_PX}px; max-width: ${A4_WIDTH_PX}px; min-height: ${initialTargetHeight}px; height: ${initialTargetHeight}px; background: #ffffff; z-index: 1000; opacity: 1; pointer-events: none; margin: 0; padding: 0; overflow: visible;`;
   document.body.appendChild(wrapper);
 
   let root: any = null;
   try {
     if (livePreview) {
       const clone = livePreview.cloneNode(true) as HTMLElement;
-      clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
+      clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${initialTargetHeight}px !important; height: ${initialTargetHeight}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
 
       // Clean up all preview-only badges, toolbars, file inputs, and helper buttons
       clone.querySelectorAll(
@@ -7027,7 +7066,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
         }
       });
 
-      clone.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
+      clone.style.setProperty("--page-h", `${initialTargetHeight}px`);
       wrapper.appendChild(clone);
     } else {
       const { createRoot } = await import("react-dom/client");
@@ -7069,9 +7108,15 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
 
     const sheetEl = (wrapper.querySelector(".resume-root-container") as HTMLElement) || wrapper;
-    const rawHeight = Math.max(sheetEl.scrollHeight, wrapper.scrollHeight, A4_HEIGHT_PX);
-    const totalPages = Math.max(1, Math.ceil((rawHeight - 25) / A4_HEIGHT_PX));
+    const rawHeight = Math.max(sheetEl.scrollHeight, sheetEl.offsetHeight, wrapper.scrollHeight, wrapper.offsetHeight, A4_HEIGHT_PX);
+    const totalPages = Math.max(1, Math.ceil((rawHeight - 30) / A4_HEIGHT_PX));
     const targetHeight = totalPages * A4_HEIGHT_PX;
+
+    sheetEl.style.setProperty("min-height", `${targetHeight}px`, "important");
+    sheetEl.style.setProperty("height", `${targetHeight}px`, "important");
+    sheetEl.style.setProperty("--page-h", `${targetHeight}px`);
+    wrapper.style.setProperty("min-height", `${targetHeight}px`, "important");
+    wrapper.style.setProperty("height", `${targetHeight}px`, "important");
 
     const canvas = await html2canvas(sheetEl, {
       scale: 3, // 300+ DPI print-grade ultra-sharp resolution
@@ -7110,6 +7155,8 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
           wrap.style.opacity = "1";
           wrap.style.visibility = "visible";
           wrap.style.display = "block";
+          wrap.style.minHeight = `${targetHeight}px`;
+          wrap.style.height = `${targetHeight}px`;
           wrap.style.textRendering = "geometricPrecision";
           (wrap.style as any).webkitFontSmoothing = "antialiased";
           (wrap.style as any).mozOsxFontSmoothing = "grayscale";
