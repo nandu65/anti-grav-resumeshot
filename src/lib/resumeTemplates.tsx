@@ -76,6 +76,8 @@ export interface ResumeData {
   projects: { name: string; tech: string; bullets: string[] }[];
   skills: { category: string; items: string[] }[];
   certifications: string[];
+  photoUrl?: string;
+  logoUrl?: string;
   settings?: ResumeSettings;
 
   _isPolished?: boolean;
@@ -113,7 +115,8 @@ export type TemplateId =
   | "nordic" | "ivy-league" | "tech-dark"
   | "monogram-blue-frame" | "emerald-timeline" | "hexagon-editorial" | "slate-node-timeline"
   | "centered-dual-column" | "teal-duo-banner" | "taupe-header-split" | "amber-ribbon"
-  | "slate-frame-sidebar" | "burgundy-boxed-monogram";
+  | "slate-frame-sidebar" | "burgundy-boxed-monogram"
+  | "christ-template";
 
 export interface TemplateDefinition {
   id: TemplateId;
@@ -410,6 +413,13 @@ export const TEMPLATES: TemplateDefinition[] = [
     desc: "Square monogram box, deep burgundy header banner, contact icon strip, and dual-column structure.",
     tag: "Executive",
     category: "executive",
+  },
+  {
+    id: "christ-template",
+    name: "Christ Template",
+    desc: "Official university academic & corporate format with profile summary, skills & competencies, educational qualification bullets, and optional photo/logo attachment.",
+    tag: "University",
+    category: "academic",
   },
 ];
 
@@ -5457,6 +5467,467 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
           })()}
         </div>
       </div>
+/* ---------- Christ Template: Official Academic & Corporate Layout ---------- */
+function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
+  const on = (patch: Partial<ResumeData>) => update?.(patch);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        on({ photoUrl: reader.result });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        on({ logoUrl: reader.result });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const sectionOrder = getNormalizedSectionOrder(r.settings?.sectionOrder, r);
+
+  const renderSection = (key: string) => {
+    switch (key) {
+      case "summary":
+        if (r.summary && r.summary.trim()) {
+          return (
+            <section key="summary" data-rs-sec="summary" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "summary", "PROFILE SUMMARY")} onChange={update && (v => updateSectionTitle(r, on, "summary", v))} />
+              </h3>
+              <Editable as="p" multiline value={r.summary} onChange={update && (v => on({ summary: v }))} className="text-[10.5px] leading-relaxed text-black text-justify" />
+            </section>
+          );
+        }
+        return null;
+
+      case "skills":
+        if (r.skills && r.skills.length > 0) {
+          return (
+            <section key="skills" data-rs-sec="skills" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "skills", "SKILLS AND COMPETENCIES")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
+                {r.skills.map((s, i) => {
+                  const upd = makeSkillUpdater(update, r, i);
+                  return (
+                    <li key={i} className="leading-snug">
+                      {!isGenericSkillCategory(s.category) ? (
+                        <strong className="font-bold text-black mr-1.5">
+                          <Editable value={s.category} onChange={update && (v => upd({ category: v }))} />:
+                        </strong>
+                      ) : null}
+                      <Editable
+                        value={s.items.join(", ")}
+                        onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      case "education":
+        if (r.education && r.education.length > 0) {
+          return (
+            <section key="education" data-rs-sec="education" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "education", "EDUCATIONAL QUALIFICATION")} onChange={update && (v => updateSectionTitle(r, on, "education", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
+                {r.education.map((e, i) => {
+                  const upd = makeEduUpdater(update, r, i);
+                  return (
+                    <li key={i} className="leading-snug">
+                      <strong className="font-bold text-black">
+                        <Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />
+                      </strong>
+                      {e.school ? (
+                        <span> | <Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></span>
+                      ) : null}
+                      {e.location ? (
+                        <span> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span>
+                      ) : null}
+                      {e.details ? (
+                        <span> | <Editable value={e.details} onChange={update && (v => upd({ details: v }))} /></span>
+                      ) : null}
+                      {e.start || e.end ? (
+                        <span className="text-slate-700"> | <Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      case "leadership":
+        if (r.leadership && r.leadership.length > 0) {
+          return (
+            <section key="leadership" data-rs-sec="leadership" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "leadership", "SIGNIFICANT CONTRIBUTIONS")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
+                {r.leadership.map((l, i) => {
+                  const upd = makeLeadershipUpdater(update, r, i);
+                  return (
+                    <li key={i} className="leading-snug">
+                      <strong className="font-bold text-black">
+                        <Editable value={l.role} onChange={update && (v => upd({ role: v }))} />
+                      </strong>
+                      {l.organization ? (
+                        <span> – <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
+                      ) : null}
+                      {l.location ? (
+                        <span>, <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></span>
+                      ) : null}
+                      {l.start || l.end ? (
+                        <span className="text-slate-600"> ({l.start} – {l.end})</span>
+                      ) : null}
+                      {l.bullets && l.bullets.length > 0 ? (
+                        <div className="mt-0.5 space-y-0.5 pl-2 text-[9.5px]">
+                          {l.bullets.map((b, bi) => (
+                            <div key={bi} className="leading-tight">
+                              <Editable
+                                value={b}
+                                onChange={update && (v => {
+                                  const newB = [...(l.bullets || [])];
+                                  newB[bi] = v;
+                                  upd({ bullets: newB });
+                                })}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      case "experience":
+        if (r.experience && r.experience.length > 0) {
+          return (
+            <section key="experience" data-rs-sec="experience" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "experience", "WORK EXPERIENCE")} onChange={update && (v => updateSectionTitle(r, on, "experience", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-[10px] text-black">
+                {r.experience.map((e, i) => {
+                  const upd = makeExpUpdater(update, r, i);
+                  return (
+                    <li key={i} className="leading-snug">
+                      <div className="flex justify-between items-baseline">
+                        <span className="font-bold text-black">
+                          <Editable value={e.role} onChange={update && (v => upd({ role: v }))} />
+                          {e.company ? (
+                            <span className="font-semibold text-slate-800"> — <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span>
+                          ) : null}
+                          {e.location ? <span className="font-normal text-slate-600">, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /></span> : null}
+                        </span>
+                        {e.start || e.end ? (
+                          <span className="text-[9.5px] text-slate-600 shrink-0 whitespace-nowrap ml-2">
+                            <Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} />
+                          </span>
+                        ) : null}
+                      </div>
+                      {e.bullets && e.bullets.length > 0 ? (
+                        <BulletsEditor
+                          bullets={e.bullets}
+                          onChange={update && (v => upd({ bullets: v }))}
+                          className="list-disc pl-4 mt-1 text-[9.5px] space-y-0.5"
+                        />
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      case "projects":
+        if (r.projects && r.projects.length > 0) {
+          return (
+            <section key="projects" data-rs-sec="projects" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "projects", "PROJECTS & RESEARCH")} onChange={update && (v => updateSectionTitle(r, on, "projects", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
+                {r.projects.map((p, i) => {
+                  const upd = makeProjUpdater(update, r, i);
+                  return (
+                    <li key={i} className="leading-snug">
+                      <strong className="font-bold text-black">
+                        <Editable value={p.name} onChange={update && (v => upd({ name: v }))} />
+                      </strong>
+                      {p.tech ? (
+                        <span className="text-slate-700 italic"> — <Editable value={p.tech} onChange={update && (v => upd({ tech: v }))} /></span>
+                      ) : null}
+                      {p.bullets && p.bullets.length > 0 ? (
+                        <div className="mt-0.5 space-y-0.5 pl-2 text-[9.5px]">
+                          {p.bullets.map((b, bi) => (
+                            <div key={bi} className="leading-tight">
+                              <Editable
+                                value={b}
+                                onChange={update && (v => {
+                                  const newB = [...(p.bullets || [])];
+                                  newB[bi] = v;
+                                  upd({ bullets: newB });
+                                })}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      case "certifications":
+        if (r.certifications && r.certifications.length > 0) {
+          return (
+            <section key="certifications" data-rs-sec="certifications" className="mb-3.5">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black underline underline-offset-4 mb-1.5 font-serif">
+                <Editable value={getSectionTitle(r, "certifications", "CERTIFICATIONS & AWARDS")} onChange={update && (v => updateSectionTitle(r, on, "certifications", v))} />
+              </h3>
+              <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
+                {r.certifications.map((c, i) => (
+                  <li key={i} className="leading-snug">
+                    <Editable
+                      value={c}
+                      onChange={update && (v => {
+                        const next = [...r.certifications];
+                        next[i] = v;
+                        on({ certifications: next.filter(Boolean) });
+                      })}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        }
+        return null;
+
+      default:
+        return null;
+    }
+  };
+
+  const hasPhoto = Boolean(r.photoUrl);
+  const hasLogo = Boolean(r.logoUrl);
+  const showRightHeader = hasPhoto || hasLogo || Boolean(update);
+
+  return (
+    <div
+      className="bg-white text-black p-8 shadow-elegant rounded-none font-serif text-[10.5px] leading-normal"
+      style={{
+        minHeight: "var(--page-h, auto)",
+        fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined,
+        fontFamily: r.settings?.fontFamily || "'Times New Roman', Times, Georgia, serif",
+      }}
+    >
+      {/* Hidden file inputs for photo and logo */}
+      {update && (
+        <>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
+        </>
+      )}
+
+      {/* TOP HEADER */}
+      <div className="flex justify-between items-start gap-4 mb-4 pb-3 border-b border-black">
+        {/* Left Column: Name, Subtitle Line, Contact info */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-3xl font-extrabold text-black tracking-tight leading-none mb-1 font-serif">
+            <Editable value={r.name || "Your Name"} onChange={update && (v => on({ name: v }))} />
+          </h1>
+
+          {/* Subheader Line */}
+          <div className="text-[10.5px] font-bold text-black mt-1.5 mb-2 leading-snug">
+            <Editable
+              value={r.title || (r.education?.[0] ? `${r.education[0].degree} | ${r.education[0].school}${r.education[0].details ? ` | ${r.education[0].details}` : ""}` : "")}
+              onChange={update && (v => on({ title: v }))}
+              placeholder="Degree / Specialization | Date Range | Institution | Score"
+            />
+          </div>
+
+          {/* Contact Details (Stacked) */}
+          <div className="space-y-0.5 text-[10px] text-black">
+            {r.email ? (
+              <div className="flex items-baseline gap-1">
+                <span className="font-bold">Email:</span>
+                <Editable value={r.email} onChange={update && (v => on({ email: v }))} />
+              </div>
+            ) : update ? (
+              <div className="flex items-baseline gap-1 text-slate-500">
+                <span className="font-bold text-black">Email:</span>
+                <Editable value={r.email} onChange={v => on({ email: v })} placeholder="your.email@example.com" />
+              </div>
+            ) : null}
+
+            {r.links && r.links.length > 0 ? (
+              r.links.map((l, i) => (
+                <div key={i} className="flex items-baseline gap-1">
+                  <span className="font-bold">{l.label || "LinkedIn"}:</span>
+                  <Editable
+                    value={l.url}
+                    onChange={update && (v => on({ links: r.links.map((x, j) => j === i ? { ...x, url: v } : x) }))}
+                  />
+                </div>
+              ))
+            ) : update ? (
+              <div className="flex items-baseline gap-1 text-slate-500">
+                <span className="font-bold text-black">LinkedIn:</span>
+                <Editable value="" onChange={v => on({ links: [{ label: "LinkedIn", url: v }] })} placeholder="linkedin.com/in/yourname" />
+              </div>
+            ) : null}
+
+            {r.phone ? (
+              <div className="flex items-baseline gap-1">
+                <span className="font-bold">Phone:</span>
+                <Editable value={r.phone} onChange={update && (v => on({ phone: v }))} />
+              </div>
+            ) : update ? (
+              <div className="flex items-baseline gap-1 text-slate-500">
+                <span className="font-bold text-black">Phone:</span>
+                <Editable value={r.phone} onChange={v => on({ phone: v })} placeholder="+91 9876543210" />
+              </div>
+            ) : null}
+
+            {r.location ? (
+              <div className="flex items-baseline gap-1">
+                <span className="font-bold">Location:</span>
+                <Editable value={r.location} onChange={update && (v => on({ location: v }))} />
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Right Column: Optional Logo & Photo */}
+        {showRightHeader && (
+          <div className="flex flex-col items-end shrink-0 gap-2">
+            {/* Optional Logo */}
+            {hasLogo ? (
+              <div className="relative group/logo">
+                <img src={r.logoUrl} alt="Logo" className="max-h-12 max-w-[130px] object-contain" />
+                {update && (
+                  <div className="preview-only-badge absolute inset-0 bg-black/60 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded flex items-center justify-center gap-1 z-10">
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="px-1.5 py-0.5 text-[9px] bg-white text-black font-sans font-bold rounded shadow"
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => on({ logoUrl: "" })}
+                      className="px-1.5 py-0.5 text-[9px] bg-red-600 text-white font-sans font-bold rounded shadow"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : update ? (
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                className="preview-only-badge text-[9px] text-slate-500 hover:text-black border border-dashed border-slate-300 hover:border-slate-500 px-2 py-0.5 rounded font-sans transition-colors"
+                title="Attach university or company logo"
+              >
+                + Attach Logo (Optional)
+              </button>
+            ) : null}
+
+            {/* Optional Photo Box */}
+            {hasPhoto ? (
+              <div className="relative group/photo w-[90px] h-[115px] border border-black bg-slate-100 overflow-hidden shadow-xs">
+                <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
+                {update && (
+                  <div className="preview-only-badge absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1 z-10">
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="w-full py-1 text-[9px] bg-white text-black font-sans font-bold rounded shadow text-center"
+                    >
+                      Change Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => on({ photoUrl: "" })}
+                      className="w-full py-1 text-[9px] bg-red-600 text-white font-sans font-bold rounded shadow text-center"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : update ? (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => photoInputRef.current?.click()}
+                className="preview-only-badge w-[90px] h-[115px] border border-dashed border-slate-400 hover:border-black bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center cursor-pointer transition-colors p-2 text-center"
+                title="Click to attach your photo"
+              >
+                <div className="text-[18px] mb-1">📷</div>
+                <div className="text-[10px] font-sans font-bold text-slate-700">Attach Photo</div>
+                <div className="text-[8px] font-sans text-slate-500">(Optional)</div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {/* BODY SECTIONS */}
+      <div className="space-y-1">
+        {sectionOrder.map(key => renderSection(key))}
+      </div>
     </div>
   );
 }
@@ -5662,7 +6133,8 @@ export function ResumePreview({
                                                     template === "amber-ribbon" ? <AmberRibbonPreview r={data} update={update} /> :
                                                       template === "slate-frame-sidebar" ? <SlateFrameSidebarPreview r={data} update={update} /> :
                                                         template === "burgundy-boxed-monogram" ? <BurgundyBoxedMonogramPreview r={data} update={update} /> :
-                                                          <ClassicPreview r={data} update={update} />;
+                                                          template === "christ-template" ? <ChristTemplatePreview r={data} update={update} /> :
+                                                            <ClassicPreview r={data} update={update} />;
 
   useEffect(() => {
     if (isMini) return;
@@ -6554,6 +7026,13 @@ export const TEMPLATE_DOCX_CONFIGS: Record<TemplateId, TemplateDocxConfig> = {
     namePlacement: "header-split",
     sidebarSections: ["education", "certifications"],
     mainSections: ["summary", "skills", "experience", "leadership", "projects"],
+    skillsFormat: "bullets",
+  },
+  "christ-template": {
+    layout: "single-column",
+    font: "Times New Roman",
+    accent: "000000",
+    namePlacement: "header-left",
     skillsFormat: "bullets",
   },
 };

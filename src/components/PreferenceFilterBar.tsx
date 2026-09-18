@@ -31,6 +31,7 @@ export const TEMPLATE_META: Record<TemplateId, { style: ResumePrefs["style"]; co
   "amber-ribbon":          { style: "classic",   columns: 1, photoFriendly: false },
   "slate-frame-sidebar":   { style: "modern",    columns: 2, photoFriendly: false },
   "burgundy-boxed-monogram":{ style: "executive", columns: 2, photoFriendly: false },
+  "christ-template":        { style: "classic",   columns: 1, photoFriendly: true  },
 };
 
 

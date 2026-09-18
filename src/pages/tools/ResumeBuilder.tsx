@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical } from "lucide-react";
+import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical, Camera, Image as ImageIcon } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
@@ -1301,6 +1301,182 @@ export default function ResumeBuilder() {
                     <div className="space-y-1.5">
                       <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Phone</Label>
                       <Input value={resumeData.phone} onChange={e => setResumeData({ ...resumeData, phone: e.target.value })} placeholder="+1 (555) 000-0000" className="rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" name="resume-phone" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* PHOTO & LOGO ATTACHMENT */}
+                <div id="section-media" className="bg-[#11141b]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-xl transition-all hover:border-emerald-500/30">
+                  <div className="flex items-center gap-2 mb-4 border-b border-white/[0.06] pb-3">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <Camera className="h-4 w-4" />
+                    </div>
+                    <h3 className="font-display text-base font-bold text-zinc-100">Profile Photo & Logo (Optional)</h3>
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-4">
+                    Attach a headshot photo or university/company logo. Formats: PNG, JPG, WEBP.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Profile Photo */}
+                    <div className="p-4 rounded-xl border border-white/[0.08] bg-[#161922]/70 space-y-3">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-300 block">
+                        Profile Photo
+                      </Label>
+                      {resumeData.photoUrl ? (
+                        <div className="flex items-center gap-3">
+                          <img src={resumeData.photoUrl} alt="Photo Preview" className="h-16 w-14 rounded-lg object-cover border border-white/20 shadow-md" />
+                          <div className="space-y-1.5 flex-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = "image/png,image/jpeg,image/jpg,image/webp";
+                                input.onchange = (e: any) => {
+                                  const f = e.target.files?.[0];
+                                  if (!f) return;
+                                  const reader = new FileReader();
+                                  reader.onload = () => {
+                                    if (typeof reader.result === "string") {
+                                      setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
+                                      toast.success("Profile photo updated!");
+                                    }
+                                  };
+                                  reader.readAsDataURL(f);
+                                };
+                                input.click();
+                              }}
+                            >
+                              Change Photo
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
+                              onClick={() => {
+                                setResumeData(prev => ({ ...prev, photoUrl: "" }));
+                                toast.info("Profile photo removed");
+                              }}
+                            >
+                              Remove Photo
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-14 border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-zinc-300 flex items-center justify-center gap-2 rounded-xl text-xs font-semibold"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "image/png,image/jpeg,image/jpg,image/webp";
+                              input.onchange = (e: any) => {
+                                const f = e.target.files?.[0];
+                                if (!f) return;
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                  if (typeof reader.result === "string") {
+                                    setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
+                                    toast.success("Profile photo attached!");
+                                  }
+                                };
+                                reader.readAsDataURL(f);
+                              };
+                              input.click();
+                            }}
+                          >
+                            <Camera className="h-4 w-4 text-emerald-400" />
+                            <span>+ Upload Profile Photo</span>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Organization / University Logo */}
+                    <div className="p-4 rounded-xl border border-white/[0.08] bg-[#161922]/70 space-y-3">
+                      <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-300 block">
+                        Institution / Logo
+                      </Label>
+                      {resumeData.logoUrl ? (
+                        <div className="flex items-center gap-3">
+                          <img src={resumeData.logoUrl} alt="Logo Preview" className="h-16 w-20 rounded-lg object-contain bg-white/5 border border-white/20 p-1 shadow-md" />
+                          <div className="space-y-1.5 flex-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
+                                input.onchange = (e: any) => {
+                                  const f = e.target.files?.[0];
+                                  if (!f) return;
+                                  const reader = new FileReader();
+                                  reader.onload = () => {
+                                    if (typeof reader.result === "string") {
+                                      setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
+                                      toast.success("Logo updated!");
+                                    }
+                                  };
+                                  reader.readAsDataURL(f);
+                                };
+                                input.click();
+                              }}
+                            >
+                              Change Logo
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="w-full text-xs h-7 text-destructive hover:bg-destructive/10"
+                              onClick={() => {
+                                setResumeData(prev => ({ ...prev, logoUrl: "" }));
+                                toast.info("Logo removed");
+                              }}
+                            >
+                              Remove Logo
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-14 border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-zinc-300 flex items-center justify-center gap-2 rounded-xl text-xs font-semibold"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
+                              input.onchange = (e: any) => {
+                                const f = e.target.files?.[0];
+                                if (!f) return;
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                  if (typeof reader.result === "string") {
+                                    setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
+                                    toast.success("Logo attached!");
+                                  }
+                                };
+                                reader.readAsDataURL(f);
+                              };
+                              input.click();
+                            }}
+                          >
+                            <ImageIcon className="h-4 w-4 text-emerald-400" />
+                            <span>+ Upload Logo</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
