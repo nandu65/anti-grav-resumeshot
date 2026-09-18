@@ -47,35 +47,41 @@ export function separateExperienceAndLeadership(
 
   // 1. Existing leadership entries
   for (const lead of leadership) {
+    const role = (lead.role || "Member").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+    const organization = (lead.organization || lead.company || "Organization").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
     cleanLead.push({
-      organization: lead.organization || lead.company || "Organization",
-      role: lead.role || "Member",
+      organization: organization || "Organization",
+      role: role || "Member",
       location: lead.location || "",
       start: lead.start || "",
       end: lead.end || "",
-      bullets: Array.isArray(lead.bullets) ? lead.bullets : (lead.bullets ? [lead.bullets] : []),
+      bullets: (Array.isArray(lead.bullets) ? lead.bullets : (lead.bullets ? [lead.bullets] : [])).map(b => b.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim()),
     });
   }
 
   // 2. Filter experience entries and extract leadership roles
   for (const exp of experience) {
     if (isLeadershipEntry(exp)) {
+      const role = (exp.role || "Member").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+      const organization = (exp.organization || exp.company || "Organization").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
       cleanLead.push({
-        organization: exp.organization || exp.company || "Organization",
-        role: exp.role || "Member",
+        organization: organization || "Organization",
+        role: role || "Member",
         location: exp.location || "",
         start: exp.start || "",
         end: exp.end || "",
-        bullets: Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : []),
+        bullets: (Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : [])).map(b => b.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim()),
       });
     } else {
+      const role = (exp.role || "Professional").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+      const company = (exp.company || exp.organization || "Company").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
       cleanExp.push({
-        company: exp.company || exp.organization || "Company",
-        role: exp.role || "Professional",
+        company: company || "Company",
+        role: role || "Professional",
         location: exp.location || "",
         start: exp.start || "",
         end: exp.end || "",
-        bullets: Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : []),
+        bullets: (Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : [])).map(b => b.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim()),
       });
     }
   }

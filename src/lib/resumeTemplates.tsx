@@ -690,13 +690,26 @@ function SkillCat({ value, onChange, className, as, colon }: {
 }
 
 /** Normalize skill groups while preserving user-defined distinct groups and multiline formatting. */
-export function normalizeResumeSkills<T extends { skills?: { category: string; items: string[] }[] }>(r: T): T {
-  if (!r?.skills?.length) return r;
-  const skills = r.skills.map(g => ({
-    category: isGenericSkillCategory(g.category) ? "Skills" : g.category,
-    items: Array.isArray(g.items) ? g.items : (g.items ? [g.items] : []),
-  }));
-  return { ...r, skills };
+export function normalizeResumeSkills<T extends { skills?: { category: string; items: string[] }[]; leadership?: { role: string; organization: string; location?: string; start?: string; end?: string; bullets: string[] }[] }>(r: T): T {
+  let res: any = r;
+  if (res?.skills?.length) {
+    const skills = res.skills.map((g: any) => ({
+      category: isGenericSkillCategory(g.category) ? "Skills" : g.category,
+      items: Array.isArray(g.items) ? g.items : (g.items ? [g.items] : []),
+    }));
+    res = { ...res, skills };
+  }
+  if (res?.leadership?.length) {
+    const leadership = res.leadership.map((l: any) => ({
+      ...l,
+      role: (l.role || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim(),
+      bullets: (Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : [])).map((b: string) =>
+        (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim()
+      ),
+    }));
+    res = { ...res, leadership };
+  }
+  return res;
 }
 
 /** Format skill items for display/editing in templates, preserving line breaks. */
@@ -5610,10 +5623,14 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
               <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
                 {r.leadership.map((l, i) => {
                   const upd = makeLeadershipUpdater(update, r, i);
+                  const cleanRole = (l.role || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
                   return (
                     <li key={i} className="leading-snug">
                       <strong className="font-bold text-black">
-                        <Editable value={l.role} onChange={update && (v => upd({ role: v }))} />
+                        <Editable
+                          value={cleanRole}
+                          onChange={update && (v => upd({ role: v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim() }))}
+                        />
                       </strong>
                       {l.organization ? (
                         <span> – <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
@@ -5626,18 +5643,21 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                       ) : null}
                       {l.bullets && l.bullets.length > 0 ? (
                         <div className="mt-0.5 space-y-0.5 pl-2 text-[9.5px]">
-                          {l.bullets.map((b, bi) => (
-                            <div key={bi} className="leading-tight">
-                              <Editable
-                                value={b}
-                                onChange={update && (v => {
-                                  const newB = [...(l.bullets || [])];
-                                  newB[bi] = v;
-                                  upd({ bullets: newB });
-                                })}
-                              />
-                            </div>
-                          ))}
+                          {l.bullets.map((b, bi) => {
+                            const cleanB = (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                            return (
+                              <div key={bi} className="leading-tight">
+                                <Editable
+                                  value={cleanB}
+                                  onChange={update && (v => {
+                                    const newB = [...(l.bullets || [])];
+                                    newB[bi] = v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                                    upd({ bullets: newB });
+                                  })}
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : null}
                     </li>
