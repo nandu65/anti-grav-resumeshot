@@ -2,15 +2,34 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Crop, ZoomIn, ZoomOut, RotateCw, Check, X, Move, Sparkles, RefreshCw } from "lucide-react";
+import { Crop, ZoomIn, ZoomOut, RotateCw, Check, X, RefreshCw, Maximize2, Square, RectangleHorizontal, RectangleVertical } from "lucide-react";
 
 export interface ImageCropperModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageSrc: string;
   title?: string;
-  aspectRatio?: number; // width / height, e.g. 3/4 = 0.75, 1/1 = 1, undefined for free
+  aspectRatio?: number; // width / height, e.g. 0.78, 1, 1.6, or undefined for Free
   onCropComplete: (croppedDataUrl: string) => void;
+}
+
+type DragMode =
+  | "move"
+  | "nw"
+  | "ne"
+  | "sw"
+  | "se"
+  | "n"
+  | "s"
+  | "w"
+  | "e"
+  | null;
+
+interface CropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export function ImageCropperModal({
@@ -18,75 +37,275 @@ export function ImageCropperModal({
   onClose,
   imageSrc,
   title = "Crop & Adjust Image",
-  aspectRatio: initialAspect = 0.78, // default 3.9:5 (portrait ratio standard for resumes)
+  aspectRatio: initialAspect,
   onCropComplete,
 }: ImageCropperModalProps) {
-  const [aspect, setAspect] = useState<number | null>(initialAspect);
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
-  const panStart = useRef({ x: 0, y: 0 });
+  const [aspect, setAspect] = useState<number | null>(initialAspect !== undefined ? initialAspect : 0.78);
+  const [rotation, setRotation] = useState<number>(0);
+  const [zoom, setZoom] = useState<number>(1);
 
+  // Stage & Image measurement state
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imgNaturalSize, setImgNaturalSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [displayedImgRect, setDisplayedImgRect] = useState<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
 
-  // Reset state on open or imageSrc change
+  // Crop Box state in Stage pixel coordinates
+  const [cropBox, setCropBox] = useState<CropRect>({ x: 0, y: 0, width: 100, height: 100 });
+
+  // Dragging state
+  const [dragMode, setDragMode] = useState<DragMode>(null);
+  const dragStartRef = useRef<{ clientX: number; clientY: number; box: CropRect }>({
+    clientX: 0,
+    clientY: 0,
+    box: { x: 0, y: 0, width: 100, height: 100 },
+  });
+
+  // Calculate displayed image rect when image loads or stage resizes or rotation changes
+  const updateLayout = useCallback(() => {
+    if (!stageRef.current || !imgNaturalSize.width || !imgNaturalSize.height) return;
+
+    const stageWidth = stageRef.current.clientWidth;
+    const stageHeight = stageRef.current.clientHeight;
+    if (!stageWidth || !stageHeight) return;
+
+    const isRotated90or270 = rotation === 90 || rotation === 270;
+    const srcW = isRotated90or270 ? imgNaturalSize.height : imgNaturalSize.width;
+    const srcH = isRotated90or270 ? imgNaturalSize.width : imgNaturalSize.height;
+
+    const padding = 20;
+    const availW = Math.max(50, stageWidth - padding * 2);
+    const availH = Math.max(50, stageHeight - padding * 2);
+
+    const scale = Math.min(availW / srcW, availH / srcH) * zoom;
+    const dispW = srcW * scale;
+    const dispH = srcH * scale;
+    const dispX = (stageWidth - dispW) / 2;
+    const dispY = (stageHeight - dispH) / 2;
+
+    const newDispRect = { x: dispX, y: dispY, width: dispW, height: dispH };
+    setDisplayedImgRect(newDispRect);
+
+    // Initialize crop box to fit within displayed image
+    setCropBox((prev) => {
+      // If already initialized inside image, constrain it
+      let w = prev.width;
+      let h = prev.height;
+
+      if (w <= 10 || h <= 10) {
+        // Initial setup
+        if (aspect) {
+          if (dispW / dispH > aspect) {
+            h = dispH * 0.85;
+            w = h * aspect;
+          } else {
+            w = dispW * 0.85;
+            h = w / aspect;
+          }
+        } else {
+          w = dispW * 0.85;
+          h = dispH * 0.85;
+        }
+      } else if (aspect) {
+        // Maintain aspect ratio
+        h = w / aspect;
+        if (h > dispH) {
+          h = dispH;
+          w = h * aspect;
+        }
+      }
+
+      w = Math.min(w, dispW);
+      h = Math.min(h, dispH);
+      const x = dispX + (dispW - w) / 2;
+      const y = dispY + (dispH - h) / 2;
+
+      return { x, y, width: w, height: h };
+    });
+  }, [imgNaturalSize, rotation, zoom, aspect]);
+
+  // Handle Image Load
+  const handleImageLoaded = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImgNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+  };
+
+  // Reset all state on modal open
   useEffect(() => {
     if (isOpen) {
-      setZoom(1);
       setRotation(0);
-      setPan({ x: 0, y: 0 });
-      setAspect(initialAspect);
-      setImageLoaded(false);
+      setZoom(1);
+      setAspect(initialAspect !== undefined ? initialAspect : 0.78);
+      setCropBox({ x: 0, y: 0, width: 0, height: 0 });
     }
   }, [isOpen, imageSrc, initialAspect]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY };
-    panStart.current = { ...pan };
+  // Re-layout whenever image size or rotation or zoom changes
+  useEffect(() => {
+    updateLayout();
+  }, [updateLayout]);
+
+  // Adjust crop box when aspect ratio button is clicked
+  const handleSetAspect = (newAspect: number | null) => {
+    setAspect(newAspect);
+    if (!newAspect || displayedImgRect.width <= 0) return;
+
+    setCropBox((prev) => {
+      let w = prev.width;
+      let h = w / newAspect;
+
+      if (h > displayedImgRect.height) {
+        h = displayedImgRect.height * 0.9;
+        w = h * newAspect;
+      }
+      if (w > displayedImgRect.width) {
+        w = displayedImgRect.width * 0.9;
+        h = w / newAspect;
+      }
+
+      // Keep centered at current center
+      const centerX = prev.x + prev.width / 2;
+      const centerY = prev.y + prev.height / 2;
+
+      let x = centerX - w / 2;
+      let y = centerY - h / 2;
+
+      // Constrain within displayed image
+      x = Math.max(displayedImgRect.x, Math.min(x, displayedImgRect.x + displayedImgRect.width - w));
+      y = Math.max(displayedImgRect.y, Math.min(y, displayedImgRect.y + displayedImgRect.height - h));
+
+      return { x, y, width: w, height: h };
+    });
   };
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    setPan({
-      x: panStart.current.x + dx,
-      y: panStart.current.y + dy,
+  // Mouse handlers for dragging crop box or resize handles
+  const handleMouseDown = (e: React.MouseEvent, mode: DragMode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragMode(mode);
+    dragStartRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      box: { ...cropBox },
+    };
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!dragMode) return;
+
+    const dx = e.clientX - dragStartRef.current.clientX;
+    const dy = e.clientY - dragStartRef.current.clientY;
+    const orig = dragStartRef.current.box;
+    const minSize = 25;
+
+    const imgMinX = displayedImgRect.x;
+    const imgMinY = displayedImgRect.y;
+    const imgMaxX = displayedImgRect.x + displayedImgRect.width;
+    const imgMaxY = displayedImgRect.y + displayedImgRect.height;
+
+    setCropBox(() => {
+      let { x, y, width, height } = orig;
+
+      if (dragMode === "move") {
+        x = Math.max(imgMinX, Math.min(orig.x + dx, imgMaxX - width));
+        y = Math.max(imgMinY, Math.min(orig.y + dy, imgMaxY - height));
+        return { x, y, width, height };
+      }
+
+      // Handle Corner & Middle Resizing
+      if (dragMode.includes("e")) {
+        width = Math.max(minSize, Math.min(orig.width + dx, imgMaxX - orig.x));
+      }
+      if (dragMode.includes("s")) {
+        height = Math.max(minSize, Math.min(orig.height + dy, imgMaxY - orig.y));
+      }
+      if (dragMode.includes("w")) {
+        const newX = Math.max(imgMinX, Math.min(orig.x + dx, orig.x + orig.width - minSize));
+        width = orig.x + orig.width - newX;
+        x = newX;
+      }
+      if (dragMode.includes("n")) {
+        const newY = Math.max(imgMinY, Math.min(orig.y + dy, orig.y + orig.height - minSize));
+        height = orig.y + orig.height - newY;
+        y = newY;
+      }
+
+      // If aspect ratio is locked, maintain aspect ratio during resize
+      if (aspect) {
+        if (dragMode === "e" || dragMode === "w") {
+          height = width / aspect;
+        } else if (dragMode === "n" || dragMode === "s") {
+          width = height * aspect;
+        } else if (dragMode === "se" || dragMode === "nw" || dragMode === "ne" || dragMode === "sw") {
+          // Corner drag: adjust height to width
+          height = width / aspect;
+        }
+
+        // Re-constrain bounds
+        if (x + width > imgMaxX) {
+          width = imgMaxX - x;
+          height = width / aspect;
+        }
+        if (y + height > imgMaxY) {
+          height = imgMaxY - y;
+          width = height * aspect;
+        }
+      }
+
+      return { x, y, width, height };
     });
-  }, [isDragging]);
+  }, [dragMode, displayedImgRect, aspect]);
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
+    setDragMode(null);
   }, []);
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY * -0.002;
-    setZoom((prev) => Math.min(3.5, Math.max(0.5, prev + delta)));
-  };
+  useEffect(() => {
+    if (dragMode) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [dragMode, handleMouseMove, handleMouseUp]);
 
+  // Export & Apply Crop
   const handleApplyCrop = () => {
-    if (!imageRef.current || !containerRef.current) return;
+    if (!imageRef.current || !imgNaturalSize.width || !imgNaturalSize.height) return;
 
     const img = imageRef.current;
-    const container = containerRef.current;
+    const isRotated90or270 = rotation === 90 || rotation === 270;
+    const orientNaturalW = isRotated90or270 ? imgNaturalSize.height : imgNaturalSize.width;
+    const orientNaturalH = isRotated90or270 ? imgNaturalSize.width : imgNaturalSize.height;
 
-    const containerRect = container.getBoundingClientRect();
-    const cropWidth = aspect ? Math.min(containerRect.width * 0.8, containerRect.height * 0.8 * aspect) : containerRect.width * 0.8;
-    const cropHeight = aspect ? cropWidth / aspect : containerRect.height * 0.8;
+    // Calculate crop box relative to displayed image (0..1)
+    const relX = Math.max(0, (cropBox.x - displayedImgRect.x) / displayedImgRect.width);
+    const relY = Math.max(0, (cropBox.y - displayedImgRect.y) / displayedImgRect.height);
+    const relW = Math.min(1 - relX, cropBox.width / displayedImgRect.width);
+    const relH = Math.min(1 - relY, cropBox.height / displayedImgRect.height);
 
-    // High-resolution canvas
+    // Source rect on rotated image
+    const sourceCropX = relX * orientNaturalW;
+    const sourceCropY = relY * orientNaturalH;
+    const sourceCropW = relW * orientNaturalW;
+    const sourceCropH = relH * orientNaturalH;
+
+    // Create high-res destination canvas
     const canvas = document.createElement("canvas");
-    const outputWidth = 600;
-    const outputHeight = Math.round(aspect ? outputWidth / aspect : (outputWidth * cropHeight) / cropWidth);
-    canvas.width = outputWidth;
-    canvas.height = outputHeight;
+    const maxOutDim = 1200;
+    let outW = Math.round(sourceCropW);
+    let outH = Math.round(sourceCropH);
+
+    if (outW > maxOutDim || outH > maxOutDim) {
+      const s = Math.min(maxOutDim / outW, maxOutDim / outH);
+      outW = Math.round(outW * s);
+      outH = Math.round(outH * s);
+    }
+
+    canvas.width = Math.max(1, outW);
+    canvas.height = Math.max(1, outH);
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -94,159 +313,212 @@ export function ImageCropperModal({
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Clear background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, outputWidth, outputHeight);
+    // Intermediate rotated image canvas
+    const rotCanvas = document.createElement("canvas");
+    rotCanvas.width = orientNaturalW;
+    rotCanvas.height = orientNaturalH;
+    const rotCtx = rotCanvas.getContext("2d");
+    if (!rotCtx) return;
 
-    // Calculate transforms
-    const scaleFactor = outputWidth / cropWidth;
+    rotCtx.imageSmoothingEnabled = true;
+    rotCtx.imageSmoothingQuality = "high";
 
-    ctx.save();
-    // Center point of output canvas
-    ctx.translate(outputWidth / 2, outputHeight / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
+    rotCtx.save();
+    rotCtx.translate(orientNaturalW / 2, orientNaturalH / 2);
+    rotCtx.rotate((rotation * Math.PI) / 180);
+    rotCtx.drawImage(
+      img,
+      -imgNaturalSize.width / 2,
+      -imgNaturalSize.height / 2,
+      imgNaturalSize.width,
+      imgNaturalSize.height
+    );
+    rotCtx.restore();
 
-    // Apply pan & zoom
-    const drawX = pan.x * scaleFactor;
-    const drawY = pan.y * scaleFactor;
-    const drawWidth = img.naturalWidth * (cropWidth / img.naturalWidth) * zoom * scaleFactor;
-    const drawHeight = img.naturalHeight * (cropWidth / img.naturalWidth) * zoom * scaleFactor;
+    // Now copy the selected sub-rectangle to destination canvas
+    ctx.drawImage(
+      rotCanvas,
+      sourceCropX,
+      sourceCropY,
+      sourceCropW,
+      sourceCropH,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
-    ctx.drawImage(img, drawX - drawWidth / 2, drawY - drawHeight / 2, drawWidth, drawHeight);
-    ctx.restore();
-
-    const dataUrl = canvas.toDataURL("image/png", 0.95);
-    onCropComplete(dataUrl);
+    const croppedDataUrl = canvas.toDataURL("image/png", 1.0);
+    onCropComplete(croppedDataUrl);
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl bg-[#11141b] border border-white/10 text-white p-6 shadow-2xl rounded-2xl">
+      <DialogContent className="max-w-2xl bg-[#0f1219] border border-white/10 text-white p-6 shadow-2xl rounded-2xl select-none">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-white">
             <Crop className="h-5 w-5 text-emerald-400" />
             <span>{title}</span>
           </DialogTitle>
           <DialogDescription className="text-xs text-zinc-400">
-            Drag to pan, use slider or mouse wheel to zoom, choose aspect ratio, then click Apply.
+            Drag inside the box to move, or drag any of the 8 corners/edges to adjust the crop area.
           </DialogDescription>
         </DialogHeader>
 
-        {/* CROP WORKSPACE AREA */}
+        {/* CROP WORKSPACE STAGE */}
         <div
-          ref={containerRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
-          className="relative w-full h-80 bg-zinc-950/80 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing flex items-center justify-center select-none border border-white/10 shadow-inner"
+          ref={stageRef}
+          className="relative w-full h-88 bg-zinc-950 rounded-xl overflow-hidden flex items-center justify-center border border-white/10 shadow-inner"
         >
-          {/* Background image preview */}
+          {/* Target Image */}
           {imageSrc && (
             <img
               ref={imageRef}
               src={imageSrc}
               alt="Crop target"
-              onLoad={() => setImageLoaded(true)}
+              crossOrigin="anonymous"
+              onLoad={handleImageLoaded}
               draggable={false}
-              className="max-w-none transition-transform pointer-events-none"
+              className="absolute pointer-events-none select-none"
               style={{
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)`,
-                maxHeight: "240px",
-                objectFit: "contain",
+                left: `${displayedImgRect.x}px`,
+                top: `${displayedImgRect.y}px`,
+                width: `${displayedImgRect.width}px`,
+                height: `${displayedImgRect.height}px`,
+                transform: `rotate(${rotation}deg)`,
+                objectFit: "fill",
               }}
             />
           )}
 
-          {/* Semi-transparent crop target frame / overlay */}
+          {/* Darkened Overlay mask outside Crop Box */}
           <div
-            className="absolute border-2 border-emerald-400/90 rounded-lg pointer-events-none shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] flex items-center justify-center"
+            className="absolute pointer-events-none"
             style={{
-              width: aspect ? (aspect >= 1 ? "240px" : `${240 * aspect}px`) : "240px",
-              height: aspect ? (aspect >= 1 ? `${240 / aspect}px` : "240px") : "200px",
+              left: `${cropBox.x}px`,
+              top: `${cropBox.y}px`,
+              width: `${cropBox.width}px`,
+              height: `${cropBox.height}px`,
+              boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.68)",
             }}
-          >
-            {/* Grid crosshairs */}
-            <div className="w-full h-full grid grid-cols-3 grid-rows-3 opacity-30 pointer-events-none">
-              <div className="border-r border-b border-white" />
-              <div className="border-r border-b border-white" />
-              <div className="border-b border-white" />
-              <div className="border-r border-b border-white" />
-              <div className="border-r border-b border-white" />
-              <div className="border-b border-white" />
-              <div className="border-r border-white" />
-              <div className="border-r border-white" />
-              <div />
+          />
+
+          {/* Interactive Crop Rectangle */}
+          {cropBox.width > 0 && cropBox.height > 0 && (
+            <div
+              className="absolute border-2 border-emerald-400 cursor-move z-20"
+              style={{
+                left: `${cropBox.x}px`,
+                top: `${cropBox.y}px`,
+                width: `${cropBox.width}px`,
+                height: `${cropBox.height}px`,
+              }}
+              onMouseDown={(e) => handleMouseDown(e, "move")}
+            >
+              {/* 3x3 Rule-of-Thirds Grid */}
+              <div className="w-full h-full grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
+                <div className="border-r border-b border-white" />
+                <div className="border-r border-b border-white" />
+                <div className="border-b border-white" />
+                <div className="border-r border-b border-white" />
+                <div className="border-r border-b border-white" />
+                <div className="border-b border-white" />
+                <div className="border-r border-white" />
+                <div className="border-r border-white" />
+                <div />
+              </div>
+
+              {/* 4 Corner Resize Handles */}
+              <div
+                className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "nw")}
+              />
+              <div
+                className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "ne")}
+              />
+              <div
+                className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "sw")}
+              />
+              <div
+                className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "se")}
+              />
+
+              {/* 4 Middle / Edge Resize Handles */}
+              <div
+                className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-ns-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "n")}
+              />
+              <div
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-ns-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "s")}
+              />
+              <div
+                className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-ew-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "w")}
+              />
+              <div
+                className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3.5 h-3.5 bg-white border-2 border-emerald-500 rounded-xs cursor-ew-resize shadow-md hover:scale-125 transition-transform"
+                onMouseDown={(e) => handleMouseDown(e, "e")}
+              />
             </div>
-          </div>
+          )}
         </div>
 
         {/* CONTROLS BAR */}
-        <div className="space-y-4 pt-2">
-          {/* Aspect Ratio Presets */}
+        <div className="space-y-3.5 pt-2">
+          {/* Aspect Ratio Options */}
           <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
             <span className="text-zinc-400 font-medium">Aspect Ratio:</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Button
+                type="button"
+                size="sm"
+                variant={aspect === null ? "default" : "outline"}
+                className={`h-7 px-2.5 text-xs gap-1 ${aspect === null ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
+                onClick={() => handleSetAspect(null)}
+              >
+                <Maximize2 className="h-3 w-3" />
+                Free Crop
+              </Button>
               <Button
                 type="button"
                 size="sm"
                 variant={aspect === 0.78 ? "default" : "outline"}
-                className={`h-7 px-2.5 text-xs ${aspect === 0.78 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
-                onClick={() => setAspect(0.78)}
+                className={`h-7 px-2.5 text-xs gap-1 ${aspect === 0.78 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
+                onClick={() => handleSetAspect(0.78)}
               >
+                <RectangleVertical className="h-3 w-3" />
                 Portrait (Resume)
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant={aspect === 1 ? "default" : "outline"}
-                className={`h-7 px-2.5 text-xs ${aspect === 1 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
-                onClick={() => setAspect(1)}
+                className={`h-7 px-2.5 text-xs gap-1 ${aspect === 1 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
+                onClick={() => handleSetAspect(1)}
               >
+                <Square className="h-3 w-3" />
                 Square (1:1)
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant={aspect === 1.6 ? "default" : "outline"}
-                className={`h-7 px-2.5 text-xs ${aspect === 1.6 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
-                onClick={() => setAspect(1.6)}
+                className={`h-7 px-2.5 text-xs gap-1 ${aspect === 1.6 ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
+                onClick={() => handleSetAspect(1.6)}
               >
-                Landscape / Logo
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={aspect === null ? "default" : "outline"}
-                className={`h-7 px-2.5 text-xs ${aspect === null ? "bg-emerald-500 hover:bg-emerald-600 text-black font-bold" : "border-white/10 text-zinc-300"}`}
-                onClick={() => setAspect(null)}
-              >
-                Free
+                <RectangleHorizontal className="h-3 w-3" />
+                Landscape
               </Button>
             </div>
           </div>
 
-          {/* Zoom Slider */}
-          <div className="flex items-center gap-3">
-            <ZoomOut className="h-4 w-4 text-zinc-400 shrink-0" />
-            <Slider
-              value={[zoom]}
-              min={0.5}
-              max={3.5}
-              step={0.05}
-              onValueChange={([v]) => setZoom(v)}
-              className="flex-1"
-            />
-            <ZoomIn className="h-4 w-4 text-zinc-400 shrink-0" />
-            <span className="text-xs font-mono text-emerald-400 w-12 text-right">
-              {Math.round(zoom * 100)}%
-            </span>
-          </div>
-
-          {/* Quick Action Tools */}
-          <div className="flex items-center justify-between pt-1">
+          {/* Quick Action Tools & Zoom */}
+          <div className="flex items-center justify-between gap-3 pt-1 border-t border-white/10">
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -264,24 +536,38 @@ export function ImageCropperModal({
                 size="sm"
                 className="h-8 text-zinc-400 hover:text-white gap-1.5 text-xs"
                 onClick={() => {
-                  setZoom(1);
                   setRotation(0);
-                  setPan({ x: 0, y: 0 });
+                  setZoom(1);
+                  setAspect(null);
+                  updateLayout();
                 }}
               >
                 <RefreshCw className="h-3.5 w-3.5" />
-                <span>Reset Frame</span>
+                <span>Reset Crop</span>
               </Button>
+            </div>
+
+            <div className="flex items-center gap-2 w-48">
+              <ZoomOut className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+              <Slider
+                value={[zoom]}
+                min={0.6}
+                max={2.5}
+                step={0.05}
+                onValueChange={([v]) => setZoom(v)}
+                className="flex-1"
+              />
+              <ZoomIn className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 pt-2 border-t border-white/10 mt-2">
+        <DialogFooter className="gap-2 pt-3 border-t border-white/10 mt-2">
           <Button
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="text-zinc-400 hover:text-white"
+            className="text-zinc-400 hover:text-white text-xs h-9"
           >
             <X className="h-4 w-4 mr-1.5" />
             Cancel
@@ -289,7 +575,7 @@ export function ImageCropperModal({
           <Button
             type="button"
             onClick={handleApplyCrop}
-            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold gap-1.5 shadow-lg shadow-emerald-500/20"
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold gap-1.5 text-xs h-9 shadow-lg shadow-emerald-500/20 px-4"
           >
             <Check className="h-4 w-4" />
             Apply & Save Crop

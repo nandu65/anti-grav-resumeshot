@@ -3035,10 +3035,22 @@ export default function ResumeBuilder() {
           aspectRatio={cropTarget.type === "photo" ? 0.78 : undefined}
           onCropComplete={(croppedUrl) => {
             if (cropTarget.type === "photo") {
-              setResumeData(prev => ({ ...prev, photoUrl: croppedUrl }));
+              setResumeData(prev => {
+                const next = { ...prev, photoUrl: croppedUrl };
+                try {
+                  localStorage.setItem("rs-current-resume", JSON.stringify(next));
+                } catch (_) {}
+                return next;
+              });
               toast.success("Profile photo cropped successfully!");
             } else {
-              setResumeData(prev => ({ ...prev, logoUrl: croppedUrl }));
+              setResumeData(prev => {
+                const next = { ...prev, logoUrl: croppedUrl };
+                try {
+                  localStorage.setItem("rs-current-resume", JSON.stringify(next));
+                } catch (_) {}
+                return next;
+              });
               toast.success("Logo cropped successfully!");
             }
           }}

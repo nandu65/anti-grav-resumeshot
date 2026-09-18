@@ -6909,22 +6909,22 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       const clone = livePreview.cloneNode(true) as HTMLElement;
       clone.style.cssText = `transform: none !important; margin: 0 !important; width: ${A4_WIDTH_PX}px !important; min-width: ${A4_WIDTH_PX}px !important; max-width: ${A4_WIDTH_PX}px !important; min-height: ${A4_HEIGHT_PX}px !important; box-shadow: none !important; background: #ffffff !important; display: block !important; opacity: 1 !important; visibility: visible !important;`;
 
-      // Clean up all preview-only badges, page indicators, and toolbar artifacts
+      // Clean up all preview-only badges, toolbars, file inputs, and helper buttons
       clone.querySelectorAll(
-        '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"]'
+        '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"], input[type="file"]'
       ).forEach(el => el.remove());
-      clone.querySelectorAll('*').forEach(el => {
+
+      // Remove placeholder attach buttons without deleting any parent containers
+      clone.querySelectorAll('button, [role="button"]').forEach(el => {
         if (
-          el.classList.contains("preview-only-badge") ||
-          el.hasAttribute("data-page-badge") ||
-          el.hasAttribute("data-page-indicator") ||
-          (el.textContent && /^\s*\d+\s+pages?\s*$/i.test(el.textContent.trim())) ||
           el.classList.contains("border-dashed") ||
-          el.querySelector(".border-dashed")
+          el.classList.contains("preview-only-badge") ||
+          /attach/i.test(el.textContent || "")
         ) {
           el.remove();
         }
       });
+
       clone.style.setProperty("--page-h", `${A4_HEIGHT_PX}px`);
       wrapper.appendChild(clone);
     } else {
@@ -6943,7 +6943,25 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
         await document.fonts.ready;
       } catch (_) { }
     }
-    await new Promise(r => setTimeout(r, 250));
+
+    // Pre-decode all images (photos, logos, icons) before html2canvas capture
+    const allImgs = Array.from(wrapper.querySelectorAll("img"));
+    await Promise.all(
+      allImgs.map(async (img) => {
+        try {
+          img.crossOrigin = "anonymous";
+          if (img.decode) {
+            await img.decode();
+          } else if (!img.complete) {
+            await new Promise((res) => {
+              img.onload = res;
+              img.onerror = res;
+            });
+          }
+        } catch (_) { }
+      })
+    );
+    await new Promise(r => setTimeout(r, 200));
 
     // Tag sections synchronously to ensure all custom headings, spacing, and typography rules apply
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
@@ -6968,7 +6986,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       onclone: (clonedDoc) => {
         // Strip any residual preview artifacts from cloned document
         clonedDoc.querySelectorAll(
-          '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"]'
+          '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"], input[type="file"]'
         ).forEach(el => el.remove());
         clonedDoc.querySelectorAll('*').forEach(el => {
           if (
