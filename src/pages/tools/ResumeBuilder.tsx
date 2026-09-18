@@ -1389,7 +1389,7 @@ export default function ResumeBuilder() {
                                 className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
                                 onClick={() => {
                                   const current = resumeData.settings?.photoSize || 90;
-                                  const next = Math.max(50, current - 10);
+                                  const next = Math.max(40, current - 10);
                                   setResumeData(prev => ({
                                     ...prev,
                                     settings: { ...prev.settings, photoSize: next },
@@ -1400,8 +1400,8 @@ export default function ResumeBuilder() {
                               </Button>
                               <input
                                 type="range"
-                                min={50}
-                                max={180}
+                                min={40}
+                                max={200}
                                 step={5}
                                 value={resumeData.settings?.photoSize || 90}
                                 onChange={e => {
@@ -1420,7 +1420,7 @@ export default function ResumeBuilder() {
                                 className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
                                 onClick={() => {
                                   const current = resumeData.settings?.photoSize || 90;
-                                  const next = Math.min(180, current + 10);
+                                  const next = Math.min(200, current + 10);
                                   setResumeData(prev => ({
                                     ...prev,
                                     settings: { ...prev.settings, photoSize: next },
@@ -1430,6 +1430,94 @@ export default function ResumeBuilder() {
                                 <Plus className="h-3 w-3" />
                               </Button>
                             </div>
+                          </div>
+
+                          {/* Photo Alignment & Position Controls */}
+                          <div className="pt-2 border-t border-white/[0.06] space-y-2">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="text-zinc-400 font-medium">Alignment</span>
+                              <div className="flex items-center gap-1">
+                                {(["left", "center", "right"] as const).map(align => (
+                                  <button
+                                    key={align}
+                                    type="button"
+                                    onClick={() => setResumeData(prev => ({
+                                      ...prev,
+                                      settings: { ...prev.settings, photoAlign: align },
+                                    }))}
+                                    className={`px-2 py-0.5 text-[10px] rounded capitalize transition-colors ${
+                                      (resumeData.settings?.photoAlign || "right") === align
+                                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold"
+                                        : "bg-white/5 text-zinc-400 hover:text-zinc-200 border border-white/10"
+                                    }`}
+                                  >
+                                    {align}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Position Horizontal X Nudge */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                                <span>Horizontal Offset (X)</span>
+                                <span className="font-mono text-emerald-400">{resumeData.settings?.photoOffsetX || 0}px</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={-250}
+                                max={350}
+                                step={5}
+                                value={resumeData.settings?.photoOffsetX || 0}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, photoOffsetX: val },
+                                  }));
+                                }}
+                                className="w-full accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                            </div>
+
+                            {/* Position Vertical Y Nudge */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                                <span>Vertical Offset (Y)</span>
+                                <span className="font-mono text-emerald-400">{resumeData.settings?.photoOffsetY || 0}px</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={-150}
+                                max={450}
+                                step={5}
+                                value={resumeData.settings?.photoOffsetY || 0}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, photoOffsetY: val },
+                                  }));
+                                }}
+                                className="w-full accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                            </div>
+
+                            {/* Reset Position Button */}
+                            {(resumeData.settings?.photoOffsetX || resumeData.settings?.photoOffsetY) ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setResumeData(prev => ({
+                                  ...prev,
+                                  settings: { ...prev.settings, photoOffsetX: 0, photoOffsetY: 0 },
+                                }))}
+                                className="w-full text-[10px] h-6 text-zinc-400 hover:text-white"
+                              >
+                                ↺ Reset Photo Position
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       ) : (
@@ -1548,7 +1636,7 @@ export default function ResumeBuilder() {
                               <input
                                 type="range"
                                 min={40}
-                                max={260}
+                                max={300}
                                 step={5}
                                 value={resumeData.settings?.logoSize || 130}
                                 onChange={e => {
@@ -1567,7 +1655,7 @@ export default function ResumeBuilder() {
                                 className="h-6 w-6 border-white/10 text-zinc-300 hover:text-white"
                                 onClick={() => {
                                   const current = resumeData.settings?.logoSize || 130;
-                                  const next = Math.min(260, current + 15);
+                                  const next = Math.min(300, current + 15);
                                   setResumeData(prev => ({
                                     ...prev,
                                     settings: { ...prev.settings, logoSize: next },
@@ -1577,6 +1665,94 @@ export default function ResumeBuilder() {
                                 <Plus className="h-3 w-3" />
                               </Button>
                             </div>
+                          </div>
+
+                          {/* Logo Alignment & Position Controls */}
+                          <div className="pt-2 border-t border-white/[0.06] space-y-2">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="text-zinc-400 font-medium">Alignment</span>
+                              <div className="flex items-center gap-1">
+                                {(["left", "center", "right"] as const).map(align => (
+                                  <button
+                                    key={align}
+                                    type="button"
+                                    onClick={() => setResumeData(prev => ({
+                                      ...prev,
+                                      settings: { ...prev.settings, logoAlign: align },
+                                    }))}
+                                    className={`px-2 py-0.5 text-[10px] rounded capitalize transition-colors ${
+                                      (resumeData.settings?.logoAlign || "right") === align
+                                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold"
+                                        : "bg-white/5 text-zinc-400 hover:text-zinc-200 border border-white/10"
+                                    }`}
+                                  >
+                                    {align}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Position Horizontal X Nudge */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                                <span>Horizontal Offset (X)</span>
+                                <span className="font-mono text-emerald-400">{resumeData.settings?.logoOffsetX || 0}px</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={-250}
+                                max={350}
+                                step={5}
+                                value={resumeData.settings?.logoOffsetX || 0}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, logoOffsetX: val },
+                                  }));
+                                }}
+                                className="w-full accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                            </div>
+
+                            {/* Position Vertical Y Nudge */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                                <span>Vertical Offset (Y)</span>
+                                <span className="font-mono text-emerald-400">{resumeData.settings?.logoOffsetY || 0}px</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={-150}
+                                max={450}
+                                step={5}
+                                value={resumeData.settings?.logoOffsetY || 0}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setResumeData(prev => ({
+                                    ...prev,
+                                    settings: { ...prev.settings, logoOffsetY: val },
+                                  }));
+                                }}
+                                className="w-full accent-emerald-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                              />
+                            </div>
+
+                            {/* Reset Position Button */}
+                            {(resumeData.settings?.logoOffsetX || resumeData.settings?.logoOffsetY) ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setResumeData(prev => ({
+                                  ...prev,
+                                  settings: { ...prev.settings, logoOffsetX: 0, logoOffsetY: 0 },
+                                }))}
+                                className="w-full text-[10px] h-6 text-zinc-400 hover:text-white"
+                              >
+                                ↺ Reset Logo Position
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       ) : (

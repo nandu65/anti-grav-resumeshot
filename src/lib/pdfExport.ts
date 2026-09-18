@@ -156,16 +156,30 @@ export async function downloadResumePdf(opt: ExportData) {
           }
         });
 
-        // 2. Fix heading divider lines from overlapping text in html2canvas
-        const headings = clonedDoc.querySelectorAll('h1, h2, h3, [data-rs-head], .border-b, .border-b-2');
+        // 2. Fix heading divider lines and underlines from dropping or overlapping text in html2canvas
+        const allUnderlines = clonedDoc.querySelectorAll('.underline, [class*="underline"], span, h1, h2, h3, h4, div');
+        allUnderlines.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          const style = window.getComputedStyle(htmlEl);
+          if (style.textDecorationLine && style.textDecorationLine.includes("underline")) {
+            htmlEl.style.textDecoration = "none";
+            htmlEl.style.borderBottom = "1.5px solid #000000";
+            if (htmlEl.tagName === "SPAN") {
+              htmlEl.style.display = "inline-block";
+            }
+            htmlEl.style.paddingBottom = "1px";
+          }
+        });
+
+        const headings = clonedDoc.querySelectorAll('h1, h2, h3, h4, [data-rs-head], .border-b, .border-b-2, [class*="border-b"]');
         headings.forEach((el) => {
           const htmlEl = el as HTMLElement;
           const style = window.getComputedStyle(htmlEl);
           if (style.borderBottomWidth && style.borderBottomWidth !== "0px" && style.borderBottomStyle !== "none") {
             htmlEl.style.lineHeight = "1.35";
             const curPb = parseFloat(style.paddingBottom) || 0;
-            if (curPb < 4) {
-              htmlEl.style.paddingBottom = "5px";
+            if (curPb < 3) {
+              htmlEl.style.paddingBottom = "3px";
             }
             htmlEl.style.boxSizing = "border-box";
           }
