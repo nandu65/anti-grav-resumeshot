@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical, Camera, Image as ImageIcon } from "lucide-react";
+import { Loader2, Sparkles, Plus, Minus, Copy, Paintbrush, Trash2, Download, FileText, Wand2, FileEdit, Upload, FilePlus2, MousePointer2, ArrowDown, Link2, Wand, CheckCircle2, ArrowLeft, Type, TypeIcon, SpellCheck, Undo2, Redo2, Settings2, Palette, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Share2, Printer, Eye, Target, Bold, Italic, List, ListOrdered, Link as LinkIcon, Underline, Cloud, CloudOff, Award, GripVertical, Camera, Image as ImageIcon, Crop } from "lucide-react";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { applyFormatToSelection, copyFormatFromSelection, pasteFormatToSelection, describeFormat, TextFormat } from "@/lib/richFormat";
 import { History } from "lucide-react";
+import { ImageCropperModal } from "@/components/ImageCropperModal";
 
 
 import { SectionStyleControls, SectionStyles } from "@/components/SectionStyleControls";
@@ -80,9 +81,20 @@ export default function ResumeBuilder() {
     return "choose";
   });
   const [showWizard, setShowWizard] = useState(false);
+  const [cropTarget, setCropTarget] = useState<{ type: "photo" | "logo"; src: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState("Analyzing your resume...");
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.src) {
+        setCropTarget({ type: e.detail.type, src: e.detail.src });
+      }
+    };
+    window.addEventListener("rs-open-cropper", handler);
+    return () => window.removeEventListener("rs-open-cropper", handler);
+  }, []);
 
   useEffect(() => {
     if (!uploading) {
@@ -1332,32 +1344,47 @@ export default function ResumeBuilder() {
                               style={{ width: `${Math.min(70, resumeData.settings?.photoSize || 90)}px`, height: `${Math.round(Math.min(70, resumeData.settings?.photoSize || 90) * 1.25)}px` }}
                             />
                             <div className="space-y-1.5 flex-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
-                                onClick={() => {
-                                  const input = document.createElement("input");
-                                  input.type = "file";
-                                  input.accept = "image/png,image/jpeg,image/jpg,image/webp";
-                                  input.onchange = (e: any) => {
-                                    const f = e.target.files?.[0];
-                                    if (!f) return;
-                                    const reader = new FileReader();
-                                    reader.onload = () => {
-                                      if (typeof reader.result === "string") {
-                                        setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
-                                        toast.success("Profile photo updated!");
-                                      }
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                                  onClick={() => {
+                                    const input = document.createElement("input");
+                                    input.type = "file";
+                                    input.accept = "image/png,image/jpeg,image/jpg,image/webp";
+                                    input.onchange = (e: any) => {
+                                      const f = e.target.files?.[0];
+                                      if (!f) return;
+                                      const reader = new FileReader();
+                                      reader.onload = () => {
+                                        if (typeof reader.result === "string") {
+                                          setResumeData(prev => ({ ...prev, photoUrl: reader.result as string }));
+                                          toast.success("Profile photo updated!");
+                                        }
+                                      };
+                                      reader.readAsDataURL(f);
                                     };
-                                    reader.readAsDataURL(f);
-                                  };
-                                  input.click();
-                                }}
-                              >
-                                Change Photo
-                              </Button>
+                                    input.click();
+                                  }}
+                                >
+                                  Change
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full text-xs h-8 border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                                  onClick={() => {
+                                    if (resumeData.photoUrl) {
+                                      setCropTarget({ type: "photo", src: resumeData.photoUrl });
+                                    }
+                                  }}
+                                >
+                                  <Crop className="h-3 w-3 mr-1" /> Crop
+                                </Button>
+                              </div>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -1567,32 +1594,47 @@ export default function ResumeBuilder() {
                               style={{ width: `${Math.min(90, resumeData.settings?.logoSize || 130)}px`, height: "48px" }}
                             />
                             <div className="space-y-1.5 flex-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
-                                onClick={() => {
-                                  const input = document.createElement("input");
-                                  input.type = "file";
-                                  input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
-                                  input.onchange = (e: any) => {
-                                    const f = e.target.files?.[0];
-                                    if (!f) return;
-                                    const reader = new FileReader();
-                                    reader.onload = () => {
-                                      if (typeof reader.result === "string") {
-                                        setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
-                                        toast.success("Logo updated!");
-                                      }
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full text-xs h-8 border-white/10 text-zinc-200 hover:text-white"
+                                  onClick={() => {
+                                    const input = document.createElement("input");
+                                    input.type = "file";
+                                    input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
+                                    input.onchange = (e: any) => {
+                                      const f = e.target.files?.[0];
+                                      if (!f) return;
+                                      const reader = new FileReader();
+                                      reader.onload = () => {
+                                        if (typeof reader.result === "string") {
+                                          setResumeData(prev => ({ ...prev, logoUrl: reader.result as string }));
+                                          toast.success("Logo updated!");
+                                        }
+                                      };
+                                      reader.readAsDataURL(f);
                                     };
-                                    reader.readAsDataURL(f);
-                                  };
-                                  input.click();
-                                }}
-                              >
-                                Change Logo
-                              </Button>
+                                    input.click();
+                                  }}
+                                >
+                                  Change
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full text-xs h-8 border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                                  onClick={() => {
+                                    if (resumeData.logoUrl) {
+                                      setCropTarget({ type: "logo", src: resumeData.logoUrl });
+                                    }
+                                  }}
+                                >
+                                  <Crop className="h-3 w-3 mr-1" /> Crop
+                                </Button>
+                              </div>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -2982,6 +3024,26 @@ export default function ResumeBuilder() {
         onTargetJdChange={setTargetJd}
         onInjectKeyword={handleInjectKeyword}
       />
+
+      {/* Interactive Image Cropper Modal */}
+      {cropTarget && (
+        <ImageCropperModal
+          isOpen={Boolean(cropTarget)}
+          onClose={() => setCropTarget(null)}
+          imageSrc={cropTarget.src}
+          title={cropTarget.type === "photo" ? "Crop Profile Photo" : "Crop Institution Logo"}
+          aspectRatio={cropTarget.type === "photo" ? 0.78 : undefined}
+          onCropComplete={(croppedUrl) => {
+            if (cropTarget.type === "photo") {
+              setResumeData(prev => ({ ...prev, photoUrl: croppedUrl }));
+              toast.success("Profile photo cropped successfully!");
+            } else {
+              setResumeData(prev => ({ ...prev, logoUrl: croppedUrl }));
+              toast.success("Logo cropped successfully!");
+            }
+          }}
+        />
+      )}
     </div>
     </DragDropContext>
   );
