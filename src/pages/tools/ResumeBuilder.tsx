@@ -1272,6 +1272,7 @@ export default function ResumeBuilder() {
                       { id: "skills", label: "Skills", icon: Wand },
                       { id: "projects", label: "Projects", icon: Link2 },
                       { id: "certs", label: "Certs", icon: CheckCircle2 },
+                      { id: "custom", label: "+ Custom", icon: Plus },
                     ].map((s) => (
                       <button 
                         key={s.id} 
@@ -2494,6 +2495,160 @@ export default function ResumeBuilder() {
                           placeholder="AWS Certified Developer, PMP..." 
                           className="min-h-[60px] rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" 
                         />
+                      </div>
+
+                      {/* Custom Sections (e.g., Disclosure, Declaration, Publications, References, etc.) */}
+                      <div id="section-custom" className="space-y-4 pt-3 border-t border-white/[0.08]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-display text-base font-bold text-zinc-100 flex items-center gap-2">
+                              <span>Custom Sections & Headings</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium font-sans">
+                                Flexible
+                              </span>
+                            </h4>
+                            <p className="text-xs text-zinc-400">
+                              Add any section of your own (like Disclosure, Declaration, Publications, References, etc.)
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newId = `sec_${Date.now()}`;
+                              const newSection = {
+                                id: newId,
+                                title: "DISCLOSURE",
+                                content: "",
+                                bullets: ["I hereby declare that the information provided above is true to the best of my knowledge."],
+                              };
+                              const updatedCustom = [...(resumeData.customSections || []), newSection];
+                              const currentOrder = getNormalizedSectionOrder(resumeData.settings?.sectionOrder, resumeData);
+                              const newOrder = [...currentOrder, `custom_${newId}`];
+                              setResumeData(prev => ({
+                                ...prev,
+                                customSections: updatedCustom,
+                                settings: {
+                                  ...prev.settings,
+                                  sectionOrder: newOrder,
+                                },
+                              }));
+                              toast.success("Custom section added! Check the live preview.");
+                            }}
+                            className="rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-xs font-bold gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Add Custom Section
+                          </Button>
+                        </div>
+
+                        {(!resumeData.customSections || resumeData.customSections.length === 0) ? (
+                          <div className="text-center py-5 border border-dashed border-white/10 rounded-xl bg-white/[0.02] space-y-2">
+                            <p className="text-xs text-zinc-400">No custom sections added yet.</p>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newId = `sec_${Date.now()}`;
+                                const newSection = {
+                                  id: newId,
+                                  title: "DISCLOSURE",
+                                  content: "",
+                                  bullets: ["I hereby declare that the information provided above is true to the best of my knowledge."],
+                                };
+                                const updatedCustom = [...(resumeData.customSections || []), newSection];
+                                const currentOrder = getNormalizedSectionOrder(resumeData.settings?.sectionOrder, resumeData);
+                                const newOrder = [...currentOrder, `custom_${newId}`];
+                                setResumeData(prev => ({
+                                  ...prev,
+                                  customSections: updatedCustom,
+                                  settings: {
+                                    ...prev.settings,
+                                    sectionOrder: newOrder,
+                                  },
+                                }));
+                                toast.success("Custom section added!");
+                              }}
+                              className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold gap-1.5 cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              + Add Disclosure or Custom Section
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {resumeData.customSections.map((sec, secIdx) => (
+                              <div key={sec.id || secIdx} className="p-4 rounded-xl border border-white/10 bg-[#161922] space-y-3 relative group">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex-1">
+                                    <Label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+                                      Section Heading / Title
+                                    </Label>
+                                    <Input
+                                      value={sec.title}
+                                      onChange={e => {
+                                        const val = e.target.value;
+                                        const updated = [...(resumeData.customSections || [])];
+                                        updated[secIdx] = { ...updated[secIdx], title: val };
+                                        setResumeData(prev => ({ ...prev, customSections: updated }));
+                                      }}
+                                      placeholder="e.g. DISCLOSURE, DECLARATION, PUBLICATIONS..."
+                                      className="h-8 font-bold text-sm bg-black/30 border-white/10 text-zinc-100 focus:border-emerald-500"
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      const updated = (resumeData.customSections || []).filter((_, idx) => idx !== secIdx);
+                                      const keyToRemove = `custom_${sec.id}`;
+                                      const newOrder = (resumeData.settings?.sectionOrder || []).filter(k => k !== keyToRemove);
+                                      setResumeData(prev => ({
+                                        ...prev,
+                                        customSections: updated,
+                                        settings: {
+                                          ...prev.settings,
+                                          sectionOrder: newOrder.length ? newOrder : undefined,
+                                        },
+                                      }));
+                                      toast.info("Custom section removed");
+                                    }}
+                                    className="h-8 w-8 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg mt-5 cursor-pointer"
+                                    title="Delete this section"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] uppercase font-bold text-zinc-400">
+                                    Section Points / Content (one point per line)
+                                  </Label>
+                                  <Textarea
+                                    value={sec.bullets && sec.bullets.length > 0 ? sec.bullets.join("\n") : (sec.content || "")}
+                                    onChange={e => {
+                                      const text = e.target.value;
+                                      const lines = text.split("\n").filter(Boolean);
+                                      const updated = [...(resumeData.customSections || [])];
+                                      updated[secIdx] = {
+                                        ...updated[secIdx],
+                                        content: text,
+                                        bullets: lines.length > 1 || text.includes("\n") ? lines : (text ? [text] : []),
+                                      };
+                                      setResumeData(prev => ({ ...prev, customSections: updated }));
+                                    }}
+                                    placeholder="Enter disclosure point, declaration statements, publications, or details..."
+                                    className="min-h-[75px] rounded-lg border-white/10 bg-black/30 text-zinc-100 placeholder:text-zinc-500 text-xs focus:ring-1 focus:ring-emerald-500"
+                                  />
+                                  <p className="text-[10px] text-zinc-500">Points are rendered directly under the section heading in the resume preview and in export.</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       
                       <Separator className="bg-white/[0.06]" />

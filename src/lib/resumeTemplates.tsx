@@ -70,6 +70,13 @@ export interface ResumeSettings {
   logoOffsetY?: number;
 }
 
+export interface CustomResumeSection {
+  id: string;
+  title: string;
+  content?: string;
+  bullets?: string[];
+}
+
 export interface ResumeData {
   name: string;
   title: string;
@@ -84,6 +91,7 @@ export interface ResumeData {
   projects: { name: string; tech: string; bullets: string[] }[];
   skills: { category: string; items: string[] }[];
   certifications: string[];
+  customSections?: CustomResumeSection[];
   photoUrl?: string;
   logoUrl?: string;
   settings?: ResumeSettings;
@@ -665,6 +673,45 @@ function makeSkillUpdater(update: UpdateFn, r: ResumeData, i: number) {
   return (patch: Partial<ResumeData["skills"][number]>) =>
     update?.({ skills: r.skills.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
 }
+function makeCustomSectionUpdater(update: UpdateFn, r: ResumeData, i: number) {
+  return (patch: Partial<NonNullable<ResumeData["customSections"]>[number]>) =>
+    update?.({ customSections: (r.customSections || []).map((x, j) => (j === i ? { ...x, ...patch } : x)) });
+}
+
+export function getCustomSectionFromKey(r: ResumeData, key: string): { sec: CustomResumeSection; idx: number } | null {
+  if (!key.startsWith("custom_")) return null;
+  const customId = key.replace("custom_", "");
+  const idx = (r.customSections || []).findIndex(s => s.id === customId);
+  if (idx === -1) return null;
+  return { sec: r.customSections![idx], idx };
+}
+
+export function renderCustomSectionGeneric(
+  sec: CustomResumeSection,
+  upd: (patch: Partial<CustomResumeSection>) => void,
+  update?: UpdateFn
+) {
+  return (
+    <div className="space-y-1">
+      {sec.content ? (
+        <Editable
+          as="p"
+          multiline
+          value={sec.content}
+          onChange={update && (v => upd({ content: v }))}
+          className="whitespace-pre-wrap leading-relaxed text-[10px]"
+        />
+      ) : null}
+      {sec.bullets && sec.bullets.length > 0 ? (
+        <BulletsEditor
+          bullets={sec.bullets}
+          onChange={update && (v => upd({ bullets: v }))}
+          className="list-disc pl-4 space-y-0.5 text-[10px]"
+        />
+      ) : null}
+    </div>
+  );
+}
 
 
 /** A skill group category label. Hidden when the category is generic (e.g. "Skills"),
@@ -813,10 +860,25 @@ export function getNormalizedSectionOrder(order?: string[], r?: ResumeData): str
       }
     }
   }
+
+  // Ensure any custom sections defined in r are present in the order
+  if (r?.customSections && r.customSections.length > 0) {
+    for (const cs of r.customSections) {
+      const key = `custom_${cs.id}`;
+      if (!baseOrder.includes(key)) {
+        baseOrder.push(key);
+      }
+    }
+  }
+
   return baseOrder;
 }
 
 export function getSectionTitle(r: ResumeData, key: string, fallback: string): string {
+  if (key.startsWith("custom_")) {
+    const custom = getCustomSectionFromKey(r, key);
+    if (custom?.sec?.title) return custom.sec.title;
+  }
   return r.settings?.customSectionTitles?.[key] || fallback;
 }
 
@@ -5772,8 +5834,42 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
         }
         return null;
 
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mb-3">
+              <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
+                <Editable value={custom.sec.title || "CUSTOM SECTION"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {custom.sec.content ? (
+                <Editable as="p" multiline value={custom.sec.content} onChange={update && (v => upd({ content: v }))} className="text-[10.5px] leading-relaxed text-black text-justify mb-1" />
+              ) : null}
+              {custom.sec.bullets && custom.sec.bullets.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
+                  {custom.sec.bullets.map((b, bi) => {
+                    const cleanB = (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                    return (
+                      <li key={bi} className="leading-snug">
+                        <Editable
+                          value={cleanB}
+                          onChange={update && (v => {
+                            const newB = [...(custom.sec.bullets || [])];
+                            newB[bi] = v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                            upd({ bullets: newB });
+                          })}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -7733,6 +7829,18 @@ export function buildResumeDocxBody(rawData: ResumeData, template: TemplateId) {
           data.certifications.forEach(c => out.push(bullet(c, isSidebar, "certifications")));
         }
         break;
+      default:
+        if (key.startsWith("custom_")) {
+          const custom = getCustomSectionFromKey(data, key);
+          if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+            out.push(H(custom.sec.title || "Custom Section", isSidebar));
+            if (custom.sec.content) {
+              out.push(P(custom.sec.content, { color: secTextColor, size: isSidebar ? Math.round(baseSize * 0.95) : baseSize }));
+            }
+            custom.sec.bullets?.forEach(b => out.push(bullet(b, isSidebar)));
+          }
+        }
+        break;
     }
     return out;
   };
@@ -8027,6 +8135,17 @@ export function buildResumeText(rawData: ResumeData): string {
           L.push("");
         }
         break;
+      default:
+        if (key.startsWith("custom_")) {
+          const custom = getCustomSectionFromKey(data, key);
+          if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+            head(custom.sec.title || "Custom Section");
+            if (custom.sec.content) L.push(stripRich(custom.sec.content));
+            custom.sec.bullets?.forEach(b => L.push(`* ${stripRich(b)}`));
+            L.push("");
+          }
+        }
+        break;
     }
   });
   return L.join("\n");
@@ -8100,6 +8219,17 @@ export function buildResumeMarkdown(rawData: ResumeData): string {
           M.push(`## ${getSectionTitle(data, "certifications", "Certifications")}`);
           data.certifications.forEach(c => M.push(`- ${stripRich(c)}`));
           M.push("");
+        }
+        break;
+      default:
+        if (key.startsWith("custom_")) {
+          const custom = getCustomSectionFromKey(data, key);
+          if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+            M.push(`## ${custom.sec.title || "Custom Section"}`);
+            if (custom.sec.content) { M.push(stripRich(custom.sec.content)); M.push(""); }
+            custom.sec.bullets?.forEach(b => M.push(`- ${stripRich(b)}`));
+            M.push("");
+          }
         }
         break;
     }
