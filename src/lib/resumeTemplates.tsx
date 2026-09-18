@@ -5516,9 +5516,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "summary":
         if (r.summary && r.summary.trim()) {
           return (
-            <section key="summary" data-rs-sec="summary" className="mb-3.5">
+            <section key="summary" data-rs-sec="summary" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "summary", "PROFILE SUMMARY")} onChange={update && (v => updateSectionTitle(r, on, "summary", v))} />
                 </span>
               </h3>
@@ -5531,9 +5531,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "skills":
         if (r.skills && r.skills.length > 0) {
           return (
-            <section key="skills" data-rs-sec="skills" className="mb-3.5">
+            <section key="skills" data-rs-sec="skills" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "skills", "SKILLS AND COMPETENCIES")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
                 </span>
               </h3>
@@ -5563,9 +5563,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "education":
         if (r.education && r.education.length > 0) {
           return (
-            <section key="education" data-rs-sec="education" className="mb-3.5">
+            <section key="education" data-rs-sec="education" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "education", "EDUCATIONAL QUALIFICATION")} onChange={update && (v => updateSectionTitle(r, on, "education", v))} />
                 </span>
               </h3>
@@ -5601,9 +5601,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "leadership":
         if (r.leadership && r.leadership.length > 0) {
           return (
-            <section key="leadership" data-rs-sec="leadership" className="mb-3.5">
+            <section key="leadership" data-rs-sec="leadership" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "leadership", "SIGNIFICANT CONTRIBUTIONS")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
                 </span>
               </h3>
@@ -5652,9 +5652,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "experience":
         if (r.experience && r.experience.length > 0) {
           return (
-            <section key="experience" data-rs-sec="experience" className="mb-3.5">
+            <section key="experience" data-rs-sec="experience" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "experience", "WORK EXPERIENCE")} onChange={update && (v => updateSectionTitle(r, on, "experience", v))} />
                 </span>
               </h3>
@@ -5696,9 +5696,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "projects":
         if (r.projects && r.projects.length > 0) {
           return (
-            <section key="projects" data-rs-sec="projects" className="mb-3.5">
+            <section key="projects" data-rs-sec="projects" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "projects", "PROJECTS & RESEARCH")} onChange={update && (v => updateSectionTitle(r, on, "projects", v))} />
                 </span>
               </h3>
@@ -5741,9 +5741,9 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
       case "certifications":
         if (r.certifications && r.certifications.length > 0) {
           return (
-            <section key="certifications" data-rs-sec="certifications" className="mb-3.5">
+            <section key="certifications" data-rs-sec="certifications" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
-                <span className="border-b-[1.5px] border-black pb-0.5 inline-block">
+                <span className="border-b-[1.5px] border-black pb-0.5 inline-block" style={{ borderBottom: "1.5px solid #000" }}>
                   <Editable value={getSectionTitle(r, "certifications", "CERTIFICATIONS & AWARDS")} onChange={update && (v => updateSectionTitle(r, on, "certifications", v))} />
                 </span>
               </h3>
@@ -5771,10 +5771,10 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
     }
   };
 
-  const photoWidth = r.settings?.photoSize || 90;
+  const photoWidth = r.settings?.photoSize || 85;
   const photoHeight = Math.round(photoWidth * 1.28);
-  const logoWidth = r.settings?.logoSize || 130;
-  const logoMaxHeight = Math.round(logoWidth * 0.45);
+  const logoWidth = r.settings?.logoSize || 120;
+  const logoMaxHeight = Math.round(logoWidth * 0.38);
 
   const photoOffsetX = r.settings?.photoOffsetX || 0;
   const photoOffsetY = r.settings?.photoOffsetY || 0;
@@ -5785,8 +5785,227 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
 
   const hasPhoto = Boolean(r.photoUrl);
   const hasLogo = Boolean(r.logoUrl);
-  const showRightHeader = (hasPhoto && photoAlign !== "left") || (hasLogo && logoAlign !== "left") || Boolean(update);
-  const showLeftMedia = (hasPhoto && photoAlign === "left") || (hasLogo && logoAlign === "left");
+
+  const isPhotoMoved = photoOffsetX !== 0 || photoOffsetY !== 0;
+  const isLogoMoved = logoOffsetX !== 0 || logoOffsetY !== 0;
+
+  // Floating overlay badge toolbar for Logo
+  const renderLogoToolbar = () => (
+    <div className="preview-only-badge absolute top-full mt-2 right-0 bg-neutral-900/95 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/logo:opacity-100 transition-all duration-150 pointer-events-none group-hover/logo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
+      <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "logo", src: r.logoUrl } }));
+          }}
+          className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
+        >
+          ✂ Crop
+        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title="Reduce logo size"
+            onClick={(e) => {
+              e.stopPropagation();
+              const current = r.settings?.logoSize || 120;
+              on({ settings: { ...r.settings, logoSize: Math.max(40, current - 15) } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
+          >−</button>
+          <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{logoWidth}px</span>
+          <button
+            type="button"
+            title="Increase logo size"
+            onClick={(e) => {
+              e.stopPropagation();
+              const current = r.settings?.logoSize || 120;
+              on({ settings: { ...r.settings, logoSize: Math.min(300, current + 15) } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
+          >+</button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
+        <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title="Move Left"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, logoOffsetX: logoOffsetX - 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >◀</button>
+          <button
+            type="button"
+            title="Move Up"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, logoOffsetY: logoOffsetY - 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▲</button>
+          <button
+            type="button"
+            title="Move Down"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, logoOffsetY: logoOffsetY + 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▼</button>
+          <button
+            type="button"
+            title="Move Right"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, logoOffsetX: logoOffsetX + 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▶</button>
+          <button
+            type="button"
+            title="Reset Position"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, logoOffsetX: 0, logoOffsetY: 0 } });
+            }}
+            className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
+          >↺ 0,0</button>
+        </div>
+      </div>
+      <div className="flex items-center justify-end w-full gap-1.5">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            logoInputRef.current?.click();
+          }}
+          className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
+        >Change</button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            on({ logoUrl: "" });
+          }}
+          className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
+        >Remove</button>
+      </div>
+    </div>
+  );
+
+  // Floating overlay badge toolbar for Photo
+  const renderPhotoToolbar = () => (
+    <div className="preview-only-badge absolute top-full mt-2 right-0 bg-neutral-900/95 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/photo:opacity-100 transition-all duration-150 pointer-events-none group-hover/photo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
+      <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "photo", src: r.photoUrl } }));
+          }}
+          className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
+        >
+          ✂ Crop
+        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title="Reduce photo size"
+            onClick={(e) => {
+              e.stopPropagation();
+              const current = r.settings?.photoSize || 85;
+              on({ settings: { ...r.settings, photoSize: Math.max(40, current - 10) } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
+          >−</button>
+          <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{photoWidth}px</span>
+          <button
+            type="button"
+            title="Increase photo size"
+            onClick={(e) => {
+              e.stopPropagation();
+              const current = r.settings?.photoSize || 85;
+              on({ settings: { ...r.settings, photoSize: Math.min(200, current + 10) } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
+          >+</button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
+        <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title="Move Left"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, photoOffsetX: photoOffsetX - 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >◀</button>
+          <button
+            type="button"
+            title="Move Up"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, photoOffsetY: photoOffsetY - 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▲</button>
+          <button
+            type="button"
+            title="Move Down"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, photoOffsetY: photoOffsetY + 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▼</button>
+          <button
+            type="button"
+            title="Move Right"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, photoOffsetX: photoOffsetX + 10 } });
+            }}
+            className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
+          >▶</button>
+          <button
+            type="button"
+            title="Reset Position"
+            onClick={(e) => {
+              e.stopPropagation();
+              on({ settings: { ...r.settings, photoOffsetX: 0, photoOffsetY: 0 } });
+            }}
+            className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
+          >↺ 0,0</button>
+        </div>
+      </div>
+      <div className="flex items-center justify-end w-full gap-1.5">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            photoInputRef.current?.click();
+          }}
+          className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
+        >Change</button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            on({ photoUrl: "" });
+          }}
+          className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
+        >Remove</button>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -5817,17 +6036,56 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
         </>
       )}
 
+      {/* FLOATING LAYER: If Logo is moved to custom coordinates */}
+      {hasLogo && isLogoMoved && (
+        <div
+          className="absolute group/logo transition-transform"
+          style={{
+            top: "32px",
+            [logoAlign === "left" ? "left" : "right"]: "32px",
+            transform: `translate(${logoOffsetX}px, ${logoOffsetY}px)`,
+            zIndex: 30,
+            maxWidth: `${logoWidth}px`,
+          }}
+        >
+          <img
+            src={r.logoUrl}
+            alt="Logo"
+            className="object-contain"
+            style={{ width: `${logoWidth}px`, maxHeight: `${logoMaxHeight}px` }}
+          />
+          {update && renderLogoToolbar()}
+        </div>
+      )}
+
+      {/* FLOATING LAYER: If Photo is moved to custom coordinates */}
+      {hasPhoto && isPhotoMoved && (
+        <div
+          className="absolute group/photo border border-black bg-slate-100 overflow-visible shadow-xs transition-transform"
+          style={{
+            top: hasLogo && logoAlign !== "left" && !isLogoMoved ? "76px" : "32px",
+            [photoAlign === "left" ? "left" : "right"]: "32px",
+            transform: `translate(${photoOffsetX}px, ${photoOffsetY}px)`,
+            zIndex: 30,
+            width: `${photoWidth}px`,
+            height: `${photoHeight}px`,
+          }}
+        >
+          <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
+          {update && renderPhotoToolbar()}
+        </div>
+      )}
+
       {/* TOP HEADER */}
-      <div className="flex justify-between items-start gap-4 mb-4 pb-3 border-b border-black relative">
-        {/* Left Side Media (if Left-Aligned) */}
-        {showLeftMedia && (
+      <div className="flex justify-between items-start gap-4 mb-3 pb-2.5 border-b border-black relative" style={{ borderBottom: "1.5px solid #000" }}>
+        {/* Left Side Media (if Left-Aligned & not custom moved) */}
+        {((hasLogo && logoAlign === "left" && !isLogoMoved) || (hasPhoto && photoAlign === "left" && !isPhotoMoved)) && (
           <div className="flex flex-col items-start shrink-0 gap-2">
-            {hasLogo && logoAlign === "left" && (
+            {hasLogo && logoAlign === "left" && !isLogoMoved && (
               <div
                 className="relative group/logo transition-transform"
                 style={{
                   maxWidth: `${logoWidth}px`,
-                  transform: (logoOffsetX || logoOffsetY) ? `translate(${logoOffsetX}px, ${logoOffsetY}px)` : undefined,
                   position: "relative",
                   zIndex: 10,
                 }}
@@ -5838,235 +6096,22 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                   className="object-contain"
                   style={{ width: `${logoWidth}px`, maxHeight: `${logoMaxHeight}px` }}
                 />
-                {update && (
-                  <div className="preview-only-badge absolute top-full mt-2 left-0 bg-neutral-900 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/logo:opacity-100 transition-all duration-150 pointer-events-none group-hover/logo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "logo", src: r.logoUrl } }));
-                        }}
-                        className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
-                      >
-                        ✂ Crop
-                      </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Reduce logo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.logoSize || 130;
-                            on({ settings: { ...r.settings, logoSize: Math.max(40, current - 15) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >−</button>
-                        <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{logoWidth}px</span>
-                        <button
-                          type="button"
-                          title="Increase logo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.logoSize || 130;
-                            on({ settings: { ...r.settings, logoSize: Math.min(300, current + 15) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >+</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
-                      <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Move Left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: logoOffsetX - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >◀</button>
-                        <button
-                          type="button"
-                          title="Move Up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetY: logoOffsetY - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▲</button>
-                        <button
-                          type="button"
-                          title="Move Down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetY: logoOffsetY + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▼</button>
-                        <button
-                          type="button"
-                          title="Move Right"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: logoOffsetX + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▶</button>
-                        <button
-                          type="button"
-                          title="Reset Position"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: 0, logoOffsetY: 0 } });
-                          }}
-                          className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
-                        >↺ 0,0</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end w-full gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          logoInputRef.current?.click();
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
-                      >Change</button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on({ logoUrl: "" });
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
-                      >Remove</button>
-                    </div>
-                  </div>
-                )}
+                {update && renderLogoToolbar()}
               </div>
             )}
 
-            {hasPhoto && photoAlign === "left" && (
+            {hasPhoto && photoAlign === "left" && !isPhotoMoved && (
               <div
-                className="relative group/photo border border-black bg-slate-100 overflow-hidden shadow-xs shrink-0 transition-transform"
+                className="relative group/photo border border-black bg-slate-100 overflow-visible shadow-xs shrink-0 transition-transform"
                 style={{
                   width: `${photoWidth}px`,
                   height: `${photoHeight}px`,
-                  transform: (photoOffsetX || photoOffsetY) ? `translate(${photoOffsetX}px, ${photoOffsetY}px)` : undefined,
                   position: "relative",
                   zIndex: 10,
                 }}
               >
                 <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
-                {update && (
-                  <div className="preview-only-badge absolute top-full mt-2 left-0 bg-neutral-900 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/photo:opacity-100 transition-all duration-150 pointer-events-none group-hover/photo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "photo", src: r.photoUrl } }));
-                        }}
-                        className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
-                      >
-                        ✂ Crop
-                      </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Reduce photo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.photoSize || 90;
-                            on({ settings: { ...r.settings, photoSize: Math.max(40, current - 10) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >−</button>
-                        <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{photoWidth}px</span>
-                        <button
-                          type="button"
-                          title="Increase photo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.photoSize || 90;
-                            on({ settings: { ...r.settings, photoSize: Math.min(200, current + 10) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >+</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
-                      <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Move Left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: photoOffsetX - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >◀</button>
-                        <button
-                          type="button"
-                          title="Move Up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetY: photoOffsetY - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▲</button>
-                        <button
-                          type="button"
-                          title="Move Down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetY: photoOffsetY + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▼</button>
-                        <button
-                          type="button"
-                          title="Move Right"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: photoOffsetX + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▶</button>
-                        <button
-                          type="button"
-                          title="Reset Position"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: 0, photoOffsetY: 0 } });
-                          }}
-                          className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
-                        >↺ 0,0</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end w-full gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          photoInputRef.current?.click();
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
-                      >Change</button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on({ photoUrl: "" });
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
-                      >Remove</button>
-                    </div>
-                  </div>
-                )}
+                {update && renderPhotoToolbar()}
               </div>
             )}
           </div>
@@ -6079,7 +6124,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           </h1>
 
           {/* Subheader Line */}
-          <div className="text-[10.5px] font-bold text-black mt-1.5 mb-2 leading-snug">
+          <div className="text-[10.5px] font-bold text-black mt-1 mb-1.5 leading-snug">
             <Editable
               value={r.title || (r.education?.[0] ? `${r.education[0].degree} | ${r.education[0].school}${r.education[0].details ? ` | ${r.education[0].details}` : ""}` : "")}
               onChange={update && (v => on({ title: v }))}
@@ -6139,282 +6184,66 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
           </div>
         </div>
 
-        {/* Right Column: Optional Logo & Photo */}
-        {showRightHeader && (
-          <div className="flex flex-col items-end shrink-0 gap-2">
-            {/* Optional Logo */}
-            {hasLogo && logoAlign !== "left" ? (
-              <div
-                className="relative group/logo transition-transform"
-                style={{
-                  maxWidth: `${logoWidth}px`,
-                  transform: (logoOffsetX || logoOffsetY) ? `translate(${logoOffsetX}px, ${logoOffsetY}px)` : undefined,
-                  position: "relative",
-                  zIndex: 10,
-                }}
-              >
-                <img
-                  src={r.logoUrl}
-                  alt="Logo"
-                  className="object-contain"
-                  style={{ width: `${logoWidth}px`, maxHeight: `${logoMaxHeight}px` }}
-                />
-                {update && (
-                  <div className="preview-only-badge absolute top-full mt-2 right-0 bg-neutral-900 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/logo:opacity-100 transition-all duration-150 pointer-events-none group-hover/logo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "logo", src: r.logoUrl } }));
-                        }}
-                        className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
-                      >
-                        ✂ Crop
-                      </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Reduce logo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.logoSize || 130;
-                            on({ settings: { ...r.settings, logoSize: Math.max(40, current - 15) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >−</button>
-                        <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{logoWidth}px</span>
-                        <button
-                          type="button"
-                          title="Increase logo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.logoSize || 130;
-                            on({ settings: { ...r.settings, logoSize: Math.min(300, current + 15) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >+</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
-                      <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Move Left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: logoOffsetX - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >◀</button>
-                        <button
-                          type="button"
-                          title="Move Up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetY: logoOffsetY - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▲</button>
-                        <button
-                          type="button"
-                          title="Move Down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetY: logoOffsetY + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▼</button>
-                        <button
-                          type="button"
-                          title="Move Right"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: logoOffsetX + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▶</button>
-                        <button
-                          type="button"
-                          title="Reset Position"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, logoOffsetX: 0, logoOffsetY: 0 } });
-                          }}
-                          className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
-                        >↺ 0,0</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end w-full gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          logoInputRef.current?.click();
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
-                      >Change</button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on({ logoUrl: "" });
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
-                      >Remove</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (!hasLogo && update) ? (
-              <button
-                type="button"
-                onClick={() => logoInputRef.current?.click()}
-                className="preview-only-badge text-[9px] text-slate-500 hover:text-black border border-dashed border-slate-300 hover:border-slate-500 px-2 py-0.5 rounded font-sans transition-colors"
-                title="Attach university or company logo"
-              >
-                + Attach Logo (Optional)
-              </button>
-            ) : null}
+        {/* Right Column: In-flow Logo & Photo when not moved to custom coordinates */}
+        <div className="flex flex-col items-end shrink-0 gap-1.5">
+          {/* In-flow Logo */}
+          {hasLogo && logoAlign !== "left" && !isLogoMoved ? (
+            <div
+              className="relative group/logo transition-transform"
+              style={{
+                maxWidth: `${logoWidth}px`,
+                position: "relative",
+                zIndex: 10,
+              }}
+            >
+              <img
+                src={r.logoUrl}
+                alt="Logo"
+                className="object-contain"
+                style={{ width: `${logoWidth}px`, maxHeight: `${logoMaxHeight}px` }}
+              />
+              {update && renderLogoToolbar()}
+            </div>
+          ) : (!hasLogo && update && !isLogoMoved) ? (
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              className="preview-only-badge text-[9px] text-slate-500 hover:text-black border border-dashed border-slate-300 hover:border-slate-500 px-2 py-0.5 rounded font-sans transition-colors"
+              title="Attach university or company logo"
+            >
+              + Attach Logo (Optional)
+            </button>
+          ) : null}
 
-            {/* Optional Photo Box */}
-            {hasPhoto && photoAlign !== "left" ? (
-              <div
-                className="relative group/photo border border-black bg-slate-100 overflow-hidden shadow-xs shrink-0 transition-transform"
-                style={{
-                  width: `${photoWidth}px`,
-                  height: `${photoHeight}px`,
-                  transform: (photoOffsetX || photoOffsetY) ? `translate(${photoOffsetX}px, ${photoOffsetY}px)` : undefined,
-                  position: "relative",
-                  zIndex: 10,
-                }}
-              >
-                <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
-                {update && (
-                  <div className="preview-only-badge absolute top-full mt-2 right-0 bg-neutral-900 text-white px-3 py-2 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md opacity-0 group-hover/photo:opacity-100 transition-all duration-150 pointer-events-none group-hover/photo:pointer-events-auto z-50 min-w-[240px] flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.dispatchEvent(new CustomEvent("rs-open-cropper", { detail: { type: "photo", src: r.photoUrl } }));
-                        }}
-                        className="px-2 py-0.5 text-[9px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded flex items-center gap-1 shadow cursor-pointer"
-                      >
-                        ✂ Crop
-                      </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Reduce photo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.photoSize || 90;
-                            on({ settings: { ...r.settings, photoSize: Math.max(40, current - 10) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >−</button>
-                        <span className="text-[9px] text-emerald-400 font-mono font-bold px-1">{photoWidth}px</span>
-                        <button
-                          type="button"
-                          title="Increase photo size"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = r.settings?.photoSize || 90;
-                            on({ settings: { ...r.settings, photoSize: Math.min(200, current + 10) } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-white text-white hover:text-black rounded text-[10px] font-bold flex items-center justify-center cursor-pointer"
-                        >+</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between w-full border-b border-white/10 pb-1.5 gap-1">
-                      <span className="text-[8.5px] text-zinc-400 font-medium">Position:</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          title="Move Left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: photoOffsetX - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >◀</button>
-                        <button
-                          type="button"
-                          title="Move Up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetY: photoOffsetY - 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▲</button>
-                        <button
-                          type="button"
-                          title="Move Down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetY: photoOffsetY + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▼</button>
-                        <button
-                          type="button"
-                          title="Move Right"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: photoOffsetX + 10 } });
-                          }}
-                          className="h-5 w-5 bg-white/10 hover:bg-emerald-500 text-white rounded text-[9px] flex items-center justify-center cursor-pointer"
-                        >▶</button>
-                        <button
-                          type="button"
-                          title="Reset Position"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            on({ settings: { ...r.settings, photoOffsetX: 0, photoOffsetY: 0 } });
-                          }}
-                          className="h-5 px-1 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded text-[8px] flex items-center justify-center cursor-pointer"
-                        >↺ 0,0</button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end w-full gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          photoInputRef.current?.click();
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-white/20 hover:bg-white text-white hover:text-black font-bold rounded transition-colors cursor-pointer"
-                      >Change</button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on({ photoUrl: "" });
-                        }}
-                        className="px-2 py-0.5 text-[8.5px] bg-red-600/80 hover:bg-red-600 text-white font-bold rounded transition-colors cursor-pointer"
-                      >Remove</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (!hasPhoto && update) ? (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => photoInputRef.current?.click()}
-                style={{ width: `${photoWidth}px`, height: `${photoHeight}px` }}
-                className="preview-only-badge border border-dashed border-slate-400 hover:border-black bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center cursor-pointer transition-colors p-2 text-center shrink-0"
-                title="Click to attach your photo"
-              >
-                <div className="text-[16px] mb-0.5">📷</div>
-                <div className="text-[9.5px] font-sans font-bold text-slate-700">Attach Photo</div>
-                <div className="text-[8px] font-sans text-slate-500">(Optional)</div>
-              </div>
-            ) : null}
-          </div>
-        )}
+          {/* In-flow Photo Box */}
+          {hasPhoto && photoAlign !== "left" && !isPhotoMoved ? (
+            <div
+              className="relative group/photo border border-black bg-slate-100 overflow-visible shadow-xs shrink-0 transition-transform"
+              style={{
+                width: `${photoWidth}px`,
+                height: `${photoHeight}px`,
+                position: "relative",
+                zIndex: 10,
+              }}
+            >
+              <img src={r.photoUrl} alt={r.name || "Photo"} className="w-full h-full object-cover" />
+              {update && renderPhotoToolbar()}
+            </div>
+          ) : (!hasPhoto && update && !isPhotoMoved) ? (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => photoInputRef.current?.click()}
+              style={{ width: `${photoWidth}px`, height: `${photoHeight}px` }}
+              className="preview-only-badge border border-dashed border-slate-400 hover:border-black bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center cursor-pointer transition-colors p-2 text-center shrink-0"
+              title="Click to attach your photo"
+            >
+              <div className="text-[16px] mb-0.5">📷</div>
+              <div className="text-[9.5px] font-sans font-bold text-slate-700">Attach Photo</div>
+              <div className="text-[8px] font-sans text-slate-500">(Optional)</div>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* BODY SECTIONS */}
