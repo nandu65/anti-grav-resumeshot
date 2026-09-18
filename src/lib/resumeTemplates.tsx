@@ -5467,6 +5467,10 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
           })()}
         </div>
       </div>
+    </div>
+  );
+}
+
 /* ---------- Christ Template: Official Academic & Corporate Layout ---------- */
 function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
   const on = (patch: Partial<ResumeData>) => update?.(patch);
