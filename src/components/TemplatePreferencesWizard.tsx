@@ -50,8 +50,13 @@ export function TemplatePreferencesWizard({
   const total = 4;
 
   const next = () => {
-    if (step < total - 1) setStep(step + 1);
-    else { onDone(prefs); onOpenChange(false); setStep(0); }
+    if (step < total - 1) {
+      setStep(step + 1);
+    } else {
+      onDone(prefs);
+      onOpenChange(false);
+      setStep(0);
+    }
   };
   const back = () => step > 0 && setStep(step - 1);
 
@@ -201,8 +206,8 @@ export function TemplatePreferencesWizard({
           )}
 
           <div className="mt-8 flex justify-end">
-            <Button onClick={next} size="lg" className="bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow px-8">
-              {step === total - 1 ? "See my templates" : "Continue"}
+            <Button onClick={next} size="lg" className="bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow px-8 font-semibold">
+              {step === total - 1 ? "Let's go!" : "Continue"}
             </Button>
           </div>
         </div>

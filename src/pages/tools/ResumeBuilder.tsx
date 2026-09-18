@@ -74,10 +74,12 @@ export default function ResumeBuilder() {
   const [showTargetJdDrawer, setShowTargetJdDrawer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"ai" | "verbatim">("ai");
-  const [starter, setStarter] = useState<"choose" | "scratch" | "uploaded" | "wizard">(() => {
+  const [starter, setStarter] = useState<"choose" | "scratch" | "uploaded">(() => {
     const saved = localStorage.getItem("rs-builder-starter");
-    return (saved as any) || "choose";
+    if (saved === "scratch" || saved === "uploaded") return saved;
+    return "choose";
   });
+  const [showWizard, setShowWizard] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState("Analyzing your resume...");
@@ -358,7 +360,7 @@ export default function ResumeBuilder() {
   // Persistence & Autosave
   useEffect(() => {
     if (restoring.current) return;
-    if (starter !== "choose" && starter !== "wizard") {
+    if (starter !== "choose") {
       localStorage.setItem("rs-builder-starter", starter);
       localStorage.setItem("rs-current-resume", JSON.stringify(resumeData));
       localStorage.setItem("rs-current-template", template);
@@ -366,7 +368,7 @@ export default function ResumeBuilder() {
     }
 
     // Debounced Cloud Sync
-    if (!user || starter === "choose" || starter === "wizard") return;
+    if (!user || starter === "choose") return;
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     
@@ -795,15 +797,15 @@ export default function ResumeBuilder() {
       <div className="min-h-screen bg-background">
       {showIntro && <BuilderIntroLoader onDone={() => { setShowIntro(false); localStorage.setItem("rs-intro-seen", "true"); }} />}
       <TemplatePreferencesWizard
-        open={starter === "wizard"}
-        onOpenChange={(v) => {
-          if (!v) setStarter("choose");
-        }}
+        open={showWizard}
+        onOpenChange={setShowWizard}
         initial={prefs}
         onDone={(p) => {
-          setPrefs(p); setStarter("scratch");
+          setPrefs(p);
+          setShowWizard(false);
           const ranked = [...TEMPLATES].sort((a, b) => scoreTemplate(b.id, p) - scoreTemplate(a.id, p));
           if (ranked[0]) setTemplate(ranked[0].id);
+          setStarter("scratch");
         }}
       />
       <Navbar />
@@ -845,7 +847,7 @@ export default function ResumeBuilder() {
             <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
               <button 
                 type="button" 
-                onClick={() => setStarter("wizard")} 
+                onClick={() => setShowWizard(true)} 
                 className="group relative text-left rounded-2xl border-2 border-border bg-background p-6 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 hover:shadow-glow"
               >
                 <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
