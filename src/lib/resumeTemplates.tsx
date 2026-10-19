@@ -7258,6 +7258,100 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   }
 }
 
+/**
+ * High-quality Vector PDF export via native browser print engine.
+ * Renders pure vector text, crisp curves, and selectable text with zero quality loss.
+ */
+export async function printResumeVectorPdf(rawData: ResumeData, template: TemplateId) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+
+  // 1. Commit any in-progress edits
+  if ((document.activeElement as HTMLElement)?.blur) {
+    (document.activeElement as HTMLElement).blur();
+  }
+  await new Promise(r => setTimeout(r, 60));
+
+  const data = normalizeResumeSkills(rawData);
+  const candidateName = (data.name || "Resume").trim();
+  const originalTitle = document.title;
+
+  // 2. Prepare or retrieve clean isolated print container
+  let printContainer = document.getElementById("rs-print-container");
+  if (!printContainer) {
+    printContainer = document.createElement("div");
+    printContainer.id = "rs-print-container";
+    document.body.appendChild(printContainer);
+  }
+  printContainer.innerHTML = "";
+
+  const livePreview = document.querySelector(
+    '[data-main-resume-preview="true"], .resume-root-container:not([data-rs-mini="true"])'
+  ) as HTMLElement | null;
+
+  let unmountFn: (() => void) | null = null;
+
+  if (livePreview) {
+    const clone = livePreview.cloneNode(true) as HTMLElement;
+    clone.style.transform = "none";
+    clone.style.margin = "0 auto";
+    clone.style.boxShadow = "none";
+
+    // Clean up interactive controls, badges, toolbars
+    clone.querySelectorAll(
+      '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"], input[type="file"], button, [role="button"]'
+    ).forEach(el => el.remove());
+
+    printContainer.appendChild(clone);
+  } else {
+    const { createRoot } = await import("react-dom/client");
+    const root = createRoot(printContainer);
+    root.render(
+      <React.StrictMode>
+        <ResumePreview template={template} data={data} isExport={true} />
+      </React.StrictMode>
+    );
+    unmountFn = () => {
+      try { root.unmount(); } catch (_) {}
+    };
+  }
+
+  // 3. Ensure fonts are loaded
+  if (document.fonts) {
+    try {
+      await document.fonts.ready;
+    } catch (_) {}
+  }
+  await new Promise(r => setTimeout(r, 120));
+
+  // 4. Set document title so browser print-to-PDF automatically suggests candidate name
+  document.title = `${candidateName} - Resume`;
+  document.body.classList.add("is-printing-resume");
+
+  // 5. Open print dialog
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    document.body.classList.remove("is-printing-resume");
+    document.title = originalTitle;
+    if (unmountFn) unmountFn();
+    if (printContainer && printContainer.parentNode) {
+      printContainer.remove();
+    }
+    window.removeEventListener("afterprint", cleanup);
+  };
+
+  window.addEventListener("afterprint", cleanup);
+
+  try {
+    window.print();
+  } finally {
+    // Fallback timer for browsers that don't reliably trigger afterprint
+    setTimeout(cleanup, 2500);
+  }
+}
+
+
 
 /* ---------- DOCX export (editable in Word / Google Docs) ---------- */
 

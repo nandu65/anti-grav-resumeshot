@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Loader2, Target, Sparkles, ListChecks, Lightbulb, Tag, FileText, Mail, Building2, GraduationCap, BarChart3, Eye, Code2, ExternalLink, TrendingUp, TrendingDown, Minus, Award, Wand2, Lock, MapPin, Briefcase } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Target, Sparkles, ListChecks, Lightbulb, Tag, FileText, Mail, Building2, GraduationCap, BarChart3, Eye, Code2, ExternalLink, TrendingUp, TrendingDown, Minus, Award, Wand2, Lock, MapPin, Briefcase, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { KeywordHighlight } from "@/components/KeywordHighlight";
 import { ShareScoreDialog } from "@/components/ShareScoreDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadCoverLetterPdf } from "@/lib/pdfExport";
-import { downloadResumePdfFromData, downloadResumeDocxFromData, downloadResumeTxtFromData, downloadResumeMarkdownFromData, TemplateId, ResumePreview, normalizeResumeSkills } from "@/lib/resumeTemplates";
+import { downloadResumePdfFromData, printResumeVectorPdf, downloadResumeDocxFromData, downloadResumeTxtFromData, downloadResumeMarkdownFromData, TemplateId, ResumePreview, normalizeResumeSkills } from "@/lib/resumeTemplates";
 import { toast } from "sonner";
 
 interface KeywordDensity { keyword: string; jd_count: number; resume_count: number; importance: "high" | "medium" | "low"; }
@@ -306,7 +306,16 @@ export default function Results() {
                     <Download className="h-4 w-4 mr-2" /> Download
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-60">
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const data = buildResumeDataFromOptimization(opt);
+                      await printResumeVectorPdf(data, (opt.rewrite_level as any) || "modern");
+                    }}
+                    className="font-semibold text-primary focus:text-primary cursor-pointer"
+                  >
+                    <Printer className="h-4 w-4 mr-2 text-primary" /> Vector PDF (100% Quality)
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={async () => {
                     const data = buildResumeDataFromOptimization(opt);
                     setExportData(data);
@@ -319,7 +328,7 @@ export default function Results() {
                         setIsExporting(false);
                       }
                     }, 800);
-                  }}><FileText className="h-4 w-4 mr-2" /> PDF (Template Match)</DropdownMenuItem>
+                  }}><FileText className="h-4 w-4 mr-2" /> Direct PDF (Download)</DropdownMenuItem>
                   {proOnly && <DropdownMenuItem onClick={async () => {
                     const data = buildResumeDataFromOptimization(opt);
                     await downloadResumeDocxFromData(data, (opt.rewrite_level as any) || "modern");

@@ -29,7 +29,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import {
   TEMPLATES, TemplateId, ResumeData, ResumePreview, TemplateMiniPreview, SAMPLE_RESUME_DATA,
-  downloadResumePdfFromData, downloadResumeDocxFromData, buildResumeDataVerbatim,
+  downloadResumePdfFromData, printResumeVectorPdf, downloadResumeDocxFromData, buildResumeDataVerbatim,
   normalizeResumeSkills, getNormalizedSectionOrder, isGenericSkillCategory,
   A4_WIDTH_PX, A4_HEIGHT_PX,
 } from "@/lib/resumeTemplates";
@@ -730,6 +730,17 @@ export default function ResumeBuilder() {
     }
   };
 
+  const printPdf = async () => {
+    const toastId = toast.loading("Opening crisp vector print dialog...");
+    try {
+      await new Promise(r => setTimeout(r, 60));
+      await printResumeVectorPdf(resumeData, template);
+      toast.success("Select 'Save as PDF' to save with 100% vector quality!", { id: toastId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open print dialog", { id: toastId });
+    }
+  };
+
   const downloadPdf = async () => {
     const toastId = toast.loading("Preparing PDF...");
     try {
@@ -1213,10 +1224,32 @@ export default function ResumeBuilder() {
                       <span className="hidden sm:inline">Export</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-52 p-2 bg-[#161922] border-white/10 text-zinc-100 shadow-2xl" align="end">
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadPdf} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-emerald-400" /> PDF Document</Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400" /> Word (.docx)</Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={() => { downloadPlainTextResume(resumeData); triggerConfetti(); }} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-amber-400" /> ATS Plain Text (.txt)</Button>
+                  <PopoverContent className="w-60 p-2 bg-[#161922] border-white/10 text-zinc-100 shadow-2xl" align="end">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2.5 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 text-xs h-9 font-semibold"
+                      onClick={printPdf}
+                      disabled={!resumeData || !resumeData.name}
+                      title="100% razor-sharp vector text, selectable, perfect print quality"
+                    >
+                      <Printer className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                      <div className="flex flex-col items-start text-left leading-tight">
+                        <span>Vector PDF (100% Quality)</span>
+                        <span className="text-[9.5px] font-normal text-zinc-400">Crisp vector text & print</span>
+                      </div>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8"
+                      onClick={downloadPdf}
+                      disabled={!resumeData || !resumeData.name}
+                      title="Direct one-click file download"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <span>Direct PDF (Download)</span>
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Word (.docx)</Button>
+                    <Button variant="ghost" className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={() => { downloadPlainTextResume(resumeData); triggerConfetti(); }} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-amber-400 shrink-0" /> ATS Plain Text (.txt)</Button>
                   </PopoverContent>
                 </Popover>
 
@@ -1228,7 +1261,7 @@ export default function ResumeBuilder() {
                         <SheetContent side="bottom" className="h-[90vh] p-0 bg-[#090b0e] border-white/10 text-zinc-100">
                             <div className="p-4 border-b border-white/10 flex items-center justify-between">
                                 <h3 className="font-bold text-sm text-zinc-100">Resume Preview</h3>
-                                <Button variant="ghost" size="sm" onClick={() => window.print()} className="text-zinc-400 hover:text-white"><Printer className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={printPdf} className="text-zinc-400 hover:text-white" title="Print / Vector PDF"><Printer className="h-4 w-4" /></Button>
                             </div>
                             <ScrollArea className="h-full p-4">
                                 {resumeData ? (
