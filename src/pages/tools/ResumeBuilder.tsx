@@ -1228,25 +1228,25 @@ export default function ResumeBuilder() {
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-2.5 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 text-xs h-9 font-semibold"
-                      onClick={printPdf}
+                      onClick={downloadPdf}
                       disabled={!resumeData || !resumeData.name}
-                      title="100% razor-sharp vector text, selectable, perfect print quality"
+                      title="100% razor-sharp vector text, selectable, instant 1-click download"
                     >
-                      <Printer className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                      <Download className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                       <div className="flex flex-col items-start text-left leading-tight">
-                        <span>Vector PDF (100% Quality)</span>
-                        <span className="text-[9.5px] font-normal text-zinc-400">Crisp vector text & print</span>
+                        <span>Vector PDF (1-Click)</span>
+                        <span className="text-[9.5px] font-normal text-zinc-400">Crisp vector text & direct download</span>
                       </div>
                     </Button>
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8"
-                      onClick={downloadPdf}
+                      onClick={printPdf}
                       disabled={!resumeData || !resumeData.name}
-                      title="Direct one-click file download"
+                      title="Print directly or save via browser print dialog"
                     >
-                      <FileText className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                      <span>Direct PDF (Download)</span>
+                      <Printer className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <span>Print / Browser Save</span>
                     </Button>
                     <Button variant="ghost" className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={downloadDocx} disabled={!resumeData || !resumeData.name}><FileEdit className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Word (.docx)</Button>
                     <Button variant="ghost" className="w-full justify-start gap-2.5 hover:bg-white/10 text-zinc-200 hover:text-white text-xs h-8" onClick={() => { downloadPlainTextResume(resumeData); triggerConfetti(); }} disabled={!resumeData || !resumeData.name}><FileText className="h-3.5 w-3.5 text-amber-400 shrink-0" /> ATS Plain Text (.txt)</Button>
@@ -1261,7 +1261,7 @@ export default function ResumeBuilder() {
                         <SheetContent side="bottom" className="h-[90vh] p-0 bg-[#090b0e] border-white/10 text-zinc-100">
                             <div className="p-4 border-b border-white/10 flex items-center justify-between">
                                 <h3 className="font-bold text-sm text-zinc-100">Resume Preview</h3>
-                                <Button variant="ghost" size="sm" onClick={printPdf} className="text-zinc-400 hover:text-white" title="Print / Vector PDF"><Printer className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={downloadPdf} className="text-zinc-400 hover:text-white" title="Download Vector PDF"><Download className="h-4 w-4" /></Button>
                             </div>
                             <ScrollArea className="h-full p-4">
                                 {resumeData ? (

@@ -7033,6 +7033,95 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     '[data-main-resume-preview="true"], .resume-root-container:not([data-rs-mini="true"])'
   ) as HTMLElement | null;
 
+  // 1. Primary Vector PDF Export via Backend Headless Chrome (page.pdf())
+  try {
+    if (livePreview && typeof fetch !== "undefined") {
+      const clone = livePreview.cloneNode(true) as HTMLElement;
+      clone.style.transform = "none";
+      clone.style.margin = "0 auto";
+      clone.style.boxShadow = "none";
+
+      clone.querySelectorAll(
+        '.preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"], input[type="file"], button, [role="button"]'
+      ).forEach(el => el.remove());
+
+      const styles: string[] = [];
+      const links: string[] = [];
+
+      document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+        const href = (link as HTMLLinkElement).href;
+        if (href) links.push(`<link rel="stylesheet" href="${href}">`);
+      });
+
+      document.querySelectorAll("style").forEach((style) => {
+        if (style.innerHTML) styles.push(style.innerHTML);
+      });
+
+      const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${data.name || "Resume"}</title>
+  ${links.join("\n")}
+  <style>
+    @page { margin: 0; size: A4 portrait; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff !important;
+      color: #000000;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .resume-root-container, .resume-page-sheet {
+      width: 210mm !important;
+      min-width: 210mm !important;
+      max-width: 210mm !important;
+      min-height: 297mm !important;
+      margin: 0 auto !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      transform: none !important;
+      overflow: visible !important;
+    }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .preview-only-badge, [data-page-badge], [data-page-indicator], [data-rs-toolbar], .selection-toolbar, [role="menu"], [role="tooltip"], input[type="file"], button {
+      display: none !important;
+    }
+    ${styles.join("\n")}
+  </style>
+</head>
+<body>
+  ${clone.outerHTML}
+</body>
+</html>`;
+
+      const response = await fetch("/api/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          html: fullHtml,
+          title: `${data.name || "Resume"} - Resume`,
+        }),
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/pdf")) {
+          const blob = await response.blob();
+          saveBlob(blob, `${safe}-${template}.pdf`);
+          return;
+        }
+      }
+    }
+  } catch (backendError) {
+    console.warn("Backend headless Chrome PDF export unavailable, falling back to local exporter:", backendError);
+  }
+
   // Measure actual multi-page height
   const measuredLiveHeight = livePreview ? Math.max(livePreview.scrollHeight, livePreview.offsetHeight, A4_HEIGHT_PX) : A4_HEIGHT_PX;
   const initialTotalPages = Math.max(1, Math.ceil((measuredLiveHeight - 30) / A4_HEIGHT_PX));

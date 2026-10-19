@@ -310,25 +310,29 @@ export default function Results() {
                   <DropdownMenuItem
                     onClick={async () => {
                       const data = buildResumeDataFromOptimization(opt);
-                      await printResumeVectorPdf(data, (opt.rewrite_level as any) || "modern");
+                      setExportData(data);
+                      setIsExporting(true);
+                      setTimeout(async () => {
+                        try {
+                          await downloadResumePdfFromData(data, (opt.rewrite_level as any) || "modern");
+                        } finally {
+                          setIsExporting(false);
+                        }
+                      }, 400);
                     }}
                     className="font-semibold text-primary focus:text-primary cursor-pointer"
                   >
-                    <Printer className="h-4 w-4 mr-2 text-primary" /> Vector PDF (100% Quality)
+                    <Download className="h-4 w-4 mr-2 text-primary" /> Vector PDF (1-Click)
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => {
-                    const data = buildResumeDataFromOptimization(opt);
-                    setExportData(data);
-                    setIsExporting(true);
-                    // Long delay to ensure the hidden portal is fully rendered and styles applied
-                    setTimeout(async () => {
-                      try {
-                        await downloadResumePdfFromData(data, (opt.rewrite_level as any) || "modern");
-                      } finally {
-                        setIsExporting(false);
-                      }
-                    }, 800);
-                  }}><FileText className="h-4 w-4 mr-2" /> Direct PDF (Download)</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const data = buildResumeDataFromOptimization(opt);
+                      await printResumeVectorPdf(data, (opt.rewrite_level as any) || "modern");
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Printer className="h-4 w-4 mr-2 text-muted-foreground" /> Print / Browser Save
+                  </DropdownMenuItem>
                   {proOnly && <DropdownMenuItem onClick={async () => {
                     const data = buildResumeDataFromOptimization(opt);
                     await downloadResumeDocxFromData(data, (opt.rewrite_level as any) || "modern");
