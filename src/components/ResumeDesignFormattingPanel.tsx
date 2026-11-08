@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Palette, Type, Check, RotateCcw, LayoutList, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Palette, Type, Check, RotateCcw, LayoutList, GripVertical, ArrowUp, ArrowDown, Wand2 } from "lucide-react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { ResumeSettings, TemplateId, TEMPLATES, getNormalizedSectionOrder, TemplateMiniPreview } from "@/lib/resumeTemplates";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ interface ResumeDesignFormattingPanelProps {
   onChangeSettings: (settings: ResumeSettings) => void;
   template: TemplateId;
   onChangeTemplate: (template: TemplateId) => void;
+  onAutoFitToOnePage?: () => void;
+  isOverflowing?: boolean;
   className?: string;
 }
 
@@ -42,6 +44,8 @@ export function ResumeDesignFormattingPanel({
   onChangeSettings,
   template,
   onChangeTemplate,
+  onAutoFitToOnePage,
+  isOverflowing = false,
   className = "",
 }: ResumeDesignFormattingPanelProps) {
   const [activeTab, setActiveTab] = useState<"formatting" | "sections" | "design">("formatting");
@@ -130,6 +134,54 @@ export function ResumeDesignFormattingPanel({
 
       {activeTab === "formatting" && (
         <div className="space-y-4">
+          {/* ⚡ 1-Click Auto-Fit to 1 Page */}
+          {onAutoFitToOnePage && (
+            <div
+              className={`p-3 rounded-xl border transition-all ${
+                isOverflowing
+                  ? "bg-amber-500/10 border-amber-500/30 shadow-md shadow-amber-500/5"
+                  : "bg-emerald-500/10 border-emerald-500/25"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div
+                    className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      isOverflowing
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-emerald-500/20 text-emerald-400"
+                    }`}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+                      <span>Fit to 1 Page</span>
+                      {isOverflowing && (
+                        <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded-full font-semibold">
+                          Overflow
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-zinc-400 truncate">
+                      {isOverflowing
+                        ? "Auto-tune spacing & font to fit 1 page"
+                        : "Optimal 1-page layout"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={onAutoFitToOnePage}
+                  className="h-7 px-3 text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-sm rounded-lg shrink-0 cursor-pointer"
+                >
+                  Auto-Fit
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* FONT FORMATTING */}
           <div className="space-y-3">
             <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Font Formatting</h4>

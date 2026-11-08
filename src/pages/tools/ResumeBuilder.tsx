@@ -42,6 +42,8 @@ import { TemplateSwitcherModal } from "@/components/TemplateSwitcherModal";
 import { TargetJobKeywordDrawer } from "@/components/TargetJobKeywordDrawer";
 import { triggerConfetti } from "@/lib/confetti";
 import { downloadPlainTextResume } from "@/lib/exportUtils";
+import { calculateFitToOnePageSettings } from "@/lib/autoFitToOnePage";
+import { TailorDiffPreviewModal, TailorDiffBullet, SummaryDiff } from "@/components/TailorDiffPreviewModal";
 
 const EMPTY_RESUME: ResumeData = SAMPLE_RESUME_DATA;
 
@@ -166,6 +168,16 @@ export default function ResumeBuilder() {
   const [containerWidth, setContainerWidth] = useState<number>(600);
   const [sheetHeight, setSheetHeight] = useState<number>(A4_HEIGHT_PX);
   const sheetWrapRef = useRef<HTMLDivElement>(null);
+
+  // Tailoring Diff Modal State
+  const [diffModalOpen, setDiffModalOpen] = useState(false);
+  const [pendingDiffBullets, setPendingDiffBullets] = useState<TailorDiffBullet[]>([]);
+  const [pendingSummaryDiff, setPendingSummaryDiff] = useState<SummaryDiff | null>(null);
+  const [pendingProtectedExperience, setPendingProtectedExperience] = useState<any[]>([]);
+  const [pendingProtectedLeadership, setPendingProtectedLeadership] = useState<any[]>([]);
+  const [pendingProtectedEducation, setPendingProtectedEducation] = useState<any[]>([]);
+  const [pendingProtectedProjects, setPendingProtectedProjects] = useState<any[]>([]);
+  const [pendingGeneratedResume, setPendingGeneratedResume] = useState<any>(null);
 
   useEffect(() => {
     const el = previewContainerRef.current;
@@ -773,33 +785,251 @@ export default function ResumeBuilder() {
         };
       });
 
-      // Preserve existing user settings (ensuring horizontal/compact skills layout by default)
-      const currentSettings = {
-        ...resumeData.settings,
-        skillsLayout: resumeData.settings?.skillsLayout || "horizontal",
-      };
+      // Extract bullet differences for user side-by-side review and approval
+      const diffBullets: TailorDiffBullet[] = [];
 
-      setResumeData(normalizeResumeSkills({
-        ...resumeData,
-        ...generated,
-        name: resumeData.name,
-        email: resumeData.email,
-        phone: resumeData.phone,
-        location: resumeData.location,
-        links: resumeData.links,
-        experience: protectedExperience.length > 0 ? protectedExperience : resumeData.experience,
-        leadership: protectedLeadership,
-        education: protectedEducation.length > 0 ? protectedEducation : resumeData.education,
-        projects: protectedProjects.length > 0 ? protectedProjects : resumeData.projects,
-        _isPolished: true,
-        settings: currentSettings,
-      }));
-      setShowEditHint(true);
+      // 1. Experience bullets
+      protectedExperience.forEach((exp: any, expIdx: number) => {
+        const origExp = resumeData.experience[expIdx];
+        const origBullets = origExp?.bullets || [];
+        const genBullets = exp.bullets || [];
+        const maxLen = Math.max(origBullets.length, genBullets.length);
+
+        for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+          const original = (origBullets[bIdx] || "").trim();
+          const improved = (genBullets[bIdx] || "").trim();
+          if (original !== improved) {
+            diffBullets.push({
+              id: `exp-${expIdx}-${bIdx}`,
+              sectionType: "experience",
+              entryIndex: expIdx,
+              bulletIndex: bIdx,
+              entryTitle: `${exp.role || "Role"} | ${exp.company || "Company"}`,
+              original,
+              improved: improved || original,
+              accepted: true,
+            });
+          }
+        }
+      });
+
+      // 2. Leadership bullets
+      protectedLeadership.forEach((lead: any, leadIdx: number) => {
+        const origLead = (resumeData.leadership || [])[leadIdx];
+        const origBullets = origLead?.bullets || [];
+        const genBullets = lead.bullets || [];
+        const maxLen = Math.max(origBullets.length, genBullets.length);
+
+        for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+          const original = (origBullets[bIdx] || "").trim();
+          const improved = (genBullets[bIdx] || "").trim();
+          if (original !== improved) {
+            diffBullets.push({
+              id: `lead-${leadIdx}-${bIdx}`,
+              sectionType: "leadership",
+              entryIndex: leadIdx,
+              bulletIndex: bIdx,
+              entryTitle: `${lead.role || "Role"} | ${lead.organization || "Organization"}`,
+              original,
+              improved: improved || original,
+              accepted: true,
+            });
+          }
+        }
+      });
+
+      // 3. Projects bullets
+      protectedProjects.forEach((proj: any, projIdx: number) => {
+        const origProj = (resumeData.projects || [])[projIdx];
+        const origBullets = origProj?.bullets || [];
+        const genBullets = proj.bullets || [];
+        const maxLen = Math.max(origBullets.length, genBullets.length);
+
+        for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+          const original = (origBullets[bIdx] || "").trim();
+          const improved = (genBullets[bIdx] || "").trim();
+          if (original !== improved) {
+            diffBullets.push({
+              id: `proj-${projIdx}-${bIdx}`,
+              sectionType: "projects",
+              entryIndex: projIdx,
+              bulletIndex: bIdx,
+              entryTitle: proj.name || "Project",
+              original,
+              improved: improved || original,
+              accepted: true,
+            });
+          }
+        }
+      });
+
+      // 4. Professional Summary diff
+      let summaryDiff: SummaryDiff | null = null;
+      const originalSummary = (resumeData.summary || "").trim();
+      const improvedSummary = (generated.summary || "").trim();
+      if (originalSummary !== improvedSummary && improvedSummary) {
+        summaryDiff = {
+          original: originalSummary,
+          improved: improvedSummary,
+          accepted: true,
+        };
+      }
+
+      setPendingProtectedExperience(protectedExperience);
+      setPendingProtectedLeadership(protectedLeadership);
+      setPendingProtectedEducation(protectedEducation);
+      setPendingProtectedProjects(protectedProjects);
+      setPendingGeneratedResume(generated);
+      setPendingDiffBullets(diffBullets);
+      setPendingSummaryDiff(summaryDiff);
+
+      // Open side-by-side diff review modal if improvements exist
+      if (diffBullets.length > 0 || summaryDiff) {
+        setDiffModalOpen(true);
+        toast.info(`AI generated ${diffBullets.length + (summaryDiff ? 1 : 0)} improvements. Review & accept below.`);
+      } else {
+        toast.success("Resume already closely matches target requirements!");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleApplyTailorDiff = (
+    acceptedDiffs: TailorDiffBullet[],
+    appliedSummary: SummaryDiff | null
+  ) => {
+    // 1. Rebuild experience bullets based on user's accept/discard choices
+    const finalExperience = (pendingProtectedExperience.length ? pendingProtectedExperience : resumeData.experience).map((exp, expIdx) => {
+      const origExp = resumeData.experience[expIdx];
+      const origBullets = origExp?.bullets || [];
+      const genBullets = exp.bullets || [];
+      const maxLen = Math.max(origBullets.length, genBullets.length);
+
+      const bullets: string[] = [];
+      for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+        const diff = acceptedDiffs.find(
+          (d) => d.sectionType === "experience" && d.entryIndex === expIdx && d.bulletIndex === bIdx
+        );
+        if (diff) {
+          bullets.push(diff.accepted ? diff.improved : (diff.original || genBullets[bIdx]));
+        } else if (bIdx < genBullets.length) {
+          bullets.push(genBullets[bIdx]);
+        } else if (bIdx < origBullets.length) {
+          bullets.push(origBullets[bIdx]);
+        }
+      }
+      return {
+        ...exp,
+        bullets: bullets.filter(Boolean),
+      };
+    });
+
+    // 2. Rebuild leadership bullets
+    const finalLeadership = (pendingProtectedLeadership.length ? pendingProtectedLeadership : (resumeData.leadership || [])).map((lead, leadIdx) => {
+      const origLead = (resumeData.leadership || [])[leadIdx];
+      const origBullets = origLead?.bullets || [];
+      const genBullets = lead.bullets || [];
+      const maxLen = Math.max(origBullets.length, genBullets.length);
+
+      const bullets: string[] = [];
+      for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+        const diff = acceptedDiffs.find(
+          (d) => d.sectionType === "leadership" && d.entryIndex === leadIdx && d.bulletIndex === bIdx
+        );
+        if (diff) {
+          bullets.push(diff.accepted ? diff.improved : (diff.original || genBullets[bIdx]));
+        } else if (bIdx < genBullets.length) {
+          bullets.push(genBullets[bIdx]);
+        } else if (bIdx < origBullets.length) {
+          bullets.push(origBullets[bIdx]);
+        }
+      }
+      return {
+        ...lead,
+        bullets: bullets.filter(Boolean),
+      };
+    });
+
+    // 3. Rebuild projects bullets
+    const finalProjects = (pendingProtectedProjects.length ? pendingProtectedProjects : (resumeData.projects || [])).map((proj, projIdx) => {
+      const origProj = (resumeData.projects || [])[projIdx];
+      const origBullets = origProj?.bullets || [];
+      const genBullets = proj.bullets || [];
+      const maxLen = Math.max(origBullets.length, genBullets.length);
+
+      const bullets: string[] = [];
+      for (let bIdx = 0; bIdx < maxLen; bIdx++) {
+        const diff = acceptedDiffs.find(
+          (d) => d.sectionType === "projects" && d.entryIndex === projIdx && d.bulletIndex === bIdx
+        );
+        if (diff) {
+          bullets.push(diff.accepted ? diff.improved : (diff.original || genBullets[bIdx]));
+        } else if (bIdx < genBullets.length) {
+          bullets.push(genBullets[bIdx]);
+        } else if (bIdx < origBullets.length) {
+          bullets.push(origBullets[bIdx]);
+        }
+      }
+      return {
+        ...proj,
+        bullets: bullets.filter(Boolean),
+      };
+    });
+
+    // 4. Summary
+    const finalSummary = appliedSummary?.accepted
+      ? appliedSummary.improved
+      : (resumeData.summary || "");
+
+    // 5. Skills
+    const generatedSkills = pendingGeneratedResume?.skills;
+    const finalSkills = generatedSkills && generatedSkills.length > 0
+      ? generatedSkills
+      : resumeData.skills;
+
+    const acceptedCount = acceptedDiffs.filter((d) => d.accepted).length + (appliedSummary?.accepted ? 1 : 0);
+
+    const currentSettings = {
+      ...resumeData.settings,
+      skillsLayout: resumeData.settings?.skillsLayout || "horizontal",
+    };
+
+    setResumeData(normalizeResumeSkills({
+      ...resumeData,
+      summary: finalSummary,
+      experience: finalExperience,
+      leadership: finalLeadership,
+      education: pendingProtectedEducation.length ? pendingProtectedEducation : resumeData.education,
+      projects: finalProjects,
+      skills: finalSkills,
+      _isPolished: true,
+      settings: currentSettings,
+    }));
+
+    toast.success(`Applied ${acceptedCount} approved improvements to your resume!`);
+    setShowEditHint(true);
+  };
+
+  const handleAutoFitToOnePage = () => {
+    const el = sheetWrapRef.current;
+    const container = (el?.querySelector(".resume-root-container") as HTMLElement) || el;
+    const currentTrueBottom = container ? getTrueContentBottom(container) : sheetHeight;
+
+    const result = calculateFitToOnePageSettings(resumeData.settings || {}, currentTrueBottom);
+
+    if (result.isAlreadySinglePage) {
+      toast.success("Your resume already fits perfectly on 1 page!");
+      return;
+    }
+
+    setResumeData((prev) => ({
+      ...prev,
+      settings: result.settings,
+    }));
+    toast.success(`Snapped to 1 page! (${result.description})`);
   };
 
   const printPdf = async () => {
@@ -1240,6 +1470,19 @@ export default function ResumeBuilder() {
                     {sheetHeight <= A4_HEIGHT_PX + 25 ? "1 Page (ATS Optimal)" : `~${Math.ceil(sheetHeight / A4_HEIGHT_PX)} Pages (Overflow)`}
                   </span>
                 </div>
+
+                {sheetHeight > A4_HEIGHT_PX + 25 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAutoFitToOnePage}
+                    className="h-6 px-2.5 text-[10.5px] font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full shadow-md shadow-emerald-500/20 flex items-center gap-1 cursor-pointer animate-in fade-in"
+                    title="Auto-tune typography & spacing to snap onto 1 page"
+                  >
+                    <Wand2 className="h-3 w-3" />
+                    <span>Fit to 1 Page</span>
+                  </Button>
+                )}
 
                 {user && (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#161922] text-[10px] font-semibold border border-white/10 text-zinc-400">
@@ -2901,12 +3144,25 @@ export default function ResumeBuilder() {
                           )}
 
                            {resumeData && resumeData.name && !loading && resumeData._isPolished && (
-                              <div className="flex items-start gap-3 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 animate-in zoom-in-95">
-                                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-xs font-bold text-emerald-400">✓ Resume polished successfully</p>
-                                  <p className="text-[10px] text-zinc-400 mt-0.5">"Your content has been improved for clarity, impact, and ATS relevance."</p>
+                              <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 animate-in zoom-in-95 space-y-2">
+                                <div className="flex items-start gap-3">
+                                  <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-xs font-bold text-emerald-400">✓ Resume polished with AI</p>
+                                    <p className="text-[10px] text-zinc-400 mt-0.5">"Your content has been optimized with strong verbs and ATS alignment."</p>
+                                  </div>
                                 </div>
+                                {pendingDiffBullets.length > 0 && (
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setDiffModalOpen(true)}
+                                    className="w-full h-7 text-xs border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-semibold cursor-pointer"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" /> Re-open Diff Review ({pendingDiffBullets.length} bullets)
+                                  </Button>
+                                )}
                               </div>
                             )}
                          </div>
@@ -3158,6 +3414,8 @@ export default function ResumeBuilder() {
                         onChangeSettings={(newSettings) => setResumeData(prev => ({ ...prev, settings: newSettings }))}
                         template={template}
                         onChangeTemplate={setTemplate}
+                        onAutoFitToOnePage={handleAutoFitToOnePage}
+                        isOverflowing={sheetHeight > A4_HEIGHT_PX + 25}
                       />
                     </div>
 
@@ -3352,6 +3610,15 @@ export default function ResumeBuilder() {
           }}
         />
       )}
+
+      {/* TAILORING DIFF & BULLET REVIEW MODAL */}
+      <TailorDiffPreviewModal
+        open={diffModalOpen}
+        onOpenChange={setDiffModalOpen}
+        diffItems={pendingDiffBullets}
+        summaryDiff={pendingSummaryDiff}
+        onApplyChanges={handleApplyTailorDiff}
+      />
     </div>
     </DragDropContext>
   );
