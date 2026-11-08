@@ -22,8 +22,15 @@ interface Row {
   result: AtsResult | null;
 }
 
+const safeId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "row_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
+};
+
 const newRow = (n: number): Row => ({
-  id: crypto.randomUUID(),
+  id: safeId(),
   label: `Resume ${n}`,
   resume: "",
   loading: false,

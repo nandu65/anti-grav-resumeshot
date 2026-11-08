@@ -24,7 +24,7 @@ const SECTION_LABELS: Record<string, string> = {
   certifications: "Certifications",
 };
 
-export const DEFAULT_FORMATTING_SETTINGS: Required<Omit<ResumeSettings, "sections" | "sectionOrder" | "customSectionTitles" | "headerBg" | "sidebarBg" | "primaryColor" | "accentColor">> = {
+export const DEFAULT_FORMATTING_SETTINGS: Required<Omit<ResumeSettings, "sections" | "sectionOrder" | "customSectionTitles" | "headerBg" | "sidebarBg" | "primaryColor" | "accentColor" | "skillsLayout" | "photoSize" | "logoSize" | "photoAlign" | "photoOffsetX" | "photoOffsetY" | "logoAlign" | "logoOffsetX" | "logoOffsetY">> = {
   fontFamily: "Arial, sans-serif",
   fontSize: 11,
   headingSize: 14,
@@ -264,6 +264,54 @@ export function ResumeDesignFormattingPanel({
           {/* DOCUMENT FORMATTING */}
           <div className="space-y-3.5">
             <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-400">Document Formatting</h4>
+
+            {/* Skills Layout Switcher */}
+            <div className="space-y-2 p-2.5 rounded-xl bg-white/[0.04] border border-white/10">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-zinc-200">Skills Layout</span>
+                <span className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider">
+                  {(settings.skillsLayout || "horizontal") === "horizontal" ? "Row format" : settings.skillsLayout === "columns" ? "2 Columns" : "Vertical"}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 bg-[#161922] p-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => updateSetting("skillsLayout", "horizontal")}
+                  className={`py-1.5 px-2 text-[10.5px] font-bold rounded-lg transition-all ${
+                    (settings.skillsLayout || "horizontal") === "horizontal"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                  }`}
+                  title="Horizontal row format (saves space, keeps 1 page)"
+                >
+                  Row Format
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSetting("skillsLayout", "columns")}
+                  className={`py-1.5 px-2 text-[10.5px] font-bold rounded-lg transition-all ${
+                    settings.skillsLayout === "columns"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                  }`}
+                  title="2-Column grid layout"
+                >
+                  2 Columns
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSetting("skillsLayout", "vertical")}
+                  className={`py-1.5 px-2 text-[10.5px] font-bold rounded-lg transition-all ${
+                    settings.skillsLayout === "vertical"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                  }`}
+                  title="Vertical list format"
+                >
+                  Vertical
+                </button>
+              </div>
+            </div>
 
             {/* Section Spacing */}
             <div className="space-y-1.5">

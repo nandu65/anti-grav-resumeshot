@@ -30,7 +30,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import {
   TEMPLATES, TemplateId, ResumeData, ResumePreview, TemplateMiniPreview, SAMPLE_RESUME_DATA,
   downloadResumePdfFromData, printResumeVectorPdf, downloadResumeDocxFromData, buildResumeDataVerbatim,
-  normalizeResumeSkills, getNormalizedSectionOrder, isGenericSkillCategory,
+  normalizeResumeSkills, getNormalizedSectionOrder, isGenericSkillCategory, getTrueContentBottom,
   A4_WIDTH_PX, A4_HEIGHT_PX,
 } from "@/lib/resumeTemplates";
 import { BuilderIntroLoader } from "@/components/BuilderIntroLoader";
@@ -183,8 +183,12 @@ export default function ResumeBuilder() {
     const el = sheetWrapRef.current;
     if (!el) return;
     const updateHeight = () => {
-      const sh = el.scrollHeight || el.offsetHeight || A4_HEIGHT_PX;
-      setSheetHeight(sh);
+      const container = (el.querySelector(".resume-root-container") as HTMLElement) || el;
+      const trueBottom = getTrueContentBottom(container);
+      const computedHeight = trueBottom <= A4_HEIGHT_PX + 25 
+        ? A4_HEIGHT_PX 
+        : Math.ceil((trueBottom - 25) / A4_HEIGHT_PX) * A4_HEIGHT_PX;
+      setSheetHeight(computedHeight);
     };
     updateHeight();
     const ro = new ResizeObserver(() => updateHeight());
@@ -1256,7 +1260,10 @@ export default function ResumeBuilder() {
                 <div className="lg:hidden">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-white/10 bg-[#161922] text-zinc-200"><Eye className="h-3.5 w-3.5" /></Button>
+                            <Button variant="outline" size="sm" className="h-8 px-2.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                              <Eye className="h-3.5 w-3.5" />
+                              <span>Preview</span>
+                            </Button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[90vh] p-0 bg-[#090b0e] border-white/10 text-zinc-100">
                             <div className="p-4 border-b border-white/10 flex items-center justify-between">
@@ -2469,7 +2476,48 @@ export default function ResumeBuilder() {
                    <div className="space-y-6">
 
                       <div className="space-y-2">
-                        <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 ml-1">Skills (One category per line, e.g., Languages: Java, Python)</Label>
+                          {/* Quick Skills Layout Switcher */}
+                          <div className="flex items-center bg-[#161922] p-0.5 rounded-lg border border-white/10 gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, skillsLayout: "horizontal" } }))}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
+                                (resumeData.settings?.skillsLayout || "horizontal") === "horizontal"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                  : "text-zinc-400 hover:text-white"
+                              }`}
+                              title="Row / Inline format"
+                            >
+                              Row
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, skillsLayout: "columns" } }))}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
+                                resumeData.settings?.skillsLayout === "columns"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                  : "text-zinc-400 hover:text-white"
+                              }`}
+                              title="2 Columns format"
+                            >
+                              2 Col
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setResumeData(prev => ({ ...prev, settings: { ...prev.settings, skillsLayout: "vertical" } }))}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
+                                resumeData.settings?.skillsLayout === "vertical"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                  : "text-zinc-400 hover:text-white"
+                              }`}
+                              title="Vertical list format"
+                            >
+                              Vertical
+                            </button>
+                          </div>
+                        </div>
                         <Textarea 
                           value={resumeData.skills.map(s => isGenericSkillCategory(s.category) ? s.items.join(', ') : `${s.category}: ${s.items.join(', ')}`).join('\n')} 
                           onChange={e => {
@@ -2481,12 +2529,12 @@ export default function ResumeBuilder() {
                                 }
                                 return { category: "Skills", items: line.split(',').map(i => i.trim()).filter(Boolean) };
                             });
-                            setResumeData({ ...resumeData, skills: newSkills });
+                            setResumeData(normalizeResumeSkills({ ...resumeData, skills: newSkills }));
                           }} 
                           placeholder="Languages: TypeScript, JavaScript&#10;Frameworks: React, Node.js" 
                           className="min-h-[120px] rounded-xl border-white/10 bg-[#161922] text-zinc-100 placeholder:text-zinc-500 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500/60" 
                         />
-                        <p className="text-[10px] text-zinc-500 ml-1">Tip: Use "Category: skill1, skill2" for grouping.</p>
+                        <p className="text-[10px] text-zinc-500 ml-1">Tip: Use "Category: skill1, skill2" for grouping. Choose Row, 2 Col, or Vertical above.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -3075,19 +3123,6 @@ export default function ResumeBuilder() {
                                 canUndo={canUndo}
                                 canRedo={canRedo}
                               />
-
-                              {/* Subtle Visual A4 Page 1 Cutoff Line Guide */}
-                              {sheetHeight > A4_HEIGHT_PX + 25 && (
-                                <div
-                                  className="preview-only-badge absolute left-0 right-0 pointer-events-none z-30 flex items-center justify-end pr-3 select-none"
-                                  style={{ top: `${A4_HEIGHT_PX}px` }}
-                                >
-                                  <div className="w-full border-b-2 border-dashed border-red-500/50 -mr-2" />
-                                  <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shrink-0">
-                                    ✂ Page 1 Cutoff (Overflow)
-                                  </span>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>

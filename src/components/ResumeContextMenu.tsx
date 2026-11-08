@@ -798,10 +798,14 @@ export function ResumeContextMenu({
                 onDeleteLine(position.targetLineIndex);
                 onClose();
               }}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-destructive/10 text-destructive text-left transition-colors"
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-destructive/15 text-destructive text-left transition-colors font-medium"
+              title="Delete this row or line"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Delete Line</span>
+              <span className="flex items-center gap-2">
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                <span>Delete Row / Line</span>
+              </span>
+              <kbd className="text-[9px] text-destructive/80 bg-destructive/10 px-1.5 py-0.5 rounded border border-destructive/20">Backspace</kbd>
             </button>
           )}
         </div>

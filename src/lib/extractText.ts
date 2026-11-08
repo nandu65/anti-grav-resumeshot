@@ -6,8 +6,9 @@ import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 if (typeof window !== "undefined") {
   try {
+    const version = (pdfjsLib as any).version || "5.6.205";
     pdfjsLib.GlobalWorkerOptions.workerSrc =
-      workerSrc || `https://unpkg.com/pdfjs-dist@${pdfjsLib.version || "4.10.38"}/build/pdf.worker.min.mjs`;
+      workerSrc || `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
   } catch (e) {
     console.warn("Could not set workerSrc:", e);
   }

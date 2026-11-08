@@ -36,6 +36,7 @@ export function Navbar() {
           <Button variant="ghost" size="sm" title="Take the product tour" onClick={startTour} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5">
             <HelpCircle className="h-4 w-4 mr-1 text-emerald-500 dark:text-emerald-400" /> Tour
           </Button>
+          <Button asChild variant="ghost" size="sm" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"><Link to="/tools/resume-builder">Resume Builder</Link></Button>
           <Button asChild variant="ghost" size="sm" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"><Link to="/pricing">Pricing</Link></Button>
           {user ? (
             <>
@@ -77,6 +78,9 @@ export function Navbar() {
           <div className="container py-3 flex flex-col gap-1">
             <Button variant="ghost" className="justify-start" onClick={startTour}>
               <HelpCircle className="h-4 w-4 mr-2" /> Tour
+            </Button>
+            <Button asChild variant="ghost" className="justify-start text-emerald-500 dark:text-emerald-400 font-medium" onClick={() => setOpen(false)}>
+              <Link to="/tools/resume-builder">Resume Builder</Link>
             </Button>
             <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
               <Link to="/pricing">Pricing</Link>

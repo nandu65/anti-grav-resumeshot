@@ -51,6 +51,7 @@ export interface ResumeSettings {
   accentColor?: string;
   headerBg?: string;
   sidebarBg?: string;
+  skillsLayout?: "horizontal" | "columns" | "vertical";
   sectionSpacing?: number;
   paragraphSpacing?: number;
   lineSpacing?: number;
@@ -491,6 +492,34 @@ export const Editable = React.memo(function Editable({
       onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
         if (!editable) return;
 
+        // If in that row nothing is there (no letter, nothing), clicking Backspace makes the row disappear
+        if (e.key === "Backspace") {
+          const el = ref.current;
+          if (el) {
+            const raw = (el.innerText || el.textContent || "").replace(/[\u200B-\u200D\uFEFF\u00A0\s•\-\*]/g, "");
+            if (raw === "") {
+              e.preventDefault();
+              el.innerHTML = "";
+              onChange?.("");
+              const editables = Array.from(document.querySelectorAll('[contenteditable="true"]')) as HTMLElement[];
+              const idx = editables.indexOf(el);
+              if (idx > 0) {
+                const prev = editables[idx - 1];
+                prev.focus();
+                const sel = window.getSelection();
+                if (sel) {
+                  const r = document.createRange();
+                  r.selectNodeContents(prev);
+                  r.collapse(false);
+                  sel.removeAllRanges();
+                  sel.addRange(r);
+                }
+              }
+              return;
+            }
+          }
+        }
+
         // Shortcut: Alt+B, Alt+8, or Ctrl+Shift+8 to insert bullet point
         if (
           (e.altKey && (e.key === "b" || e.key === "B" || e.key === "8")) ||
@@ -587,6 +616,38 @@ export function BulletsEditor({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
     if (!editable) return;
+
+    // If in that row nothing is there (no letter, nothing), clicking Backspace makes the row disappear
+    if (e.key === "Backspace") {
+      const sel = window.getSelection();
+      if (!sel || !ref.current) return;
+      const li = sel.anchorNode ? (sel.anchorNode instanceof HTMLElement ? sel.anchorNode.closest("li") : sel.anchorNode.parentElement?.closest("li")) : null;
+      if (li && ref.current.contains(li)) {
+        const raw = (li.textContent || "").replace(/[\u200B-\u200D\uFEFF\u00A0\s•\-\*]/g, "");
+        if (raw === "") {
+          e.preventDefault();
+          const lis = Array.from(ref.current.querySelectorAll("li"));
+          const idx = lis.indexOf(li);
+          if (idx !== -1) {
+            const prevLi = lis[idx - 1] || lis[idx + 1];
+            li.remove();
+            if (prevLi) {
+              prevLi.focus();
+              const range = document.createRange();
+              range.selectNodeContents(prevLi);
+              range.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+            const remaining = Array.from(ref.current.querySelectorAll("li"))
+              .map(l => (l.innerHTML || "").trim())
+              .filter(Boolean);
+            onChange?.(remaining);
+            return;
+          }
+        }
+      }
+    }
 
     // Alt + ArrowUp to move active bullet line up
     if (e.altKey && e.key === "ArrowUp") {
@@ -761,14 +822,39 @@ function SkillCat({ value, onChange, className, as, colon }: {
 }
 
 /** Normalize skill groups while preserving user-defined distinct groups and multiline formatting. */
-export function normalizeResumeSkills<T extends { skills?: { category: string; items: string[] }[]; leadership?: { role: string; organization: string; location?: string; start?: string; end?: string; bullets: string[] }[] }>(r: T): T {
+export function normalizeResumeSkills<T extends { skills?: { category: string; items: string[] }[]; leadership?: { role: string; organization: string; location?: string; start?: string; end?: string; bullets: string[] }[]; settings?: ResumeSettings }>(r: T): T {
   let res: any = r;
   if (res?.skills?.length) {
-    const skills = res.skills.map((g: any) => ({
-      category: isGenericSkillCategory(g.category) ? "Skills" : g.category,
-      items: Array.isArray(g.items) ? g.items : (g.items ? [g.items] : []),
-    }));
-    res = { ...res, skills };
+    const merged: { category: string; items: string[] }[] = [];
+    for (const g of res.skills) {
+      const isGeneric = isGenericSkillCategory(g.category);
+      const cat = isGeneric ? "Skills" : (g.category || "Skills").trim();
+      const rawItems = Array.isArray(g.items) ? g.items : (g.items ? [g.items] : []);
+      const items = rawItems
+        .map((s: string) => (s || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim())
+        .filter(Boolean);
+
+      if (isGeneric) {
+        const existingGeneric = merged.find(m => isGenericSkillCategory(m.category));
+        if (existingGeneric) {
+          items.forEach(it => {
+            if (!existingGeneric.items.includes(it)) existingGeneric.items.push(it);
+          });
+        } else {
+          merged.push({ category: "Skills", items });
+        }
+      } else {
+        const existing = merged.find(m => m.category.toLowerCase() === cat.toLowerCase());
+        if (existing) {
+          items.forEach(it => {
+            if (!existing.items.includes(it)) existing.items.push(it);
+          });
+        } else {
+          merged.push({ category: cat, items });
+        }
+      }
+    }
+    res = { ...res, skills: merged };
   }
   if (res?.leadership?.length) {
     const leadership = res.leadership.map((l: any) => ({
@@ -783,16 +869,224 @@ export function normalizeResumeSkills<T extends { skills?: { category: string; i
   return res;
 }
 
-/** Format skill items for display/editing in templates, preserving line breaks. */
-export function formatSkillsForEditor(items?: string[]): string {
-  if (!items || !items.length) return "";
-  return items.join("\n");
+/** Accurately calculate the furthest bottom of real visible text/image content within the resume */
+export function getTrueContentBottom(container: HTMLElement | null): number {
+  if (!container || typeof document === "undefined") return A4_HEIGHT_PX;
+  const containerRect = container.getBoundingClientRect();
+  let maxBottom = 0;
+
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode(node) {
+        const el = node as HTMLElement;
+        if (
+          el.hasAttribute("data-page-indicator") ||
+          el.hasAttribute("data-page-badge") ||
+          el.classList.contains("preview-only-badge") ||
+          el.getAttribute("role") === "menu" ||
+          el.getAttribute("role") === "tooltip" ||
+          el.tagName === "STYLE" ||
+          el.tagName === "SCRIPT"
+        ) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (el.tagName === "IMG" || el.tagName === "CANVAS" || el.tagName === "SVG") {
+          return NodeFilter.FILTER_ACCEPT;
+        }
+        let hasDirectText = false;
+        for (let i = 0; i < el.childNodes.length; i++) {
+          const child = el.childNodes[i];
+          if (child.nodeType === Node.TEXT_NODE && (child.textContent || "").trim().length > 0) {
+            hasDirectText = true;
+            break;
+          }
+        }
+        return hasDirectText ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    }
+  );
+
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    const el = node as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0 && rect.width > 0) {
+      const bottom = rect.bottom - containerRect.top;
+      if (bottom > maxBottom) {
+        maxBottom = bottom;
+      }
+    }
+  }
+
+  return maxBottom > 0 ? Math.round(maxBottom) : (container.scrollHeight || A4_HEIGHT_PX);
 }
 
-/** Parse edited skill text back into items array, preserving each line (Enter). */
+/** Check if a canvas slice has any non-white/visible pixels */
+export function isCanvasBlank(canvas: HTMLCanvasElement): boolean {
+  try {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return true;
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+    const len = data.length;
+    for (let p = 0; p < len; p += 16) {
+      const a = data[p + 3];
+      if (a > 20) {
+        const r = data[p];
+        const g = data[p + 1];
+        const b = data[p + 2];
+        if (r < 248 || g < 248 || b < 248) {
+          return false;
+        }
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Universal Skills Section Renderer supporting Horizontal, 2-Column Grid, and Vertical layouts */
+export function renderSkillsSection({
+  skills = [],
+  settings,
+  update,
+  on,
+  dotColor = "text-neutral-700",
+  className = "",
+}: {
+  skills?: ResumeData["skills"];
+  settings?: ResumeSettings;
+  update?: UpdateFn;
+  on?: (patch: Partial<ResumeData>) => void;
+  dotColor?: string;
+  className?: string;
+}) {
+  const layout = settings?.skillsLayout || "horizontal";
+  const allItems = (skills || []).flatMap(s => s.items || []).filter(Boolean);
+  if ((!skills || skills.length === 0) && allItems.length === 0) return null;
+
+  // 1. Horizontal / Row format (compact, comma/inline flow)
+  if (layout === "horizontal") {
+    const categorized = (skills || []).filter(s => !isGenericSkillCategory(s.category) && (s.items || []).length > 0);
+    if (categorized.length > 0) {
+      return (
+        <div className={`space-y-1 text-[10px] leading-relaxed ${className}`}>
+          {(skills || []).map((s, i) => {
+            const upd = makeSkillUpdater(update, { skills } as any, i);
+            return (
+              <div key={i} className="leading-snug">
+                <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold mr-1" colon />
+                <Editable
+                  as="span"
+                  multiline
+                  value={formatSkillsForEditor(s.items)}
+                  onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))}
+                  className="whitespace-pre-wrap"
+                />
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] leading-relaxed ${className}`}>
+        {(skills || []).map((s, i) => {
+          const upd = makeSkillUpdater(update, { skills } as any, i);
+          return (
+            <Editable
+              key={i}
+              as="span"
+              multiline
+              value={formatSkillsForEditor(s.items)}
+              onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))}
+              className="whitespace-pre-wrap"
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  // 2. 2-Columns Grid format
+  if (layout === "columns") {
+    const half = Math.ceil(allItems.length / 2);
+    const col1 = allItems.slice(0, half);
+    const col2 = allItems.slice(half);
+
+    return (
+      <div className={`grid grid-cols-2 gap-x-6 text-[10px] leading-relaxed ${className}`}>
+        <ul className="space-y-1">
+          {col1.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-1.5">
+              <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+              <Editable
+                as="span"
+                value={item}
+                onChange={update && (v => {
+                  const newItems = [...allItems];
+                  newItems[idx] = v;
+                  on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+                })}
+              />
+            </li>
+          ))}
+        </ul>
+        <ul className="space-y-1">
+          {col2.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-1.5">
+              <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+              <Editable
+                as="span"
+                value={item}
+                onChange={update && (v => {
+                  const newItems = [...allItems];
+                  newItems[half + idx] = v;
+                  on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+                })}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  // 3. Vertical list format (1 skill per line)
+  return (
+    <ul className={`space-y-1 text-[10px] leading-relaxed ${className}`}>
+      {allItems.map((item, idx) => (
+        <li key={idx} className="flex items-start gap-1.5">
+          <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+          <Editable
+            as="span"
+            value={item}
+            onChange={update && (v => {
+              const newItems = [...allItems];
+              newItems[idx] = v;
+              on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+            })}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Format skill items for display/editing in templates, preserving comma-separated horizontal layout. */
+export function formatSkillsForEditor(items?: string[]): string {
+  if (!items || !items.length) return "";
+  return items.join(", ");
+}
+
+/** Parse edited skill text back into items array, splitting by commas or line breaks. */
 export function parseSkillsFromEditor(text: string): string[] {
   if (!text) return [];
-  return text.split("\n");
+  return text.split(/[\n,]/).map(x => x.trim()).filter(Boolean);
 }
 
 
@@ -1241,14 +1535,14 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <div className="uppercase tracking-wider text-[9px] font-bold border-b border-emerald-600 pb-1 mb-2">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </div>
-              <ul className="space-y-1 text-[9.5px]">
-                {r.skills.flatMap(s => s.items).map((it, k) => (
-                  <li key={k} className="flex items-start gap-1.5">
-                    <span className="text-emerald-300 font-bold select-none">•</span>
-                    <span>{it}</span>
-                  </li>
-                ))}
-              </ul>
+              {renderSkillsSection({
+                skills: r.skills,
+                settings: r.settings,
+                update,
+                on,
+                dotColor: "text-emerald-300",
+                className: "text-[9.5px]"
+              })}
             </div>
           )}
           {r.certifications?.length > 0 && (
@@ -1299,7 +1593,9 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   <span className="font-bold flex-1"><Editable value={e.role} onChange={update && (v => upd({ role: v }))} />, <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /></span>
                   <span className="text-[10px] whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span>
                 </div>
-                <Editable as="div" value={e.location} onChange={update && (v => upd({ location: v }))} className="italic text-[10px]" />
+                {e.location && e.location.trim() ? (
+                  <Editable as="div" value={e.location} onChange={update && (v => upd({ location: v }))} className="italic text-[10px]" />
+                ) : null}
                 <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5" />
               </div>
             );
@@ -1317,7 +1613,9 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                   <span className="font-bold flex-1"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} />, <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
                   <span className="text-[10px] whitespace-nowrap"><Editable value={l.start || ""} onChange={update && (v => upd({ start: v }))} /> – <Editable value={l.end || ""} onChange={update && (v => upd({ end: v }))} /></span>
                 </div>
-                {l.location && <Editable as="div" value={l.location} onChange={update && (v => upd({ location: v }))} className="italic text-[10px]" />}
+                {l.location && l.location.trim() ? (
+                  <Editable as="div" value={l.location} onChange={update && (v => upd({ location: v }))} className="italic text-[10px]" />
+                ) : null}
                 <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 mt-0.5" />
               </div>
             );
@@ -1332,7 +1630,9 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             return (
               <div key={i} className="mb-1">
                 <div className="flex justify-between gap-2"><span className="font-bold flex-1"><Editable value={e.degree} onChange={update && (v => upd({ degree: v }))} />, <Editable value={e.school} onChange={update && (v => upd({ school: v }))} /></span><span className="text-[10px] whitespace-nowrap"><Editable value={e.start} onChange={update && (v => upd({ start: v }))} /> – <Editable value={e.end} onChange={update && (v => upd({ end: v }))} /></span></div>
-                <Editable as="div" value={e.details} onChange={update && (v => upd({ details: v }))} className="text-[10px]" />
+                {e.details && e.details.trim() ? (
+                  <Editable as="div" value={e.details} onChange={update && (v => upd({ details: v }))} className="text-[10px]" />
+                ) : null}
               </div>
             );
           });
@@ -1355,19 +1655,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           title = "Skills";
-          content = (
-            <div className="space-y-1">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[10px] leading-relaxed">
-                    <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                  </div>
-                );
-              })}
-            </div>
-          );
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on });
         }
         break;
       case "certifications":
@@ -2106,11 +2394,16 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     if (!el) return;
 
     const measure = () => {
-      const sh = el.scrollHeight || el.offsetHeight || A4_HEIGHT_PX;
-      setTotalH(sh);
-      const count = Math.max(1, Math.ceil((sh - 25) / A4_HEIGHT_PX));
-      el.style.setProperty("--page-h", `${count * A4_HEIGHT_PX}px`);
-      el.style.setProperty("min-height", `${count * A4_HEIGHT_PX}px`);
+      // Clear inflated min-height before measuring to avoid sticky multi-page trap
+      el.style.minHeight = `${A4_HEIGHT_PX}px`;
+      const trueBottom = getTrueContentBottom(el);
+      const count = trueBottom <= A4_HEIGHT_PX + 25 
+        ? 1 
+        : Math.max(1, Math.ceil((trueBottom - 25) / A4_HEIGHT_PX));
+      const targetH = count * A4_HEIGHT_PX;
+      setTotalH(targetH);
+      el.style.setProperty("--page-h", `${targetH}px`);
+      el.style.setProperty("min-height", `${targetH}px`);
     };
 
     measure();
@@ -2137,7 +2430,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     );
   }
 
-  const pageCount = Math.max(1, Math.ceil((totalH - 25) / A4_HEIGHT_PX));
+  const pageCount = totalH <= A4_HEIGHT_PX + 25 ? 1 : Math.max(1, Math.ceil((totalH - 25) / A4_HEIGHT_PX));
   const breaks: number[] = [];
   for (let i = 1; i < pageCount; i++) breaks.push(i * A4_HEIGHT_PX);
 
@@ -2151,7 +2444,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
       } as React.CSSProperties}
     >
       {children}
-      {breaks.map((top, i) => (
+      {pageCount > 1 && breaks.map((top, i) => (
         <div
           key={i}
           aria-hidden="true"
@@ -2159,9 +2452,9 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
           className="preview-only-badge pointer-events-none absolute left-0 right-0 z-10"
           style={{ top: top - 1 }}
         >
-          <div className="border-t-2 border-dashed border-emerald-500/60 shadow-sm" />
-          <div className="absolute -top-2.5 right-2 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9.5px] font-bold shadow-md flex items-center gap-1">
-            <span>📄 Page {i + 2}</span>
+          <div className="border-t-2 border-dashed border-rose-500/80 shadow-sm" />
+          <div className="absolute -top-2.5 right-2 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9.5px] font-bold shadow-md flex items-center gap-1">
+            <span>✂ Page {i + 1} Cutoff (Overflow)</span>
           </div>
         </div>
       ))}
@@ -2169,7 +2462,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
         <div
           aria-hidden="true"
           data-page-badge="true"
-          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2.5 py-0.5 rounded-full bg-emerald-600/90 text-white text-[9.5px] font-bold shadow-md"
+          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2.5 py-0.5 rounded-full bg-rose-600/90 text-white text-[9.5px] font-bold shadow-md"
         >
           {pageCount} pages
         </div>
@@ -4281,33 +4574,13 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function renderBulletSkills2Col(skills: ResumeData["skills"] = [], update?: UpdateFn, dotColor = "text-black") {
-  const allItems = (skills || []).flatMap(s => s.items || []).filter(Boolean);
-  if (allItems.length === 0) return null;
-  const half = Math.ceil(allItems.length / 2);
-  const col1 = allItems.slice(0, half);
-  const col2 = allItems.slice(half);
-
-  return (
-    <div className="grid grid-cols-2 gap-x-6 text-[10px] leading-relaxed text-black">
-      <ul className="space-y-1">
-        {col1.map((item, idx) => (
-          <li key={idx} className="flex items-start gap-1.5">
-            <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-      <ul className="space-y-1">
-        {col2.map((item, idx) => (
-          <li key={idx} className="flex items-start gap-1.5">
-            <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+function renderBulletSkills2Col(skills: ResumeData["skills"] = [], update?: UpdateFn, dotColor = "text-black", r?: ResumeData) {
+  return renderSkillsSection({
+    skills,
+    settings: r?.settings,
+    update,
+    dotColor,
+  });
 }
 
 function renderLanguagesSection(r: ResumeData, barColor = "bg-slate-700") {
@@ -4339,7 +4612,7 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
   const initials = getInitials(r.name);
 
   return (
-    <div className="bg-white text-black p-6 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black p-6 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       <div className="border-[3px] border-[#2563eb] rounded-2xl p-7 space-y-4">
         {/* Header */}
         <div className="text-center space-y-1.5">
@@ -4538,7 +4811,7 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
   const restName = nameParts.slice(1).join(" ");
 
   return (
-    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-black tracking-wide">
@@ -4674,7 +4947,7 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
   const initials = getInitials(r.name);
 
   return (
-    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Header with Hexagon Badge */}
       <div className="flex justify-between items-center pb-4 border-b border-slate-300">
         <div className="flex items-center gap-4">
@@ -4811,7 +5084,7 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
   return (
-    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Dark Slate Top Bar */}
       <div className="bg-[#334155] h-5 w-full" />
       <div className="p-8 space-y-3">
@@ -4953,7 +5226,7 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
   return (
-    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4">
+    <div className="bg-white text-black p-8 font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] space-y-4" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Header */}
       <div className="text-center pt-2">
         <Editable as="h1" value={r.name || ""} onChange={update && (v => on({ name: v }))} className="text-3xl font-extrabold tracking-tight text-slate-900" />
@@ -5085,7 +5358,7 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
   return (
-    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Top Banner */}
       <div className="bg-[#374151] text-white py-3 px-6 text-center text-[10px] flex justify-center items-center gap-6">
         {r.location && <Editable value={r.location} onChange={update && (v => on({ location: v }))} />}
@@ -5178,7 +5451,7 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
   return (
-    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Warm Taupe Header */}
       <div className="bg-[#a89689] text-white p-7 flex justify-between items-center">
         <div>
@@ -5271,7 +5544,7 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
   const rest = nameParts.slice(1).join(" ");
 
   return (
-    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Amber Golden Ribbon */}
       <div className="bg-[#fbbf24] h-7 w-full" />
       <div className="p-8 space-y-3.5">
@@ -5368,7 +5641,7 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
   const on = (patch: Partial<ResumeData>) => update?.(patch);
 
   return (
-    <div className="bg-white text-black p-6 font-sans text-[10px] leading-snug w-full min-h-[var(--page-h,auto)]">
+    <div className="bg-white text-black p-6 font-sans text-[10px] leading-snug w-full min-h-[var(--page-h,auto)]" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       <div className="border-[8px] border-[#475569] p-6 min-h-[1050px]">
         <div className="grid grid-cols-[0.34fr_0.66fr] gap-6">
           {/* Left Sidebar */}
@@ -5470,7 +5743,7 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
   const initials = getInitials(r.name);
 
   return (
-    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] p-6">
+    <div className="bg-white text-black font-sans text-[10.5px] leading-snug w-full min-h-[var(--page-h,auto)] p-6" style={{ minHeight: "var(--page-h, auto)", fontSize: r.settings?.fontSize ? `${r.settings.fontSize}px` : undefined, fontFamily: r.settings?.fontFamily || undefined }}>
       {/* Header Banner */}
       <div className="flex items-stretch mb-4">
         {initials && (
@@ -6753,16 +7026,40 @@ export function ResumePreview({
 
   const handleDeleteLine = () => {
     if (!contextMenu?.targetElement || !onChange) return;
-    const li = contextMenu.targetElement.closest("li");
-    const ul = (li?.parentElement || contextMenu.targetElement.closest("ul")) as HTMLUListElement | null;
-    if (ul) {
+    const target = contextMenu.targetElement;
+
+    // 1. If inside an <li> or bullet item:
+    const li = target.closest("li");
+    const ul = (li?.parentElement || target.closest("ul, ol")) as HTMLElement | null;
+    if (ul && li) {
       const lis = Array.from(ul.querySelectorAll("li"));
       const idx = li ? lis.indexOf(li) : (contextMenu.targetLineIndex ?? -1);
       if (idx !== -1 && idx < lis.length) {
         const textArr = lis.map(l => (l.innerHTML || "").trim());
         textArr.splice(idx, 1);
         ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
+        li.remove();
+        toast.success("Row deleted");
+        return;
       }
+    }
+
+    // 2. If target is an editable element or optional field (location, details, etc.):
+    const editableEl = (target.closest('[contenteditable="true"]') || target) as HTMLElement;
+    if (editableEl && editableEl.isContentEditable) {
+      editableEl.innerHTML = "";
+      editableEl.dispatchEvent(new Event("input", { bubbles: true }));
+      editableEl.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+      editableEl.style.display = "none";
+      toast.success("Row deleted");
+      return;
+    }
+
+    // 3. If target is an empty row or gap or block element:
+    const closestRow = target.closest(".mb-1, .mb-2, .mb-3, [data-rs-sec] > div, div") as HTMLElement;
+    if (closestRow && closestRow !== rootRef.current) {
+      closestRow.remove();
+      toast.success("Row deleted");
     }
   };
 
@@ -6860,7 +7157,7 @@ export function ResumePreview({
           onMoveLineDown={contextMenu.targetLineIndex != null ? handleMoveLineDown : undefined}
           onDuplicateLine={contextMenu.targetLineIndex != null ? handleDuplicateLine : undefined}
           onAddLineBelow={contextMenu.targetLineIndex != null ? handleAddLineBelow : undefined}
-          onDeleteLine={contextMenu.targetLineIndex != null ? handleDeleteLine : undefined}
+          onDeleteLine={handleDeleteLine}
           onFormatText={handleFormatText}
           onCopyFormat={handleCopyFormat}
           onPasteFormat={handlePasteFormat}
@@ -7123,8 +7420,8 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
   }
 
   // Measure actual multi-page height
-  const measuredLiveHeight = livePreview ? Math.max(livePreview.scrollHeight, livePreview.offsetHeight, A4_HEIGHT_PX) : A4_HEIGHT_PX;
-  const initialTotalPages = Math.max(1, Math.ceil((measuredLiveHeight - 30) / A4_HEIGHT_PX));
+  const liveTrueBottom = livePreview ? getTrueContentBottom(livePreview) : A4_HEIGHT_PX;
+  const initialTotalPages = liveTrueBottom <= A4_HEIGHT_PX + 25 ? 1 : Math.max(1, Math.ceil((liveTrueBottom - 25) / A4_HEIGHT_PX));
   const initialTargetHeight = initialTotalPages * A4_HEIGHT_PX;
 
   // Create an off-screen export container with opacity: 1 and placed offscreen via left position
@@ -7197,8 +7494,8 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
     tagSections(wrapper.querySelector(".resume-root-container") || wrapper, data.settings?.customSectionTitles);
 
     const sheetEl = (wrapper.querySelector(".resume-root-container") as HTMLElement) || wrapper;
-    const rawHeight = Math.max(sheetEl.scrollHeight, sheetEl.offsetHeight, wrapper.scrollHeight, wrapper.offsetHeight, A4_HEIGHT_PX);
-    const totalPages = Math.max(1, Math.ceil((rawHeight - 30) / A4_HEIGHT_PX));
+    const trueBottom = getTrueContentBottom(sheetEl);
+    const totalPages = trueBottom <= A4_HEIGHT_PX + 25 ? 1 : Math.max(1, Math.ceil((trueBottom - 25) / A4_HEIGHT_PX));
     const targetHeight = totalPages * A4_HEIGHT_PX;
 
     sheetEl.style.setProperty("min-height", `${targetHeight}px`, "important");
@@ -7298,6 +7595,7 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
       const imgData = canvas.toDataURL("image/png", 1.0);
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
     } else {
+      let pagesAdded = 0;
       // Multi-page export with clean slice per page
       for (let i = 0; i < totalPages; i++) {
         const sliceCanvas = document.createElement("canvas");
@@ -7321,11 +7619,17 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
           );
         }
 
+        // Avoid creating a blank 2nd page if there are no letters or graphics
+        if (i > 0 && isCanvasBlank(sliceCanvas)) {
+          continue;
+        }
+
         const sliceData = sliceCanvas.toDataURL("image/png", 1.0);
-        if (i > 0) {
+        if (pagesAdded > 0) {
           pdf.addPage("a4", "portrait");
         }
         pdf.addImage(sliceData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "MEDIUM");
+        pagesAdded++;
       }
     }
 

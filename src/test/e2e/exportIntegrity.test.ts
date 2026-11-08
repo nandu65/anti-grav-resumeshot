@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { normalizeResumeSkills, isGenericSkillCategory, parseRichSegments } from '../../lib/resumeTemplates';
+import { normalizeResumeSkills, isGenericSkillCategory, parseRichSegments, formatSkillsForEditor, parseSkillsFromEditor } from '../../lib/resumeTemplates';
 
 test('Resume Export Data Mapping Integrity', () => {
   const mockData = {
@@ -12,9 +12,21 @@ test('Resume Export Data Mapping Integrity', () => {
   
   const normalized = normalizeResumeSkills(mockData as any);
   expect(normalized.skills).toHaveLength(2);
-  expect(normalized.skills[0].category).toBe("Skills"); // Merged "General"
-  expect(normalized.skills[0].items).toContain("Communication");
-  expect(normalized.skills[1].category).toBe("Technical Skills");
+  expect(normalized.skills[0].category).toBe("Technical Skills");
+  expect(normalized.skills[1].category).toBe("Skills"); // Normalized "General" to generic "Skills"
+  expect(normalized.skills[1].items).toContain("Communication");
+});
+
+test('formatSkillsForEditor and parseSkillsFromEditor handle horizontal comma-separated skills', () => {
+  const skills = ["Microsoft Word", "Excel", "PowerPoint"];
+  const formatted = formatSkillsForEditor(skills);
+  expect(formatted).toBe("Microsoft Word, Excel, PowerPoint");
+
+  const parsed = parseSkillsFromEditor("Microsoft Word, Excel, PowerPoint");
+  expect(parsed).toEqual(["Microsoft Word", "Excel", "PowerPoint"]);
+
+  const parsedWithNewlines = parseSkillsFromEditor("Microsoft Word, Excel\nPowerPoint");
+  expect(parsedWithNewlines).toEqual(["Microsoft Word", "Excel", "PowerPoint"]);
 });
 
 test('isGenericSkillCategory correctly identifies generic labels', () => {

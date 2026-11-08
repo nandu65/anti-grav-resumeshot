@@ -21,7 +21,7 @@ export async function callAi({
   userPrompt,
   jsonMode = true,
   responseSchema,
-  model = "gemini-2.5-flash",
+  model = "gemini-1.5-flash",
 }: AiCallOptions): Promise<AiCallResult> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

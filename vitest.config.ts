@@ -4,6 +4,11 @@ import path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    fs: {
+      strict: false,
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,
@@ -12,6 +17,7 @@ export default defineConfig({
     exclude: ["src/test/e2e/resumeBuilder.test.ts", "node_modules/**"],
   },
   resolve: {
+    preserveSymlinks: true,
     alias: { "@": path.resolve(__dirname, "./src") },
   },
 });
