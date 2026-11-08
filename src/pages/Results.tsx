@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Loader2, Target, Sparkles, ListChecks, Lightbulb, Tag, FileText, Mail, Building2, GraduationCap, BarChart3, Eye, Code2, ExternalLink, TrendingUp, TrendingDown, Minus, Award, Wand2, Lock, MapPin, Briefcase, Printer } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Loader2, Target, Sparkles, ListChecks, Lightbulb, Tag, FileText, Mail, Building2, GraduationCap, BarChart3, Eye, Code2, ExternalLink, TrendingUp, TrendingDown, Minus, Award, Wand2, Lock, MapPin, Briefcase, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -281,6 +281,24 @@ export default function Results() {
               role={opt.role}
               title={opt.title}
             />
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                const data = buildResumeDataFromOptimization(opt);
+                try {
+                  localStorage.setItem("rs-current-resume", JSON.stringify(data));
+                  localStorage.setItem("rs-builder-starter", "uploaded");
+                  if (opt.rewrite_level) {
+                    localStorage.setItem("rs-current-template", opt.rewrite_level);
+                  }
+                } catch {}
+                navigate("/tools/builder");
+              }}
+              className="w-full sm:w-auto border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200 cursor-pointer"
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-emerald-400" /> Edit in Builder
+            </Button>
             <Button size="lg" variant="outline" onClick={() => {
               try {
                 localStorage.setItem("app:prefill", JSON.stringify({
@@ -630,6 +648,34 @@ export default function Results() {
                 })()}
               </Card>
               {isFree && <UpgradeOverlay label="AI bullet rewrites are a Pro feature" />}
+            </div>
+
+            {/* 1-Click Launch into Resume Builder */}
+            <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent p-6 shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="font-display font-semibold text-base text-zinc-100 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-emerald-400" /> Open in Interactive Resume Builder
+                </h4>
+                <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                  Load this tailored resume directly into the visual builder to switch templates, adjust section spacing, customize fonts, or export as vector PDF.
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  const data = buildResumeDataFromOptimization(opt);
+                  try {
+                    localStorage.setItem("rs-current-resume", JSON.stringify(data));
+                    localStorage.setItem("rs-builder-starter", "uploaded");
+                    if (opt.rewrite_level) {
+                      localStorage.setItem("rs-current-template", opt.rewrite_level);
+                    }
+                  } catch {}
+                  navigate("/tools/builder");
+                }}
+                className="shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20 rounded-xl cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" /> Customize in Builder <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
             </div>
           </TabsContent>
 

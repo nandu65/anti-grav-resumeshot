@@ -207,7 +207,7 @@ export default function Dashboard() {
   const levels: { value: RewriteLevel; label: string; desc: string }[] = [
     { value: "light", label: "Light polish", desc: "Minimal edits, keep voice" },
     { value: "balanced", label: "Balanced", desc: "Strong rewrite + keywords" },
-    { value: "aggressive", label: "Aggressive", desc: "Max rewrite for ATS" },
+    { value: "aggressive", label: "Strategic", desc: "Max ATS match with authentic titles & facts" },
   ];
 
   return (
