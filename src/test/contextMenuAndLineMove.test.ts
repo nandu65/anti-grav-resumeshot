@@ -107,5 +107,42 @@ describe("Resume Context Menu & Line-by-Line Movement", () => {
     expect(reordered[1].company).toBe("Company A");
     expect(reordered[2].company).toBe("Company B");
   });
+
+  it("should accurately detect, add, and remove bullet points from single and multiline text", () => {
+    const BULLET_START_REGEX = /^[\s\uFEFF\u00A0]*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i;
+
+    // Test detection
+    expect(BULLET_START_REGEX.test("• Placement Coordinator")).toBe(true);
+    expect(BULLET_START_REGEX.test("- Placement Coordinator")).toBe(true);
+    expect(BULLET_START_REGEX.test(". Christ University")).toBe(true);
+    expect(BULLET_START_REGEX.test("Class Representative")).toBe(false);
+
+    // Test removing bullet from line
+    const bulletedLine = "• Placement Coordinator | Christ Academy";
+    const stripped = bulletedLine.replace(BULLET_START_REGEX, "");
+    expect(stripped).toBe("Placement Coordinator | Christ Academy");
+
+    // Test removing dot bullet
+    const dotLine = ". Christ University";
+    const dotStripped = dotLine.replace(BULLET_START_REGEX, "");
+    expect(dotStripped).toBe("Christ University");
+
+    // Test adding bullet to unbulleted line
+    const plainLine = "Class Representative";
+    const added = BULLET_START_REGEX.test(plainLine) ? plainLine : `• ${plainLine}`;
+    expect(added).toBe("• Class Representative");
+
+    // Test toggling across multiline selection
+    const multiline = "• Line 1\n• Line 2\n• Line 3";
+    const lines = multiline.split("\n");
+    const hasBullets = lines.some(l => BULLET_START_REGEX.test(l.trim()));
+    expect(hasBullets).toBe(true);
+
+    const toggledOff = lines.map(l => l.replace(BULLET_START_REGEX, "")).join("\n");
+    expect(toggledOff).toBe("Line 1\nLine 2\nLine 3");
+
+    const toggledOn = toggledOff.split("\n").map(l => (BULLET_START_REGEX.test(l.trim()) ? l : `• ${l}`)).join("\n");
+    expect(toggledOn).toBe("• Line 1\n• Line 2\n• Line 3");
+  });
 });
 

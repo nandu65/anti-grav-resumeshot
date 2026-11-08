@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import {
   Bold, Italic, Underline, Strikethrough,
   ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Plus, Minus, Trash2,
@@ -58,6 +59,8 @@ const PRESET_HIGHLIGHTS = [
   { label: "Purple", color: "#e9d5ff" },
   { label: "Pink", color: "#fbcfe8" },
 ];
+
+export const BULLET_START_REGEX = /^[\s\uFEFF\u00A0]*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i;
 
 export function ResumeContextMenu({
   position,
@@ -178,6 +181,12 @@ export function ResumeContextMenu({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
+      } else if (
+        (e.altKey && (e.key === "b" || e.key === "B" || e.key === "8")) ||
+        (e.ctrlKey && e.shiftKey && e.key === "8")
+      ) {
+        e.preventDefault();
+        toggleBulletPoint();
       }
     };
 
@@ -265,33 +274,112 @@ export function ResumeContextMenu({
     onClose();
   };
 
-  const insertBulletPoint = () => {
+  // Detect whether the active target or selection currently has a bullet point
+  const checkHasBullet = (): boolean => {
+    // 1. Check selection if text is selected
+    const sel = window.getSelection();
+    const selText = (!sel?.isCollapsed && sel?.toString()) || position?.selectedText;
+    if (selText && selText.trim()) {
+      return BULLET_START_REGEX.test(selText.trim());
+    }
+
+    // 2. Check target element or closest contenteditable
+    const el = (position?.targetElement?.closest('[contenteditable="true"]') || position?.targetElement) as HTMLElement | null;
+    if (el) {
+      const text = (el.innerText || el.textContent || "").trim();
+      if (BULLET_START_REGEX.test(text)) return true;
+      const li = el.closest("li");
+      if (li) {
+        if (li.style.listStyleType === "none" || li.classList.contains("list-none")) {
+          return false;
+        }
+        const ul = li.closest("ul, ol");
+        if (ul && (ul.classList.contains("list-disc") || ul.classList.contains("list-decimal"))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const hasBullet = checkHasBullet();
+
+  const toggleBulletPoint = () => {
     restoreSelection();
     const sel = window.getSelection();
-    if (!sel) return;
+    const targetEditable = (position?.targetElement?.closest('[contenteditable="true"]') || position?.targetElement) as HTMLElement | null;
+    const li = position?.targetElement?.closest("li");
 
-    if (!sel.isCollapsed && sel.toString()) {
+    // Case 1: Active text selection across one or more lines
+    if (sel && !sel.isCollapsed && sel.toString()) {
       const text = sel.toString();
       const lines = text.split("\n");
-      const bulleted = lines.map(line => (line.trim().startsWith("•") ? line : `• ${line}`)).join("\n");
+      const shouldRemove = lines.some(line => line.trim() && BULLET_START_REGEX.test(line.trim()));
+
+      const modified = lines.map(line => {
+        if (!line.trim()) return line;
+        if (shouldRemove) {
+          return line.replace(BULLET_START_REGEX, "");
+        } else {
+          return BULLET_START_REGEX.test(line.trim()) ? line : `• ${line}`;
+        }
+      }).join("\n");
+
       try {
-        const success = document.execCommand("insertText", false, bulleted);
+        const success = document.execCommand("insertText", false, modified);
         if (!success && savedRangeRef.current) {
           savedRangeRef.current.deleteContents();
-          savedRangeRef.current.insertNode(document.createTextNode(bulleted));
+          savedRangeRef.current.insertNode(document.createTextNode(modified));
         }
       } catch (_) {}
+
+      toast.success(shouldRemove ? "Bullet point removed" : "Bullet point added");
+    }
+    // Case 2: Target element / cursor line
+    else if (targetEditable) {
+      const currentHtml = targetEditable.innerHTML;
+      const currentText = (targetEditable.innerText || targetEditable.textContent || "").trim();
+      const elementHasBullet = BULLET_START_REGEX.test(currentText);
+
+      if (elementHasBullet) {
+        // Remove leading bullet from editable HTML and text
+        const newHtml = currentHtml.replace(/^([\s\uFEFF\u00A0]|&nbsp;)*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i, "");
+        targetEditable.innerHTML = newHtml;
+
+        if (li && (li.closest("ul.list-disc") || li.classList.contains("list-disc"))) {
+          li.style.listStyleType = "none";
+          li.classList.add("list-none");
+        }
+        toast.success("Bullet point removed");
+      } else {
+        // Add bullet
+        if (li && (li.style.listStyleType === "none" || li.classList.contains("list-none"))) {
+          li.style.listStyleType = "";
+          li.classList.remove("list-none");
+        } else {
+          targetEditable.innerHTML = "• " + currentHtml;
+        }
+        toast.success("Bullet point added");
+      }
     } else {
       try {
         document.execCommand("insertText", false, "• ");
       } catch (_) {}
+      toast.success("Bullet point added");
     }
 
-    const targetEditable = position.targetElement?.closest('[contenteditable="true"]') as HTMLElement | null;
     if (targetEditable) {
       targetEditable.dispatchEvent(new Event("input", { bubbles: true }));
       targetEditable.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
     }
+
+    if (li && li.parentElement) {
+      const ul = li.parentElement;
+      const lis = Array.from(ul.querySelectorAll("li"));
+      const textArr = lis.map(l => (l.innerHTML || "").trim());
+      ul.dispatchEvent(new CustomEvent("bullets-update", { detail: textArr, bubbles: true }));
+    }
+
     onClose();
   };
 
@@ -495,9 +583,13 @@ export function ResumeContextMenu({
           </button>
           <button
             type="button"
-            onClick={insertBulletPoint}
-            title="Insert Bullet Point (•) (Alt+B)"
-            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-primary transition-colors font-bold"
+            onClick={toggleBulletPoint}
+            title={`${hasBullet ? "Remove" : "Add"} Bullet Point (•) (Alt+B)`}
+            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors font-bold ${
+              hasBullet
+                ? "bg-primary/25 text-primary border border-primary/40 hover:bg-primary/35 shadow-xs"
+                : "hover:bg-accent hover:text-accent-foreground text-primary"
+            }`}
           >
             <List className="w-3.5 h-3.5" />
           </button>
@@ -951,13 +1043,19 @@ export function ResumeContextMenu({
         <div className="px-1 pt-1">
           <button
             type="button"
-            onClick={insertBulletPoint}
-            title="Insert Bullet Point (•) (Alt+B)"
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 hover:bg-accent text-left transition-colors text-xs font-medium"
+            onClick={toggleBulletPoint}
+            title={`${hasBullet ? "Remove" : "Add"} Bullet Point (•) (Alt+B)`}
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors text-xs font-medium ${
+              hasBullet
+                ? "bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30"
+                : "bg-muted/40 hover:bg-accent text-foreground"
+            }`}
           >
             <span className="flex items-center gap-2">
-              <List className="w-3.5 h-3.5 text-primary" />
-              <span>Insert Bullet Point (•)</span>
+              <List className={`w-3.5 h-3.5 ${hasBullet ? "text-red-400" : "text-primary"}`} />
+              <span className={hasBullet ? "font-semibold text-red-200" : ""}>
+                {hasBullet ? "Remove Bullet Point (•)" : "Add Bullet Point (•)"}
+              </span>
             </span>
             <kbd className="text-[9px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">Alt+B</kbd>
           </button>

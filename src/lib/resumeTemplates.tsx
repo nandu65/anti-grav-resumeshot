@@ -520,13 +520,26 @@ export const Editable = React.memo(function Editable({
           }
         }
 
-        // Shortcut: Alt+B, Alt+8, or Ctrl+Shift+8 to insert bullet point
+        // Shortcut: Alt+B, Alt+8, or Ctrl+Shift+8 to toggle bullet point (add or remove)
         if (
           (e.altKey && (e.key === "b" || e.key === "B" || e.key === "8")) ||
           (e.ctrlKey && e.shiftKey && e.key === "8")
         ) {
           e.preventDefault();
-          document.execCommand("insertText", false, "• ");
+          const el = ref.current;
+          if (el) {
+            const raw = (el.innerText || el.textContent || "").trim();
+            const BULLET_REGEX = /^[\s\uFEFF\u00A0]*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i;
+            if (BULLET_REGEX.test(raw)) {
+              // Remove bullet point
+              el.innerHTML = el.innerHTML.replace(/^([\s\uFEFF\u00A0]|&nbsp;)*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i, "");
+            } else {
+              // Add bullet point
+              el.innerHTML = "• " + el.innerHTML;
+            }
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            el.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+          }
           return;
         }
 
@@ -685,6 +698,34 @@ export function BulletsEditor({
           newBullets[idx + 1] = temp;
           onChange?.(newBullets);
         }
+      }
+      return;
+    }
+
+    // Shortcut: Alt+B, Alt+8, or Ctrl+Shift+8 to toggle bullet point (add or remove)
+    if (
+      (e.altKey && (e.key === "b" || e.key === "B" || e.key === "8")) ||
+      (e.ctrlKey && e.shiftKey && e.key === "8")
+    ) {
+      e.preventDefault();
+      const sel = window.getSelection();
+      if (!sel || !ref.current) return;
+      const li = sel.anchorNode ? (sel.anchorNode instanceof HTMLElement ? sel.anchorNode.closest("li") : sel.anchorNode.parentElement?.closest("li")) : null;
+      if (li && ref.current.contains(li)) {
+        const raw = (li.innerText || li.textContent || "").trim();
+        const BULLET_REGEX = /^[\s\uFEFF\u00A0]*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i;
+        if (BULLET_REGEX.test(raw)) {
+          li.innerHTML = li.innerHTML.replace(/^([\s\uFEFF\u00A0]|&nbsp;)*([•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—.]|&bull;|&#8226;)\s*/i, "");
+        } else if (li.style.listStyleType === "none" || li.classList.contains("list-none")) {
+          li.style.listStyleType = "";
+          li.classList.remove("list-none");
+        } else {
+          li.style.listStyleType = "none";
+          li.classList.add("list-none");
+        }
+        const lis = Array.from(ref.current.querySelectorAll("li"));
+        const textArr = lis.map(l => (l.innerHTML || "").trim());
+        onChange?.(textArr);
       }
       return;
     }
@@ -859,9 +900,9 @@ export function normalizeResumeSkills<T extends { skills?: { category: string; i
   if (res?.leadership?.length) {
     const leadership = res.leadership.map((l: any) => ({
       ...l,
-      role: (l.role || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim(),
+      role: (l.role || "").trim(),
       bullets: (Array.isArray(l.bullets) ? l.bullets : (l.bullets ? [l.bullets] : [])).map((b: string) =>
-        (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim()
+        (b || "").trim()
       ),
     }));
     res = { ...res, leadership };
@@ -5951,13 +5992,12 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
               <ul className={`${isTwoCol ? "grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1" : "space-y-1.5"} list-disc pl-5 text-[10px] text-black`}>
                 {r.leadership.map((l, i) => {
                   const upd = makeLeadershipUpdater(update, r, i);
-                  const cleanRole = (l.role || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
                   return (
                     <li key={i} className="leading-snug">
                       <strong className="font-bold text-black">
                         <Editable
-                          value={cleanRole}
-                          onChange={update && (v => upd({ role: v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim() }))}
+                          value={l.role}
+                          onChange={update && (v => upd({ role: v }))}
                         />
                       </strong>
                       {l.organization ? (
@@ -5972,14 +6012,13 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                       {l.bullets && l.bullets.length > 0 ? (
                         <div className="mt-0.5 space-y-0.5 pl-2 text-[9.5px]">
                           {l.bullets.map((b, bi) => {
-                            const cleanB = (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
                             return (
                               <div key={bi} className="leading-tight">
                                 <Editable
-                                  value={cleanB}
+                                  value={b}
                                   onChange={update && (v => {
                                     const newB = [...(l.bullets || [])];
-                                    newB[bi] = v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                                    newB[bi] = v;
                                     upd({ bullets: newB });
                                   })}
                                 />
@@ -6123,14 +6162,13 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
               {custom.sec.bullets && custom.sec.bullets.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
                   {custom.sec.bullets.map((b, bi) => {
-                    const cleanB = (b || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
                     return (
                       <li key={bi} className="leading-snug">
                         <Editable
-                          value={cleanB}
+                          value={b}
                           onChange={update && (v => {
                             const newB = [...(custom.sec.bullets || [])];
-                            newB[bi] = v.replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
+                            newB[bi] = v;
                             upd({ bullets: newB });
                           })}
                         />
