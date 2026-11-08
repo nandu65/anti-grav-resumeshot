@@ -719,12 +719,80 @@ export default function ResumeBuilder() {
         return;
       }
       const generated = (data as any).resume;
+
+      // Lock down authentic facts so AI cannot alter official titles, companies, degrees, or dates
+      const protectedExperience = (generated.experience || []).map((exp: any, idx: number) => {
+        const original = resumeData.experience[idx];
+        return {
+          ...exp,
+          company: original?.company?.trim() || exp.company,
+          role: original?.role?.trim() || exp.role,
+          location: original?.location || exp.location,
+          start: original?.start || exp.start,
+          end: original?.end || exp.end,
+          bullets: Array.isArray(exp.bullets) && exp.bullets.length > 0 ? exp.bullets : (original?.bullets || []),
+        };
+      });
+
+      const protectedLeadership = (generated.leadership && generated.leadership.length > 0
+        ? generated.leadership
+        : (resumeData.leadership || [])
+      ).map((lead: any, idx: number) => {
+        const original = (resumeData.leadership || [])[idx];
+        return {
+          ...lead,
+          organization: original?.organization?.trim() || lead.organization,
+          role: original?.role?.trim() || lead.role,
+          location: original?.location || lead.location,
+          start: original?.start || lead.start,
+          end: original?.end || lead.end,
+          bullets: Array.isArray(lead.bullets) && lead.bullets.length > 0 ? lead.bullets : (original?.bullets || []),
+        };
+      });
+
+      const protectedEducation = (generated.education || resumeData.education || []).map((edu: any, idx: number) => {
+        const original = (resumeData.education || [])[idx];
+        return {
+          ...edu,
+          school: original?.school?.trim() || edu.school,
+          degree: original?.degree?.trim() || edu.degree,
+          location: original?.location || edu.location,
+          start: original?.start || edu.start,
+          end: original?.end || edu.end,
+          details: original?.details || edu.details,
+        };
+      });
+
+      const protectedProjects = (generated.projects || resumeData.projects || []).map((proj: any, idx: number) => {
+        const original = (resumeData.projects || [])[idx];
+        return {
+          ...proj,
+          name: original?.name?.trim() || proj.name,
+          tech: original?.tech || proj.tech,
+          bullets: Array.isArray(proj.bullets) && proj.bullets.length > 0 ? proj.bullets : (original?.bullets || []),
+        };
+      });
+
+      // Preserve existing user settings (ensuring horizontal/compact skills layout by default)
+      const currentSettings = {
+        ...resumeData.settings,
+        skillsLayout: resumeData.settings?.skillsLayout || "horizontal",
+      };
+
       setResumeData(normalizeResumeSkills({
         ...resumeData,
         ...generated,
-        leadership: (generated.leadership && generated.leadership.length > 0) ? generated.leadership : (resumeData.leadership || []),
+        name: resumeData.name,
+        email: resumeData.email,
+        phone: resumeData.phone,
+        location: resumeData.location,
+        links: resumeData.links,
+        experience: protectedExperience.length > 0 ? protectedExperience : resumeData.experience,
+        leadership: protectedLeadership,
+        education: protectedEducation.length > 0 ? protectedEducation : resumeData.education,
+        projects: protectedProjects.length > 0 ? protectedProjects : resumeData.projects,
         _isPolished: true,
-        settings: resumeData.settings // Preserve user settings
+        settings: currentSettings,
       }));
       setShowEditHint(true);
     } catch (e) {
@@ -2763,19 +2831,24 @@ export default function ResumeBuilder() {
                         </div>
 
                         <div className="bg-[#0d0f14]/80 rounded-xl p-4 border border-white/[0.06] space-y-3">
-                          <div className="flex items-center gap-2 text-emerald-400">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider">✨ AI will:</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-emerald-400">
+                              <Sparkles className="h-3.5 w-3.5" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider">✨ AI Tailoring & Polish:</span>
+                            </div>
+                            <span className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium">
+                              🛡️ Authenticity Protected
+                            </span>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                             {[
-                              "Rewrite weak bullet points",
-                              "Use stronger action verbs",
-                              "Improve professional wording",
-                              "Highlight measurable achievements",
-                              "Match relevant keywords from the job description",
-                              "Improve the professional summary",
-                              "Optimize content for ATS"
+                              "Preserve official job titles & companies strictly",
+                              "No hallucinated tasks or fake domains",
+                              "Rewrite bullets with strong action verbs",
+                              "Highlight genuine transferable skills",
+                              "Natural JD keyword & ATS alignment",
+                              "Compact & categorized skills layout",
+                              "Grounded executive profile summary"
                             ].map((text, idx) => (
                               <div key={idx} className="flex items-start gap-2 group/item">
                                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400/70 mt-0.5 shrink-0 group-hover/item:text-emerald-400 transition-colors" />

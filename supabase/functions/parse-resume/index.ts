@@ -52,6 +52,9 @@ Rules:
   1. Any entries under sections named "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Positions of Responsibility", "Activities", "Extracurriculars", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
   2. CRITICAL: Even if an entry is listed under "WORK EXPERIENCE" or "EXPERIENCE" in the raw resume, if the role or organization represents a student leadership role, club, committee, representative, band, house captain, or volunteer role (e.g. "Placement Coordinator", "Volunteer", "Class Representative", "School Band", "Captain / House Captain", "President", "Secretary", "Student Council", "NSS", "NCC", "NGO Volunteer"), you MUST EXTRACT IT OUT of "experience" and place it into the "leadership" array!
   3. "experience" must ONLY contain formal professional employment, jobs, corporate internships, or freelancing.
+- SKILLS PRESERVATION:
+  - If skills are categorized in the resume (e.g. "Microsoft Office: Word, Excel" or "Graphic Design: Canva"), preserve the category name and group the items under that category.
+  - If skills are listed as a simple list, group them into clean categories (e.g. "Tools & Software", "Core Skills").
 - Shape:
 {
  "name": string, "title": string, "email": string, "phone": string, "location": string,
@@ -61,7 +64,7 @@ Rules:
  "leadership": [{"organization": string, "role": string, "location": string, "start": string, "end": string, "bullets": string[]}],
  "education": [{"school": string, "degree": string, "location": string, "start": string, "end": string, "details": string}],
  "projects": [{"name": string, "tech": string, "bullets": string[]}],
- "skills": string[],
+ "skills": [{"category": string, "items": string[]}],
  "certifications": string[]
 }`;
 

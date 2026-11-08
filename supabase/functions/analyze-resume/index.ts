@@ -69,12 +69,18 @@ serve(async (req) => {
 
     const levelGuidance: Record<string, string> = {
       light: "LIGHT POLISH: Make minimal edits — fix grammar, add 1-2 missing keywords, slight rephrasing only. Preserve original voice.",
-      balanced: "BALANCED REWRITE: Rewrite bullets with strong action verbs and metrics, weave in JD keywords naturally.",
-      aggressive: "AGGRESSIVE REWRITE: Heavily restructure bullets for maximum ATS match — assume metrics where reasonable, lead with JD keywords, transform weak bullets dramatically.",
+      balanced: "BALANCED REWRITE: Rewrite bullets with strong action verbs and metrics, weaving in JD keywords naturally. Ground every bullet strictly in the candidate's actual work — never invent responsibilities or suggest altering official job titles.",
+      aggressive: "STRATEGIC ATS OPTIMIZATION: Maximize ATS keyword alignment through transferable competencies, strong action verbs, and quantifiable outcomes, while strictly preserving authentic job titles and factual grounding.",
     };
     const level = levelGuidance[rewriteLevel] ?? levelGuidance.balanced;
 
-    const systemPrompt = `You are an expert ATS and resume optimization specialist. Analyze the resume against the job description and return structured tailoring advice as STRICT JSON. ${level} Be specific, actionable, and concise.
+    const systemPrompt = `You are an expert ATS and resume optimization specialist. Analyze the resume against the job description and return structured tailoring advice as STRICT JSON. ${level}
+CRITICAL TRUTHFULNESS & GROUNDING RULES:
+1. Ground all recommendations in the candidate's authentic background.
+2. NEVER suggest changing official job titles (e.g. do not change "Intern" to "Operations Intern" or "HR Intern" to "HR & Operations Intern").
+3. NEVER invent tasks or industries the candidate never worked in (e.g. do not claim banking risk/clearing for an automotive manufacturing or restaurant internship).
+4. Tailor via genuine transferable competencies (process adherence, client coordination, reporting, quantitative analysis, teamwork).
+Be specific, actionable, and concise.
 Return JSON with this schema:
 {
   "ats_score": number (0-100),
