@@ -210,5 +210,36 @@ describe("Resume Data Integrity", () => {
     const docx = buildResumeDocxBody(dataWithCustomTitles, "classic");
     expect(docx.children.length).toBeGreaterThan(0);
   });
+
+  it("should normalize and render custom sections across templates and exports", async () => {
+    const { getNormalizedSectionOrder, getCustomSectionFromKey } = await import("../lib/resumeTemplates");
+    const dataWithCustom: ResumeData = {
+      ...sentinelData,
+      customSections: [
+        {
+          id: "disc_1",
+          title: "DISCLOSURE",
+          content: "I hereby declare that the information provided above is true to the best of my knowledge.",
+          bullets: ["I hereby declare that the information provided above is true to the best of my knowledge."]
+        }
+      ]
+    };
+
+    const order = getNormalizedSectionOrder(undefined, dataWithCustom);
+    expect(order).toContain("custom_disc_1");
+
+    const resolved = getCustomSectionFromKey(dataWithCustom, "custom_disc_1");
+    expect(resolved).not.toBeNull();
+    expect(resolved?.sec.title).toBe("DISCLOSURE");
+    expect(resolved?.sec.content).toContain("I hereby declare that the information provided above is true");
+
+    const txt = buildResumeText(dataWithCustom);
+    expect(txt).toContain("DISCLOSURE");
+    expect(txt).toContain("I hereby declare that the information provided above is true to the best of my knowledge.");
+
+    const md = buildResumeMarkdown(dataWithCustom);
+    expect(md).toContain("## DISCLOSURE");
+    expect(md).toContain("I hereby declare that the information provided above is true to the best of my knowledge.");
+  });
 });
 

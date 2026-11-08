@@ -266,11 +266,16 @@
     margin: 0;
     size: A4 portrait;
   }
-  body {
-    background: white !important;
-    color: black !important;
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
   }
   nav, header, footer, aside, button, .preview-only-badge, [data-rs-toolbar], .selection-toolbar {
     display: none !important;
@@ -280,7 +285,9 @@
     margin: 0 auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    page-break-after: always;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    page-break-after: auto;
   }
 
   /* Dedicated 100% vector print container: isolates ONLY the resume sheet */
@@ -296,6 +303,7 @@
     margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
+    background-color: #ffffff !important;
     box-shadow: none !important;
     overflow: visible !important;
   }
@@ -310,6 +318,8 @@
     min-width: 210mm !important;
     max-width: 210mm !important;
     min-height: 297mm !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     margin: 0 auto !important;
     box-shadow: none !important;
     border-radius: 0 !important;

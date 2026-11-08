@@ -798,11 +798,11 @@ function makeCustomSectionUpdater(update: UpdateFn, r: ResumeData, i: number) {
 }
 
 export function getCustomSectionFromKey(r: ResumeData, key: string): { sec: CustomResumeSection; idx: number } | null {
-  if (!key.startsWith("custom_")) return null;
-  const customId = key.replace("custom_", "");
-  const idx = (r.customSections || []).findIndex(s => s.id === customId);
-  if (idx === -1) return null;
-  return { sec: r.customSections![idx], idx };
+  if (!key.startsWith("custom_") && !key.startsWith("custom-")) return null;
+  const customId = key.replace(/^custom[_-]/, "");
+  const idx = (r.customSections || []).findIndex(s => s.id === customId || s.id === key || `custom_${s.id}` === key);
+  if (idx === -1 || !r.customSections?.[idx]) return null;
+  return { sec: r.customSections[idx], idx };
 }
 
 export function renderCustomSectionGeneric(
@@ -810,26 +810,55 @@ export function renderCustomSectionGeneric(
   upd: (patch: Partial<CustomResumeSection>) => void,
   update?: UpdateFn
 ) {
+  const hasBullets = sec.bullets && sec.bullets.length > 0;
   return (
     <div className="space-y-1">
-      {sec.content ? (
+      {hasBullets ? (
+        <BulletsEditor
+          bullets={sec.bullets!}
+          onChange={update && (v => upd({ bullets: v, content: v.join("\n") }))}
+          className="list-disc pl-4 space-y-0.5 text-[10px]"
+        />
+      ) : sec.content ? (
         <Editable
           as="p"
           multiline
           value={sec.content}
-          onChange={update && (v => upd({ content: v }))}
+          onChange={update && (v => upd({ content: v, bullets: v.split("\n").filter(Boolean) }))}
           className="whitespace-pre-wrap leading-relaxed text-[10px]"
-        />
-      ) : null}
-      {sec.bullets && sec.bullets.length > 0 ? (
-        <BulletsEditor
-          bullets={sec.bullets}
-          onChange={update && (v => upd({ bullets: v }))}
-          className="list-disc pl-4 space-y-0.5 text-[10px]"
         />
       ) : null}
     </div>
   );
+}
+
+export function renderStaticCustomSections(
+  r: ResumeData,
+  update?: UpdateFn,
+  options?: {
+    headClass?: string;
+    lineClass?: string;
+    titleClass?: string;
+    textClass?: string;
+  }
+) {
+  if (!r.customSections || r.customSections.length === 0) return null;
+  return r.customSections.map((sec, idx) => {
+    if (!sec.title && !sec.content && (!sec.bullets || sec.bullets.length === 0)) return null;
+    const upd = makeCustomSectionUpdater(update, r, idx);
+    const key = `custom_${sec.id || idx}`;
+    return (
+      <section key={key} data-rs-sec="custom" className="space-y-1.5 mt-3 mb-2">
+        <div className={options?.headClass || "font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2"}>
+          <span data-rs-head="1" className={options?.titleClass}>
+            <Editable value={sec.title || "CUSTOM SECTION"} onChange={update && (v => upd({ title: v }))} />
+          </span>
+          {options?.lineClass && <span className={options.lineClass} />}
+        </div>
+        {renderCustomSectionGeneric(sec, upd, update)}
+      </section>
+    );
+  });
 }
 
 
@@ -907,6 +936,8 @@ export function normalizeResumeSkills<T extends { skills?: { category: string; i
 export function getTrueContentBottom(container: HTMLElement | null): number {
   if (!container || typeof document === "undefined") return A4_HEIGHT_PX;
   const containerRect = container.getBoundingClientRect();
+  const unscaledWidth = container.offsetWidth || A4_WIDTH_PX;
+  const scale = unscaledWidth > 0 && containerRect.width > 0 ? (containerRect.width / unscaledWidth) : 1;
   let maxBottom = 0;
 
   const walker = document.createTreeWalker(
@@ -947,7 +978,7 @@ export function getTrueContentBottom(container: HTMLElement | null): number {
     const el = node as HTMLElement;
     const rect = el.getBoundingClientRect();
     if (rect.height > 0 && rect.width > 0) {
-      const bottom = rect.bottom - containerRect.top;
+      const bottom = (rect.bottom - containerRect.top) / scale;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
@@ -1290,8 +1321,8 @@ export function getNormalizedSectionOrder(order?: string[], r?: ResumeData): str
   // Ensure any custom sections defined in r are present in the order
   if (r?.customSections && r.customSections.length > 0) {
     for (const cs of r.customSections) {
-      const key = `custom_${cs.id}`;
-      if (!baseOrder.includes(key)) {
+      const key = cs.id ? (cs.id.startsWith("custom_") ? cs.id : `custom_${cs.id}`) : `custom_sec`;
+      if (!baseOrder.includes(key) && !baseOrder.includes(cs.id)) {
         baseOrder.push(key);
       }
     }
@@ -1301,7 +1332,7 @@ export function getNormalizedSectionOrder(order?: string[], r?: ResumeData): str
 }
 
 export function getSectionTitle(r: ResumeData, key: string, fallback: string): string {
-  if (key.startsWith("custom_")) {
+  if (key.startsWith("custom_") || key.startsWith("custom-")) {
     const custom = getCustomSectionFromKey(r, key);
     if (custom?.sec?.title) return custom.sec.title;
   }
@@ -1568,6 +1599,15 @@ function ModernPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         return null;
       case "certifications":
         return null;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          title = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
 
     if (!content) return null;
@@ -1772,6 +1812,15 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = <Editable value={r.certifications.join(" • ")} onChange={update && (v => on({ certifications: v.split("•").map(x => x.trim()).filter(Boolean) }))} />;
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          title = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
 
     if (!content) return null;
@@ -1789,7 +1838,7 @@ function ClassicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         className="mb-3"
       >
         <section className="relative">
-          <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 pb-1 mb-1.5">
+          <h3 className="uppercase text-[11px] font-bold tracking-widest border-b border-neutral-400 pb-1 mb-1.5 mt-2 pt-1">
             <Editable
               value={getSectionTitle(r, key, title)}
               onChange={update && (v => updateSectionTitle(r, on, key, v))}
@@ -1928,6 +1977,15 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
             className="whitespace-pre-wrap" />;
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          title = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
 
     if (!content) return null;
@@ -2082,6 +2140,15 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = <Editable value={r.certifications.join(" • ")} onChange={update && (v => on({ certifications: v.split("•").map(x => x.trim()).filter(Boolean) }))} />;
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          title = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
 
     if (!content) return null;
@@ -2258,8 +2325,21 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mb-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -2294,7 +2374,7 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_230px] gap-4 p-5">
         <div>
-          {sectionOrder.filter(k => leftKeys.includes(k)).map(k => renderSection(k))}
+          {sectionOrder.filter(k => leftKeys.includes(k) || k.startsWith("custom_")).map(k => renderSection(k))}
         </div>
         <div>
           {sectionOrder.filter(k => rightKeys.includes(k)).map(k => renderSection(k))}
@@ -2405,6 +2485,15 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           content = <Editable value={r.certifications.join(" · ")} onChange={update && (v => on({ certifications: v.split("·").map(x => x.trim()).filter(Boolean) }))} />;
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          title = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
 
     if (!content) return null;
@@ -2477,9 +2566,9 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
       // Clear inflated min-height before measuring to avoid sticky multi-page trap
       el.style.minHeight = `${A4_HEIGHT_PX}px`;
       const trueBottom = getTrueContentBottom(el);
-      const count = trueBottom <= A4_HEIGHT_PX + 25 
+      const count = trueBottom <= A4_HEIGHT_PX + 15 
         ? 1 
-        : Math.max(1, Math.ceil((trueBottom - 25) / A4_HEIGHT_PX));
+        : Math.max(1, Math.ceil((trueBottom - 15) / A4_HEIGHT_PX));
       const targetH = count * A4_HEIGHT_PX;
       setTotalH(targetH);
       el.style.setProperty("--page-h", `${targetH}px`);
@@ -2498,7 +2587,7 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     return () => ro.disconnect();
   }, [isMini, isExport, children]);
 
-  if (isMini || isExport) {
+  if (isMini) {
     return (
       <div
         ref={wrapRef}
@@ -2510,41 +2599,103 @@ function PagedSheet({ children, isMini, isExport }: { children: React.ReactNode;
     );
   }
 
-  const pageCount = totalH <= A4_HEIGHT_PX + 25 ? 1 : Math.max(1, Math.ceil((totalH - 25) / A4_HEIGHT_PX));
-  const breaks: number[] = [];
-  for (let i = 1; i < pageCount; i++) breaks.push(i * A4_HEIGHT_PX);
+  if (isExport) {
+    return (
+      <div
+        ref={wrapRef}
+        className="relative w-full min-h-full flex flex-col flex-1 bg-white"
+        style={{ minHeight: "100%", backgroundColor: "#ffffff" } as React.CSSProperties}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  const pageCount = totalH <= A4_HEIGHT_PX + 15 ? 1 : Math.max(1, Math.ceil((totalH - 15) / A4_HEIGHT_PX));
+  const pageBreaks: number[] = [];
+  for (let i = 1; i < pageCount; i++) pageBreaks.push(i * A4_HEIGHT_PX);
 
   return (
     <div
       ref={wrapRef}
-      className="relative w-full min-h-full flex flex-col flex-1"
+      className="relative w-full min-h-full flex flex-col flex-1 bg-white"
       style={{
         minHeight: `${pageCount * A4_HEIGHT_PX}px`,
         "--page-h": `${pageCount * A4_HEIGHT_PX}px`,
+        backgroundColor: "#ffffff",
       } as React.CSSProperties}
     >
       {children}
-      {pageCount > 1 && breaks.map((top, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          data-page-indicator="true"
-          className="preview-only-badge pointer-events-none absolute left-0 right-0 z-10"
-          style={{ top: top - 1 }}
-        >
-          <div className="border-t-2 border-dashed border-rose-500/80 shadow-sm" />
-          <div className="absolute -top-2.5 right-2 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9.5px] font-bold shadow-md flex items-center gap-1">
-            <span>✂ Page {i + 1} Cutoff (Overflow)</span>
+
+      {/* Multi-page break indicators: Red cutoff and green safe margin lines */}
+      {pageCount > 1 && pageBreaks.map((top, i) => (
+        <React.Fragment key={i}>
+          {/* Green line: Safe ATS margin limit */}
+          <div
+            aria-hidden="true"
+            data-page-indicator="true"
+            className="preview-only-badge pointer-events-none absolute left-0 right-0 z-20"
+            style={{ top: top - 35 }}
+          >
+            <div className="border-t-2 border-dashed border-emerald-500 shadow-sm" />
+            <div className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold shadow-md flex items-center gap-1">
+              <span>✓ Page {i + 1} Safe ATS Limit</span>
+            </div>
           </div>
-        </div>
+
+          {/* Red line: Cutoff / Overflow boundary into next page */}
+          <div
+            aria-hidden="true"
+            data-page-indicator="true"
+            className="preview-only-badge pointer-events-none absolute left-0 right-0 z-20"
+            style={{ top: top - 1 }}
+          >
+            <div className="border-t-2 border-dashed border-rose-500 shadow-sm" />
+            <div className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9.5px] font-bold shadow-md flex items-center gap-1">
+              <span>✂ Page {i + 1} Cutoff (Overflows to Page {i + 2})</span>
+            </div>
+            <div className="absolute top-1.5 left-3 px-2 py-0.5 rounded bg-zinc-900/90 text-zinc-200 border border-white/20 text-[8.5px] font-semibold tracking-wide uppercase shadow">
+              <span>Page {i + 2} Begins Here</span>
+            </div>
+          </div>
+        </React.Fragment>
       ))}
+
+      {/* When 1 page, show clear safe line and cutoff line so the user always knows the page limits */}
+      {pageCount === 1 && (
+        <React.Fragment>
+          <div
+            aria-hidden="true"
+            data-page-indicator="true"
+            className="preview-only-badge pointer-events-none absolute left-0 right-0 z-20 opacity-80 hover:opacity-100 transition-opacity"
+            style={{ top: A4_HEIGHT_PX - 35 }}
+          >
+            <div className="border-t border-dashed border-emerald-500/70" />
+            <div className="absolute -top-2 left-3 px-2 py-0.5 rounded-full bg-emerald-600/90 text-white text-[8.5px] font-semibold shadow-sm flex items-center gap-1">
+              <span>✓ Page 1 Safe ATS Margin</span>
+            </div>
+          </div>
+          <div
+            aria-hidden="true"
+            data-page-indicator="true"
+            className="preview-only-badge pointer-events-none absolute left-0 right-0 z-20 opacity-80 hover:opacity-100 transition-opacity"
+            style={{ top: A4_HEIGHT_PX - 1 }}
+          >
+            <div className="border-t border-dashed border-rose-400/80" />
+            <div className="absolute -top-2 right-3 px-2 py-0.5 rounded-full bg-rose-600/90 text-white text-[8.5px] font-semibold shadow-sm flex items-center gap-1">
+              <span>✂ Page 1 Cutoff Line</span>
+            </div>
+          </div>
+        </React.Fragment>
+      )}
+
       {pageCount > 1 && (
         <div
           aria-hidden="true"
           data-page-badge="true"
-          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-10 px-2.5 py-0.5 rounded-full bg-rose-600/90 text-white text-[9.5px] font-bold shadow-md"
+          className="preview-only-badge pointer-events-none absolute top-2 right-2 z-20 px-2.5 py-0.5 rounded-full bg-rose-600/90 text-white text-[9.5px] font-bold shadow-md"
         >
-          {pageCount} pages
+          {pageCount} Pages (Overflow)
         </div>
       )}
     </div>
@@ -2663,6 +2814,15 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          defaultTitle = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
     if (!content) return null;
 
@@ -2811,6 +2971,15 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         break;
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          defaultTitle = custom.sec.title || "Custom Section";
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          content = renderCustomSectionGeneric(custom.sec, upd, update);
+        }
+        break;
+      }
     }
     if (!content) return null;
 
@@ -2972,8 +3141,21 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3003,8 +3185,21 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3164,8 +3359,21 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3195,8 +3403,21 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3453,8 +3674,21 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3484,8 +3718,21 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3563,8 +3810,21 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3644,8 +3904,21 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3777,8 +4050,21 @@ function PhotoGridPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -3920,8 +4206,21 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -4088,8 +4387,21 @@ function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -4381,8 +4693,21 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -4436,8 +4761,21 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           );
         }
         return null;
-      default:
+      default: {
+        const custom = getCustomSectionFromKey(r, key);
+        if (custom && (custom.sec.title || custom.sec.content || custom.sec.bullets?.length)) {
+          const upd = makeCustomSectionUpdater(update, r, custom.idx);
+          return (
+            <section key={key} data-rs-sec="custom" className="mt-3">
+              <h3 className="uppercase text-[10px] font-bold tracking-widest text-teal-800 mb-1">
+                <Editable value={custom.sec.title || "Custom Section"} onChange={update && (v => upd({ title: v }))} />
+              </h3>
+              {renderCustomSectionGeneric(custom.sec, upd, update)}
+            </section>
+          );
+        }
         return null;
+      }
     }
   };
 
@@ -4736,6 +5074,12 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
             </section>
           );
         })()}
+
+        {/* Custom Sections */}
+        {renderStaticCustomSections(r, update, {
+          headClass: "font-bold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2",
+          lineClass: "flex-1 border-b border-slate-300",
+        })}
       </div>
     </div>
   );
@@ -4875,6 +5219,11 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
           </div>
         </section>
       )}
+
+      {/* Custom Sections */}
+      {renderStaticCustomSections(r, update, {
+        headClass: "font-bold text-xs uppercase tracking-wider text-[#059669]",
+      })}
     </div>
   );
 }
@@ -5004,6 +5353,11 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
               </section>
             );
           })()}
+
+          {/* Custom Sections */}
+          {renderStaticCustomSections(r, update, {
+            headClass: "font-serif font-bold text-sm text-[#1d4ed8] pb-1",
+          })}
         </div>
       </div>
     </div>
@@ -5138,6 +5492,11 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
                 })}
               </section>
             )}
+
+            {/* Custom Sections */}
+            {renderStaticCustomSections(r, update, {
+              headClass: "font-bold text-xs uppercase tracking-wider text-slate-900",
+            })}
           </div>
         </div>
       </div>
@@ -5264,6 +5623,11 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
               </section>
             );
           })()}
+
+          {/* Custom Sections */}
+          {renderStaticCustomSections(r, update, {
+            headClass: "font-bold text-xs text-slate-900 border-b border-slate-200 pb-1",
+          })}
         </div>
       </div>
     </div>
@@ -5379,6 +5743,11 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
               </div>
             );
           })()}
+
+          {/* Custom Sections */}
+          {renderStaticCustomSections(r, update, {
+            headClass: "font-bold text-xs uppercase tracking-wider text-[#0d9488]",
+          })}
         </div>
       </div>
     </div>
@@ -5492,6 +5861,11 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
             </div>
           );
         })()}
+
+        {/* Custom Sections */}
+        {renderStaticCustomSections(r, update, {
+          headClass: "font-bold text-xs uppercase tracking-wider text-[#a89689]",
+        })}
       </div>
     </div>
   );
@@ -5615,6 +5989,11 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
             </section>
           );
         })()}
+
+        {/* Custom Sections */}
+        {renderStaticCustomSections(r, update, {
+          headClass: "font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5",
+        })}
       </div>
     </div>
   );
@@ -5730,6 +6109,11 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
                 </div>
               </section>
             )}
+
+            {/* Custom Sections */}
+            {renderStaticCustomSections(r, update, {
+              headClass: "font-bold text-xs uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-1",
+            })}
           </div>
         </div>
       </div>
@@ -5871,6 +6255,11 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
               </section>
             );
           })()}
+
+          {/* Custom Sections */}
+          {renderStaticCustomSections(r, update, {
+            headClass: "font-serif font-bold text-xs uppercase tracking-wider text-[#6b1d1d] border-b border-slate-300 pb-1",
+          })}
         </div>
       </div>
     </div>
@@ -6149,9 +6538,6 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
                 <Editable value={custom.sec.title || "CUSTOM SECTION"} onChange={update && (v => upd({ title: v }))} />
               </h3>
-              {custom.sec.content ? (
-                <Editable as="p" multiline value={custom.sec.content} onChange={update && (v => upd({ content: v }))} className="text-[10.5px] leading-relaxed text-black text-justify mb-1" />
-              ) : null}
               {custom.sec.bullets && custom.sec.bullets.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
                   {custom.sec.bullets.map((b, bi) => {
@@ -6162,13 +6548,15 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                           onChange={update && (v => {
                             const newB = [...(custom.sec.bullets || [])];
                             newB[bi] = v;
-                            upd({ bullets: newB });
+                            upd({ bullets: newB, content: newB.join("\n") });
                           })}
                         />
                       </li>
                     );
                   })}
                 </ul>
+              ) : custom.sec.content ? (
+                <Editable as="p" multiline value={custom.sec.content} onChange={update && (v => upd({ content: v, bullets: v.split("\n").filter(Boolean) }))} className="text-[10.5px] leading-relaxed text-black text-justify mb-1" />
               ) : null}
             </section>
           );
@@ -6774,11 +7162,12 @@ function sectionCss(scope: string, settings?: ResumeSettings) {
   if (settings.headingSize) {
     baseRules.push(`${scope} h1, ${scope} h2, ${scope} h3, ${scope} [data-rs-head] { font-size: ${settings.headingSize}px !important; line-height: 1.3 !important; }`);
   }
-  if (settings.sectionSpacing != null) {
-    baseRules.push(`${scope} section, ${scope} [data-rs-sec] { margin-bottom: ${settings.sectionSpacing}px !important; }`);
-  }
+  const sSpacing = settings.sectionSpacing ?? 14;
+  baseRules.push(`${scope} section, ${scope} [data-rs-sec], ${scope} [data-sortable-section] { margin-top: ${Math.max(6, Math.round(sSpacing * 0.4))}px !important; margin-bottom: ${Math.max(8, Math.round(sSpacing * 0.6))}px !important; }`);
+  baseRules.push(`${scope} section:first-of-type, ${scope} [data-rs-sec]:first-of-type, ${scope} [data-sortable-section]:first-child { margin-top: 0 !important; }`);
+  baseRules.push(`${scope} [data-rs-head], ${scope} section > h2, ${scope} section > h3 { padding-top: 4px !important; margin-top: 3px !important; margin-bottom: 6px !important; }`);
   if (settings.paragraphSpacing != null) {
-    baseRules.push(`${scope} p, ${scope} .space-y-1 > *, ${scope} .space-y-2 > *, ${scope} .mb-3, ${scope} .mb-2 { margin-bottom: ${settings.paragraphSpacing}px !important; }`);
+    baseRules.push(`${scope} p, ${scope} [data-rs-sec] > p, ${scope} ul.space-y-1 > *, ${scope} ul.space-y-2 > * { margin-bottom: ${settings.paragraphSpacing}px !important; }`);
   }
   if (settings.paragraphIndent != null && settings.paragraphIndent > 0) {
     baseRules.push(`${scope} p, ${scope} li { text-indent: ${settings.paragraphIndent}px; }`);
@@ -7140,12 +7529,14 @@ export function ResumePreview({
       data-rs-export={isExport ? "true" : undefined}
       data-main-resume-preview={!isMini && !isExport ? "true" : undefined}
       data-rs-template={template}
-      className={`resume-root-container resume-page-sheet relative flex flex-col flex-1 ${isMini ? "pointer-events-none" : ""}`}
+      className={`resume-root-container resume-page-sheet relative flex flex-col flex-1 bg-white ${isMini ? "pointer-events-none" : ""}`}
       style={{
         width: `${A4_WIDTH_PX}px`,
         minWidth: `${A4_WIDTH_PX}px`,
         maxWidth: `${A4_WIDTH_PX}px`,
         minHeight: `${A4_HEIGHT_PX}px`,
+        backgroundColor: "#ffffff",
+        background: "#ffffff",
         boxSizing: "border-box",
         "--page-h": `${A4_HEIGHT_PX}px`,
       } as React.CSSProperties}
@@ -7507,9 +7898,13 @@ export async function downloadResumePdfFromData(rawData: ResumeData, template: T
 
     sheetEl.style.setProperty("min-height", `${targetHeight}px`, "important");
     sheetEl.style.setProperty("height", `${targetHeight}px`, "important");
+    sheetEl.style.setProperty("background-color", "#ffffff", "important");
+    sheetEl.style.setProperty("background", "#ffffff", "important");
     sheetEl.style.setProperty("--page-h", `${targetHeight}px`);
     wrapper.style.setProperty("min-height", `${targetHeight}px`, "important");
     wrapper.style.setProperty("height", `${targetHeight}px`, "important");
+    wrapper.style.setProperty("background-color", "#ffffff", "important");
+    wrapper.style.setProperty("background", "#ffffff", "important");
 
     const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
       import("jspdf"),
@@ -7700,6 +8095,13 @@ export async function printResumeVectorPdf(rawData: ResumeData, template: Templa
     clone.style.transform = "none";
     clone.style.margin = "0 auto";
     clone.style.boxShadow = "none";
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.background = "#ffffff";
+
+    const trueBottom = getTrueContentBottom(livePreview);
+    const totalPages = trueBottom <= A4_HEIGHT_PX + 25 ? 1 : Math.max(1, Math.ceil((trueBottom - 25) / A4_HEIGHT_PX));
+    clone.style.minHeight = `${totalPages * 297}mm`;
+    clone.style.height = "auto";
 
     // Clean up interactive controls, badges, toolbars
     clone.querySelectorAll(
