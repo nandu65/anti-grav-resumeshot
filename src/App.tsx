@@ -19,6 +19,19 @@ const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const HistoryPage = lazy(() => import("./pages/History.tsx"));
 const Results = lazy(() => import("./pages/Results.tsx"));
 const ResumeBuilder = lazy(() => import("./pages/tools/ResumeBuilder.tsx"));
+
+// Idle prefetch: loads ResumeBuilder into browser cache during idle time so opening it is instantaneous
+if (typeof window !== "undefined") {
+  const prefetchBuilder = () => {
+    import("./pages/tools/ResumeBuilder.tsx");
+    import("./lib/resumeTemplates.tsx");
+  };
+  if ("requestIdleCallback" in window) {
+    (window as any).requestIdleCallback(prefetchBuilder, { timeout: 1500 });
+  } else {
+    setTimeout(prefetchBuilder, 800);
+  }
+}
 const CoverLetterTool = lazy(() => import("./pages/tools/CoverLetterTool.tsx"));
 const CompanyBriefTool = lazy(() => import("./pages/tools/CompanyBriefTool.tsx"));
 const SkillGapTool = lazy(() => import("./pages/tools/SkillGapTool.tsx"));

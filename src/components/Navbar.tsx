@@ -36,7 +36,7 @@ export function Navbar() {
           <Button variant="ghost" size="sm" title="Take the product tour" onClick={startTour} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5">
             <HelpCircle className="h-4 w-4 mr-1 text-emerald-500 dark:text-emerald-400" /> Tour
           </Button>
-          <Button asChild variant="ghost" size="sm" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"><Link to="/tools/resume-builder">Resume Builder</Link></Button>
+          <Button asChild variant="ghost" size="sm" onPointerEnter={() => import("../pages/tools/ResumeBuilder")} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"><Link to="/tools/resume-builder">Resume Builder</Link></Button>
           <Button asChild variant="ghost" size="sm" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"><Link to="/pricing">Pricing</Link></Button>
           {user ? (
             <>

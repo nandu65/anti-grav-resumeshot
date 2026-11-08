@@ -50,7 +50,7 @@ test('parseRichSegments handles HTML formatting', () => {
 });
 
 test('DOCX layout parity: multi-column templates use a Table, single-column do not', async () => {
-  const { buildResumeDocxBody, isMultiColumnTemplate, TEMPLATE_DOCX_CONFIGS } = await import('../../lib/resumeTemplates');
+  const { buildResumeDocxBody, isMultiColumnTemplate, TEMPLATE_DOCX_CONFIGS } = await import('../../lib/docxExport');
   const { Table } = await import('docx');
 
   const data: any = {
@@ -102,7 +102,7 @@ test('DOCX layout parity: multi-column templates use a Table, single-column do n
 });
 
 test('Font synchronization: resolveDocxFont maps web fonts to universal Word fonts', async () => {
-  const { resolveDocxFont, buildResumeDocxBody } = await import('../../lib/resumeTemplates');
+  const { resolveDocxFont, buildResumeDocxBody } = await import('../../lib/docxExport');
 
   expect(resolveDocxFont("'Libre Baskerville', serif")).toBe("Georgia");
   expect(resolveDocxFont("Merriweather, serif")).toBe("Georgia");

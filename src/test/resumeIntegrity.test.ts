@@ -5,8 +5,8 @@ import {
   downloadResumeDocxFromData,
   buildResumeText,
   buildResumeMarkdown,
-  buildResumeDocxBody,
 } from "../lib/resumeTemplates";
+import { buildResumeDocxBody } from "../lib/docxExport";
 
 
 describe("Resume Data Integrity", () => {
@@ -108,7 +108,8 @@ describe("Resume Data Integrity", () => {
       }
     };
 
-    const { buildResumeDocxBody, resolveDocxFont } = await import("../lib/resumeTemplates");
+    const { resolveDocxFont } = await import("../lib/resumeTemplates");
+    const { buildResumeDocxBody } = await import("../lib/docxExport");
     expect(resolveDocxFont(formattedData.settings?.fontFamily)).toBe("Arial");
 
     const docx = buildResumeDocxBody(formattedData, "classic");
@@ -185,7 +186,8 @@ describe("Resume Data Integrity", () => {
       }
     };
 
-    const { getSectionTitle, buildResumeText, buildResumeMarkdown, buildResumeDocxBody } = await import("../lib/resumeTemplates");
+    const { getSectionTitle, buildResumeText, buildResumeMarkdown } = await import("../lib/resumeTemplates");
+    const { buildResumeDocxBody } = await import("../lib/docxExport");
     
     expect(getSectionTitle(dataWithCustomTitles, "skills", "Skills")).toBe("Core Proficiencies");
     expect(getSectionTitle(dataWithCustomTitles, "experience", "Experience")).toBe("Career History");
