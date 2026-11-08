@@ -226,5 +226,61 @@ Volunteer Dec 2022 - Aug 2024
     expect(parsed.leadership?.[0].role).toContain("Placement Coordinator");
     expect(parsed.leadership?.[1].role).toContain("Volunteer");
   });
+
+  it("should parse SIGNIFICANT CONTRIBUTIONS with inline pipe-separated bullet entries and full experience cleanly", () => {
+    const rawText = `
+Nandu Naidu L
+MBA | CHRIST (Deemed to be University)
+Email: nandunaidu65@gmail.com
+Phone: +91 9972964842
+Location: Bengaluru
+
+PROFILE SUMMARY :
+MBA student with a B.Com background.
+
+SIGNIFICANT CONTRIBUTIONS :
+• Placement Committee Member | Christ University • Placement Coordinator | Christ Academy
+• Class Representative | Christ Academy • Member of Eminence club | Christ Academy
+• House Captain | Gurukula Academy
+
+EXPERIENCE :
+• HR Intern | Universal Tribes | May 2025-Jun 2025
+  – Supported candidate sourcing, recruitment coordination, candidate pipeline management and onboarding activities.
+• Graphic Design Intern | Honourpoint | Jul 2025-Aug 2025
+  – Designed visual content for outreach.
+• Intern | McDonald's | Mar 2024-Apr 2024
+  – Customer service and restaurant operations.
+• Intern | TVS Motor Company | May 2023-Jun 2023
+  – Automotive industry business processes.
+    `;
+
+    const parsed = parseResumeTextLocally(rawText);
+
+    expect(parsed.name).toBe("Nandu Naidu L");
+    expect(parsed.email).toBe("nandunaidu65@gmail.com");
+    expect(parsed.phone).toBe("+91 9972964842");
+
+    // All 5 leadership / contributions entries must be extracted
+    expect(parsed.leadership).toBeDefined();
+    expect(parsed.leadership?.length).toBe(5);
+    expect(parsed.leadership?.[0].role).toBe("Placement Committee Member");
+    expect(parsed.leadership?.[0].organization).toBe("Christ University");
+    expect(parsed.leadership?.[1].role).toBe("Placement Coordinator");
+    expect(parsed.leadership?.[1].organization).toBe("Christ Academy");
+    expect(parsed.leadership?.[2].role).toBe("Class Representative");
+    expect(parsed.leadership?.[3].role).toBe("Member of Eminence club");
+    expect(parsed.leadership?.[4].role).toBe("House Captain");
+    expect(parsed.leadership?.[4].organization).toBe("Gurukula Academy");
+
+    // All 4 experience entries must be extracted cleanly with their bullets
+    expect(parsed.experience.length).toBe(4);
+    expect(parsed.experience[0].role).toBe("HR Intern");
+    expect(parsed.experience[0].company).toBe("Universal Tribes");
+    expect(parsed.experience[0].bullets.length).toBe(1);
+    expect(parsed.experience[1].role).toBe("Graphic Design Intern");
+    expect(parsed.experience[1].company).toBe("Honourpoint");
+    expect(parsed.experience[2].company).toBe("McDonald's");
+    expect(parsed.experience[3].company).toBe("TVS Motor Company");
+  });
 });
 

@@ -49,9 +49,10 @@ Rules:
 - If a field isn't present, use "" or [].
 - Split multi-line responsibilities into separate bullet strings.
 - STRICT LEADERSHIP SEPARATION:
-  1. Any entries under sections named "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Positions of Responsibility", "Activities", "Extracurriculars", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
-  2. CRITICAL: Even if an entry is listed under "WORK EXPERIENCE" or "EXPERIENCE" in the raw resume, if the role or organization represents a student leadership role, club, committee, representative, band, house captain, or volunteer role (e.g. "Placement Coordinator", "Volunteer", "Class Representative", "School Band", "Captain / House Captain", "President", "Secretary", "Student Council", "NSS", "NCC", "NGO Volunteer"), you MUST EXTRACT IT OUT of "experience" and place it into the "leadership" array!
-  3. "experience" must ONLY contain formal professional employment, jobs, corporate internships, or freelancing.
+  1. Any entries under sections named "Significant Contributions", "Contributions", "Key Contributions", "Positions of Responsibility", "Positions Held", "Leadership", "Leadership Experience", "Volunteer Experience", "Volunteering", "Activities", "Extracurriculars", "Student Leadership", or club/community roles MUST go into the "leadership" array, NEVER in "experience".
+  2. If multiple contributions/roles are listed on single lines or bullet points separated by bullets (•) or pipes (|) (e.g. "• Placement Committee Member | Christ University • Placement Coordinator | Christ Academy"), split EACH into its own separate entry in the "leadership" array with role and organization.
+  3. CRITICAL: Even if an entry is listed under "WORK EXPERIENCE" or "EXPERIENCE" in the raw resume, if the role or organization represents a student leadership role, club, committee, representative, band, house captain, or volunteer role (e.g. "Placement Coordinator", "Placement Committee Member", "Volunteer", "Class Representative", "School Band", "Captain / House Captain", "President", "Secretary", "Student Council", "NSS", "NCC", "NGO Volunteer"), you MUST EXTRACT IT OUT of "experience" and place it into the "leadership" array!
+  4. "experience" must ONLY contain formal professional employment, jobs, corporate internships, or freelancing.
 - SKILLS PRESERVATION:
   - If skills are categorized in the resume (e.g. "Microsoft Office: Word, Excel" or "Graphic Design: Canva"), preserve the category name and group the items under that category.
   - If skills are listed as a simple list, group them into clean categories (e.g. "Tools & Software", "Core Skills").

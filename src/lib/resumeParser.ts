@@ -19,7 +19,7 @@ export interface ParsedResumeResult {
 
 const KNOWN_LOCATIONS = /\b(Bengaluru|Bangalore|Chennai|Mumbai|Delhi|New Delhi|Hyderabad|Pune|Kolkata|Noida|Gurugram|Gurgaon|Ahmedabad|Remote|India|USA|UK|San Francisco|New York|London|California|Texas|Seattle|Boston)\b/i;
 
-const LEADERSHIP_ROLE_KEYWORDS = /\b(placement coordinator|coordinator|event coordinator|program coordinator|volunteer|volunteering|social worker|class representative|cr\b|student representative|representative|head boy|head girl|captain|house captain|vice captain|sports captain|team captain|school band|band member|choir|president|vice president|vp\b|secretary|joint secretary|treasurer|student council|student body|council member|committee member|club lead|chapter lead|campus lead|community lead|campus ambassador|student ambassador|mentor|peer mentor|organizer|co-organizer|event head|cultural head|fest coordinator|ncc|nss|rotaract|leo club|lead\b|team lead|student lead|community lead|youth lead|volunteer lead|board member|core member|core team|organizing committee|executive committee|general secretary|cultural secretary|sports secretary|webmaster|head of operations|head of marketing|pr head|head of pr|head of logistics|campaign lead|brand ambassador|moderator|trustee|director at ngo|youth forum|scout|guide|advisor|fellow|community manager)\b/i;
+const LEADERSHIP_ROLE_KEYWORDS = /\b(placement committee member|placement coordinator|coordinator|event coordinator|program coordinator|volunteer|volunteering|social worker|class representative|cr\b|student representative|representative|head boy|head girl|captain|house captain|vice captain|sports captain|team captain|school band|band member|choir|president|vice president|vp\b|secretary|joint secretary|treasurer|student council|student body|council member|committee member|club lead|chapter lead|campus lead|community lead|campus ambassador|student ambassador|mentor|peer mentor|organizer|co-organizer|event head|cultural head|fest coordinator|ncc|nss|rotaract|leo club|lead\b|team lead|student lead|community lead|youth lead|volunteer lead|board member|core member|core team|organizing committee|executive committee|general secretary|cultural secretary|sports secretary|webmaster|head of operations|head of marketing|pr head|head of pr|head of logistics|campaign lead|brand ambassador|moderator|trustee|director at ngo|youth forum|scout|guide|advisor|fellow|community manager)\b/i;
 
 const LEADERSHIP_ORG_KEYWORDS = /\b(club|society|chapter|student council|school band|house team|red house|blue house|green house|yellow house|committee|cell|rotaract|leo club|nss|ncc|ngo|foundation|student branch|eminence club|cultural committee|placement cell|association|forum|trust|initiative|guild|council|union|brigade|squad|ieee|acm|aiesec|toastmasters|rotary|lions club|interact|csi|tedx|e-cell|entrepreneurship cell|placement division|departmental committee|sports committee|symposium|non-profit|nonprofit|charity|youth organization|student union)\b/i;
 
@@ -96,7 +96,7 @@ function extractDateAndText(line: string): { text: string; start: string; end: s
   const rangeMatch = line.match(DATE_RANGE_REGEX);
   if (rangeMatch) {
     const rawMatch = rangeMatch[0];
-    const textWithoutDate = line.replace(rawMatch, "").replace(/[,|·]/g, " ").trim();
+    const textWithoutDate = line.replace(rawMatch, "").replace(/^[,\s|·—–-]+|[,\s|·—–-]+$/g, "").trim();
     const parts = rawMatch.split(/[-–—]|to/i).map(d => d.trim().replace(/([a-zA-Z]+)(\d{4})/, "$1 $2"));
     return {
       text: textWithoutDate,
@@ -108,7 +108,7 @@ function extractDateAndText(line: string): { text: string; start: string; end: s
   const singleMatch = line.match(SINGLE_DATE_REGEX);
   if (singleMatch && (line.toLowerCase().includes("graduation date") || line.toLowerCase().includes("graduated") || line.toLowerCase().includes("date") || line.length < 35)) {
     const dateStr = singleMatch[1].replace(/([a-zA-Z]+)(\d{4})/, "$1 $2").trim();
-    const textWithoutDate = line.replace(singleMatch[0], "").replace(/[,|·]/g, " ").trim();
+    const textWithoutDate = line.replace(singleMatch[0], "").replace(/^[,\s|·—–-]+|[,\s|·—–-]+$/g, "").trim();
     return {
       text: textWithoutDate,
       start: "",
@@ -147,18 +147,42 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
   const entries: any[] = [];
   let current: any = null;
 
-  for (let i = 0; i < lines.length; i++) {
-    const rawLine = lines[i].trim();
+  // Unpack lines that contain multiple inline bulleted entries (e.g. "• Role | Org • Role | Org")
+  const expandedLines: string[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const parts = trimmed.split(/(?<=\S)\s+[•\u2022\u25E6\u25AA▪*]\s+/).map(p => p.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      expandedLines.push(...parts.map(p => (/^[•\u2022\u25E6\u25AA▪*]/.test(p) ? p : `• ${p}`)));
+    } else {
+      expandedLines.push(trimmed);
+    }
+  }
+
+  for (let i = 0; i < expandedLines.length; i++) {
+    const rawLine = expandedLines[i].trim();
     if (!rawLine) continue;
 
-    const isBullet = /^[•\-\*\u2022\u25E6\u25AA▪\d+\.]\s*/.test(rawLine);
+    const isBullet = /^[•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—\d+\.]\s*/.test(rawLine);
+    const bulletClean = isBullet ? rawLine.replace(/^[•\-\*\u2022\u25E6\u25AA▪\u2013\u2014–—\d+\.]\s*/, "").trim() : rawLine;
 
-    if (isBullet) {
-      const bulletText = rawLine.replace(/^[•\-\*\u2022\u25E6\u25AA▪\d+\.]\s*/, "").trim();
+    // A bulleted line is treated as a top-level role/org header IF:
+    // 1) It has a pipe '|' delimiter (e.g. "• Placement Committee Member | Christ University" or "• HR Intern | Universal Tribes | May 2025-Jun 2025")
+    // 2) OR it has date ranges and role titles
+    // 3) OR it matches defaultOrgKey === "organization" with a delimiter
+    const isBulletHeader = isBullet && (
+      bulletClean.includes("|") ||
+      (defaultOrgKey === "organization" && (bulletClean.includes(" - ") || bulletClean.includes(" , "))) ||
+      (Boolean(extractDateAndText(bulletClean).start) && COMMON_ROLE_TITLES.test(bulletClean))
+    );
+
+    if (isBullet && !isBulletHeader) {
+      const bulletText = bulletClean;
       if (!current) {
         current = {
-          [defaultOrgKey]: "Organization",
-          role: "Member",
+          [defaultOrgKey]: defaultOrgKey === "company" ? "Company" : "Organization",
+          role: defaultOrgKey === "company" ? "Professional" : "Member",
           location: "",
           start: "",
           end: "",
@@ -170,7 +194,8 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
       continue;
     }
 
-    const { text: lineWithoutDate, start, end } = extractDateAndText(rawLine);
+    const lineToParse = isBulletHeader ? bulletClean : rawLine;
+    const { text: lineWithoutDate, start, end } = extractDateAndText(lineToParse);
     const hasDates = Boolean(start || end);
 
     // Extract location from the text portion
@@ -178,7 +203,9 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
 
     // Case 1: Line has comma/pipe/dash separating Role and Org (e.g. "Chapter Lead , Women in Tech" or "Placement Coordinator , Christ Academy")
     const separatorMatch = cleanText.match(/^([^,|–—\-]+)[,|–—\-](.+)$/);
-    if (separatorMatch && !hasDates && (current === null || current.bullets.length > 0 || Boolean(current.role && (current.start || current.end)))) {
+    const hasExistingCompleteEntry = current && current.role && current[defaultOrgKey];
+
+    if (separatorMatch && !hasDates && (current === null || current.bullets.length > 0 || hasExistingCompleteEntry || Boolean(current.role && (current.start || current.end)))) {
       if (current) entries.push(current);
 
       const part1 = separatorMatch[1].trim();
@@ -210,7 +237,7 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
         current.start = start;
         current.end = end;
         if (cleanText) {
-          if (!current.role || current.role === "Role" || current.role === "Member") {
+          if (!current.role || current.role === "Role" || current.role === "Member" || current.role === "Professional") {
             current.role = cleanText;
           } else if (!current.location && loc) {
             current.location = loc;
@@ -221,12 +248,30 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
         // New entry starting with a dated line
         if (current) entries.push(current);
         let role = cleanText;
-        let org = "Organization";
+        let org = defaultOrgKey === "company" ? "Company" : "Organization";
 
-        if (cleanText.includes(",")) {
+        if (cleanText.includes("|")) {
+          const parts = cleanText.split("|").map(p => p.trim());
+          let p1 = parts[0];
+          let p2 = parts[1] || org;
+          if (!COMMON_ROLE_TITLES.test(p1) && COMMON_ROLE_TITLES.test(p2)) {
+            org = p1;
+            role = p2;
+          } else {
+            role = p1;
+            org = p2;
+          }
+        } else if (cleanText.includes(",")) {
           const parts = cleanText.split(",").map(p => p.trim());
-          role = parts[0];
-          org = parts[1] || org;
+          let p1 = parts[0];
+          let p2 = parts[1] || org;
+          if (!COMMON_ROLE_TITLES.test(p1) && COMMON_ROLE_TITLES.test(p2)) {
+            org = p1;
+            role = p2;
+          } else {
+            role = p1;
+            org = p2;
+          }
         }
 
         current = {
@@ -244,7 +289,7 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
     // Case 3: Line without date
     if (!current) {
       current = {
-        [defaultOrgKey]: cleanText || rawLine,
+        [defaultOrgKey]: cleanText || lineToParse,
         role: "",
         location: loc,
         start: "",
@@ -253,15 +298,15 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
       };
     } else if (!current.role) {
       // Second line of header: role
-      current.role = cleanText || rawLine;
+      current.role = cleanText || lineToParse;
       if (loc && !current.location) current.location = loc;
     } else {
       // Already has org and role. If previous has bullets or this is a new header line
-      const isNewEntry = current.bullets.length > 0 || (current.role && (current.start || current.end)) || COMMON_ROLE_TITLES.test(cleanText) || KNOWN_LOCATIONS.test(rawLine);
+      const isNewEntry = current.bullets.length > 0 || (current.role && (current.start || current.end)) || COMMON_ROLE_TITLES.test(cleanText) || KNOWN_LOCATIONS.test(lineToParse);
       if (isNewEntry) {
         entries.push(current);
         current = {
-          [defaultOrgKey]: cleanText || rawLine,
+          [defaultOrgKey]: cleanText || lineToParse,
           role: "",
           location: loc,
           start: "",
@@ -269,7 +314,7 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
           bullets: [],
         };
       } else {
-        current.bullets.push(rawLine);
+        current.bullets.push(lineToParse);
       }
     }
   }
@@ -282,7 +327,11 @@ function parseExperienceLikeSection(lines: string[], defaultOrgKey: "company" | 
     let org = (e[defaultOrgKey] || "").trim();
     let loc = (e.location || "").trim();
 
-    if (!role && org.includes(",")) {
+    if (!role && org.includes("|")) {
+      const parts = org.split("|").map((p: string) => p.trim());
+      role = parts[0];
+      org = parts[1] || org;
+    } else if (!role && org.includes(",")) {
       const parts = org.split(",").map((p: string) => p.trim());
       role = parts[0];
       org = parts[1] || org;
@@ -394,7 +443,7 @@ export function parseResumeTextLocally(rawText: string): ParsedResumeResult {
   const sectionHeaders: { index: number; type: string; header: string }[] = [];
   const sectionKeywords: [string, RegExp][] = [
     ["summary", /^(professional summary|summary|profile|about me|executive summary|personal statement|overview)$/i],
-    ["leadership", /^(leadership(\s+(experience|activities|and\s+activities|&\s+activities|involvement|and\s+involvement|&\s+involvement|volunteering|and\s+volunteering|&\s+volunteering|roles|initiatives|service|and\s+service|&\s+service|community|and\s+community|&\s+community|positions|and\s+awards|&\s+awards))?|volunteer(\s+(experience|work|service|activities|and\s+leadership|&\s+leadership|involvement))?|volunteering(\s+(experience|activities|work|&\s+leadership|and\s+leadership))?|community\s+(leadership|service|involvement|engagement)|extracurricular(\s+(activities|involvement|leadership))?|extra-curricular(\s+(activities|involvement|leadership))?|co-curricular(\s+(activities|involvement|leadership))?|extracurriculars|activities(\s+(and\s+leadership|&\s+leadership|and\s+involvement|&\s+involvement|and\s+awards|&\s+awards))?|positions?\s+of\s+responsibility|positions?\s+held|student\s+leadership|campus\s+(leadership|involvement|activities)|leadership\s*\/\s*volunteer(ing)?|volunteer(ing)?\s*\/\s*leadership|social\s+(work|initiatives|service)|club\s+(activities|involvement|leadership)|organizations?\s+(and\s+leadership|&\s+leadership)|student\s+(activities|council|body))$/i],
+    ["leadership", /^(leadership(\s+(experience|activities|and\s+activities|&\s+activities|involvement|and\s+involvement|&\s+involvement|volunteering|and\s+volunteering|&\s+volunteering|roles|initiatives|service|and\s+service|&\s+service|community|and\s+community|&\s+community|positions|and\s+awards|&\s+awards))?|volunteer(\s+(experience|work|service|activities|and\s+leadership|&\s+leadership|involvement))?|volunteering(\s+(experience|activities|work|&\s+leadership|and\s+leadership))?|community\s+(leadership|service|involvement|engagement)|extracurricular(\s+(activities|involvement|leadership))?|extra-curricular(\s+(activities|involvement|leadership))?|co-curricular(\s+(activities|involvement|leadership))?|extracurriculars|activities(\s+(and\s+leadership|&\s+leadership|and\s+involvement|&\s+involvement|and\s+awards|&\s+awards))?|positions?\s+of\s+responsibility|positions?\s+held|student\s+leadership|campus\s+(leadership|involvement|activities)|leadership\s*\/\s*volunteer(ing)?|volunteer(ing)?\s*\/\s*leadership|social\s+(work|initiatives|service)|club\s+(activities|involvement|leadership)|organizations?\s+(and\s+leadership|&\s+leadership)|student\s+(activities|council|body)|((significant|key|major|notable|other|campus|college|university|institutional|academic)\s+)?contributions|responsibilities|institutional\s+responsibilities|responsibilities\s*(&|and)\s*achievements)$/i],
     ["experience", /^(work experience|professional experience|experience|employment history|employment|work history|career history|relevant experience|internships|internship experience|industry experience)$/i],
     ["education", /^(education|academic background|academics|qualifications|academic history|education & training|education and training)$/i],
     ["skills", /^(skills|core competencies|technical skills|key skills|technologies|areas of expertise|competencies|skills & competencies|technical expertise)$/i],

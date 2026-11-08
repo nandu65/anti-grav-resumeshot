@@ -1014,6 +1014,54 @@ export function renderSkillsSection({
 
   // 2. 2-Columns Grid format
   if (layout === "columns") {
+    const categorized = (skills || []).filter(s => !isGenericSkillCategory(s.category) && (s.items || []).length > 0);
+    if (categorized.length > 1) {
+      const half = Math.ceil(categorized.length / 2);
+      const col1 = categorized.slice(0, half);
+      const col2 = categorized.slice(half);
+
+      return (
+        <div className={`grid grid-cols-2 gap-x-6 text-[10px] leading-relaxed ${className}`}>
+          <div className="space-y-1">
+            {col1.map((s, i) => {
+              const realIdx = (skills || []).indexOf(s);
+              const upd = makeSkillUpdater(update, { skills } as any, realIdx >= 0 ? realIdx : i);
+              return (
+                <div key={i} className="leading-snug">
+                  <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold mr-1" colon />
+                  <Editable
+                    as="span"
+                    multiline
+                    value={formatSkillsForEditor(s.items)}
+                    onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))}
+                    className="whitespace-pre-wrap"
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className="space-y-1">
+            {col2.map((s, i) => {
+              const realIdx = (skills || []).indexOf(s);
+              const upd = makeSkillUpdater(update, { skills } as any, realIdx >= 0 ? realIdx : half + i);
+              return (
+                <div key={i} className="leading-snug">
+                  <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold mr-1" colon />
+                  <Editable
+                    as="span"
+                    multiline
+                    value={formatSkillsForEditor(s.items)}
+                    onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))}
+                    className="whitespace-pre-wrap"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
     const half = Math.ceil(allItems.length / 2);
     const col1 = allItems.slice(0, half);
     const col2 = allItems.slice(half);
@@ -1030,7 +1078,7 @@ export function renderSkillsSection({
                 onChange={update && (v => {
                   const newItems = [...allItems];
                   newItems[idx] = v;
-                  on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+                  on?.({ skills: [{ category: (skills?.[0]?.category || "Skills"), items: newItems.filter(Boolean) }] });
                 })}
               />
             </li>
@@ -1046,7 +1094,7 @@ export function renderSkillsSection({
                 onChange={update && (v => {
                   const newItems = [...allItems];
                   newItems[half + idx] = v;
-                  on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+                  on?.({ skills: [{ category: (skills?.[0]?.category || "Skills"), items: newItems.filter(Boolean) }] });
                 })}
               />
             </li>
@@ -1057,6 +1105,32 @@ export function renderSkillsSection({
   }
 
   // 3. Vertical list format (1 skill per line)
+  const categorized = (skills || []).filter(s => !isGenericSkillCategory(s.category) && (s.items || []).length > 0);
+  if (categorized.length > 0) {
+    return (
+      <ul className={`space-y-1 text-[10px] leading-relaxed ${className}`}>
+        {(skills || []).map((s, i) => {
+          const upd = makeSkillUpdater(update, { skills } as any, i);
+          return (
+            <li key={i} className="flex items-start gap-1.5 leading-snug">
+              <span className={`text-[10px] leading-none mt-0.5 ${dotColor}`}>•</span>
+              <div>
+                <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold mr-1" colon />
+                <Editable
+                  as="span"
+                  multiline
+                  value={formatSkillsForEditor(s.items)}
+                  onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))}
+                  className="whitespace-pre-wrap"
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
   return (
     <ul className={`space-y-1 text-[10px] leading-relaxed ${className}`}>
       {allItems.map((item, idx) => (
@@ -1068,7 +1142,7 @@ export function renderSkillsSection({
             onChange={update && (v => {
               const newItems = [...allItems];
               newItems[idx] = v;
-              on?.({ skills: [{ category: "Skills", items: newItems.filter(Boolean) }] });
+              on?.({ skills: [{ category: (skills?.[0]?.category || "Skills"), items: newItems.filter(Boolean) }] });
             })}
           />
         </li>
@@ -1809,12 +1883,7 @@ function CompactPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           title = "Skills";
-          content = r.skills.map((s, i) => {
-            const upd = makeSkillUpdater(update, r, i);
-            return (
-              <div key={i} className="mb-1"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold" colon /> <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" /></div>
-            );
-          });
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on });
         }
         break;
       case "certifications":
@@ -1970,12 +2039,7 @@ function ExecutivePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           title = "Core Competencies";
-          content = r.skills.map((s, i) => {
-            const upd = makeSkillUpdater(update, r, i);
-            return (
-              <div key={i}><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon /> <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" /></div>
-            );
-          });
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-amber-800" });
         }
         break;
       case "certifications":
@@ -2122,17 +2186,7 @@ function CreativePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-1">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="space-y-1">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i} className="mb-1">
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 mt-0.5 whitespace-pre-wrap leading-relaxed" />
-                    </div>
-                  );
-                })}
-              </div>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-indigo-600" })}
             </section>
           );
         }
@@ -2308,15 +2362,7 @@ function MinimalPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           title = "Skills";
-          content = r.skills.map((s, i) => {
-            const upd = makeSkillUpdater(update, r, i);
-            return (
-              <div key={i} className={isGenericSkillCategory(s.category) ? "mb-1" : "grid grid-cols-[80px_1fr] gap-4 mb-1"}>
-                <div className="text-[10px] text-neutral-500"><SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} /></div>
-                <div className="text-[10px]"><Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap leading-relaxed" /></div>
-              </div>
-            );
-          });
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-neutral-700" });
         }
         break;
       case "certifications":
@@ -2572,19 +2618,7 @@ function TimelinePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           defaultTitle = "Skills";
-          content = (
-            <div className="space-y-1 text-left">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[10px] leading-relaxed">
-                    <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-teal-800" colon />{" "}
-                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                  </div>
-                );
-              })}
-            </div>
-          );
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-teal-700" });
         }
         break;
       case "certifications":
@@ -2732,19 +2766,7 @@ function ElegantPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
       case "skills":
         if (r.skills?.length > 0) {
           defaultTitle = "Skills";
-          content = (
-            <div className="space-y-1 text-center max-w-[90%] mx-auto">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[10px] leading-relaxed">
-                    <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-stone-700" colon />{" "}
-                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                  </div>
-                );
-              })}
-            </div>
-          );
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-stone-700" });
         }
         break;
       case "certifications":
@@ -2930,22 +2952,7 @@ function SidebarDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
               <div className="uppercase tracking-widest text-[9px] font-bold border-b border-teal-500 pb-1 mb-2">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </div>
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="mb-2">
-                    <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                    <ul className="space-y-1 mt-1 text-[9.5px]">
-                      {s.items.map((it, k) => (
-                        <li key={k} className="flex items-start gap-1.5">
-                          <span className="text-teal-300 font-bold select-none">•</span>
-                          <span>{it}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-teal-300" })}
             </div>
           );
         }
@@ -3137,17 +3144,7 @@ function PhotoHeaderPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-sky-700 border-b border-sky-200 pb-1 mb-2.5">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="space-y-2">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i} className="text-[10px]">
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px] mb-0.5 text-slate-800" />
-                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 whitespace-pre-wrap leading-relaxed" />
-                    </div>
-                  );
-                })}
-              </div>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-sky-700" })}
             </section>
           );
         }
@@ -3268,19 +3265,7 @@ function CenteredSerifPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
       case "skills":
         if (r.skills?.length > 0) {
           defaultTitle = "Skills";
-          content = (
-            <div className="space-y-1 text-left px-1">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="text-[10.5px] leading-relaxed">
-                    <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                  </div>
-                );
-              })}
-            </div>
-          );
+          content = renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-neutral-800" });
         }
         break;
       case "education":
@@ -3448,15 +3433,7 @@ function BannerPhotoPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-800 mb-1.5">
                 <Editable value={getSectionTitle(r, "skills", "Key Achievements")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="mb-2">
-                    <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-emerald-900" />
-                    <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[10px] text-emerald-800 whitespace-pre-wrap leading-relaxed" />
-                  </div>
-                );
-              })}
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-emerald-700" })}
             </section>
           );
         }
@@ -3535,18 +3512,7 @@ function TealLeftPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <div className="uppercase tracking-widest text-[9px] font-bold border-b border-teal-400 pb-1 mb-2">
                 <Editable value={getSectionTitle(r, "skills", "Key Skills & Achievements")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </div>
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i} className="mb-2 flex items-start gap-2">
-                    <span className="text-teal-300 text-sm leading-none mt-0.5 select-none font-bold">•</span>
-                    <div className="flex-1">
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10px]" />
-                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-teal-100 leading-snug whitespace-pre-wrap" />
-                    </div>
-                  </div>
-                );
-              })}
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-teal-300" })}
             </div>
           );
         }
@@ -3704,23 +3670,13 @@ function PhotoGridPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
         }
         return null;
       case "skills":
-        if (achievements.length > 0) {
+        if (r.skills?.length > 0) {
           return (
             <section key="skills" className="mt-3">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-800 mb-2 text-center">
                 <Editable value={getSectionTitle(r, "skills", "Key Achievements")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="grid grid-cols-3 gap-3">
-                {achievements.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i} className="border border-neutral-200 rounded-lg p-3 bg-neutral-50">
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-[10.5px] text-sky-800 mb-1" />
-                      <Editable as="div" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="text-[9.5px] text-neutral-700 leading-snug whitespace-pre-wrap" />
-                    </div>
-                  );
-                })}
-              </div>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-neutral-800" })}
             </section>
           );
         }
@@ -3913,17 +3869,7 @@ function LogoBoxedPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <div className="text-center text-[12px] font-semibold tracking-wide text-neutral-800 border-b border-neutral-300 pb-1 mb-2 mt-3">
                 <Editable value={getSectionTitle(r, "skills", "Skills")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </div>
-              <div className="space-y-1">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i} className="text-[10px] leading-relaxed">
-                      <SkillCat value={s.category} onChange={update && (v => upd({ category: v }))} className="font-semibold text-sky-800" colon />{" "}
-                      <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                    </div>
-                  );
-                })}
-              </div>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-sky-800" })}
             </div>
           );
         }
@@ -4087,25 +4033,8 @@ function NordicPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
               <h3 className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-slate-700 border-l-2 border-slate-700 pl-2.5 mb-2">
                 <Editable value={getSectionTitle(r, "skills", "Skills & Competencies")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="space-y-1.5 pl-2.5">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i} className="flex items-start text-[10px]">
-                      <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold text-slate-800 w-36 shrink-0" colon />
-                      <div className="flex-1">
-                        <ul className="space-y-1 text-[9.5px]">
-                          {s.items.map((it, idx) => (
-                            <li key={idx} className="flex items-start gap-1.5">
-                              <span className="text-slate-600 select-none">•</span>
-                              <span>{it}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="pl-2.5">
+                {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-slate-600" })}
               </div>
             </section>
           );
@@ -4262,17 +4191,9 @@ function IvyLeaguePreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
           defaultTitle = "Skills & Certifications";
           content = (
             <div className="space-y-1 text-[10.5px] leading-relaxed">
-              {r.skills.map((s, i) => {
-                const upd = makeSkillUpdater(update, r, i);
-                return (
-                  <div key={i}>
-                    <SkillCat as="span" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-bold" colon />{" "}
-                    <Editable as="span" multiline value={formatSkillsForEditor(s.items)} onChange={update && (v => upd({ items: parseSkillsFromEditor(v) }))} className="whitespace-pre-wrap" />
-                  </div>
-                );
-              })}
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-slate-900" })}
               {r.certifications?.length > 0 && (
-                <div>
+                <div className="mt-1">
                   <span className="font-bold">Certifications: </span>
                   <Editable value={r.certifications.join(", ")} onChange={update && (v => on({ certifications: v.split(",").map(x => x.trim()).filter(Boolean) }))} />
                 </div>
@@ -4441,24 +4362,7 @@ function TechDarkPreview({ r, update }: { r: ResumeData; update?: UpdateFn }) {
                 <span className="text-cyan-600">#</span>
                 <Editable value={getSectionTitle(r, "skills", "Tech Stack")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <div className="space-y-2.5">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <div key={i}>
-                      <SkillCat as="div" value={s.category} onChange={update && (v => upd({ category: v }))} className="font-mono font-bold text-[9.5px] text-slate-700 mb-1" />
-                      <ul className="space-y-1 text-[9.5px]">
-                        {s.items.map((it, idx) => (
-                          <li key={idx} className="flex items-start gap-1.5">
-                            <span className="text-cyan-600 font-mono select-none">•</span>
-                            <span className="font-mono text-slate-800">{it}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
-              </div>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-cyan-600 font-mono" })}
             </section>
           );
         }
@@ -4649,7 +4553,7 @@ function MonogramBlueFramePreview({ r, update }: { r: ResumeData; update?: Updat
               <span data-rs-head="1">{getSectionTitle(r, "skills", "Skills")}</span>
               <span className="flex-1 border-b border-slate-300" />
             </div>
-            {renderBulletSkills2Col(r.skills, update)}
+            {renderBulletSkills2Col(r.skills, update, "text-black", r)}
           </section>
         )}
 
@@ -4839,7 +4743,7 @@ function EmeraldTimelinePreview({ r, update }: { r: ResumeData; update?: UpdateF
       {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
         <section data-rs-sec="skills" className="space-y-1.5">
           <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#059669]">{getSectionTitle(r, "skills", "SKILLS")}</div>
-          {renderBulletSkills2Col(r.skills, update, "text-[#059669]")}
+          {renderBulletSkills2Col(r.skills, update, "text-[#059669]", r)}
         </section>
       )}
 
@@ -4985,14 +4889,7 @@ function HexagonEditorialPreview({ r, update }: { r: ResumeData; update?: Update
           {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
             <section data-rs-sec="skills" className="space-y-1.5">
               <h3 data-rs-head="1" className="font-serif font-bold text-sm text-[#1d4ed8] border-b border-slate-200 pb-1">{getSectionTitle(r, "skills", "Skills")}</h3>
-              <ul className="space-y-1 text-[10px] text-black">
-                {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
-                  <li key={i} className="flex items-start gap-1.5">
-                    <span className="text-[#2563eb]">•</span>
-                    <span>{sk}</span>
-                  </li>
-                ))}
-              </ul>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-[#2563eb]" })}
             </section>
           )}
 
@@ -5173,14 +5070,7 @@ function SlateNodeTimelinePreview({ r, update }: { r: ResumeData; update?: Updat
               <section data-rs-sec="skills" className="space-y-1.5">
                 <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-slate-700" />
                 <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900">{getSectionTitle(r, "skills", "SKILLS")}</h3>
-                <ul className="space-y-1 text-[10px] text-black">
-                  {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <span className="text-slate-800">•</span>
-                      <span>{sk}</span>
-                    </li>
-                  ))}
-                </ul>
+                {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-slate-800" })}
               </section>
             )}
 
@@ -5294,14 +5184,7 @@ function CenteredDualColumnPreview({ r, update }: { r: ResumeData; update?: Upda
           {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
             <section data-rs-sec="skills" className="space-y-1">
               <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</h3>
-              <ul className="space-y-1 text-[10px] text-black">
-                {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
-                  <li key={i} className="flex items-start gap-1.5">
-                    <span>•</span>
-                    <span>{sk}</span>
-                  </li>
-                ))}
-              </ul>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-slate-900" })}
             </section>
           )}
 
@@ -5387,7 +5270,7 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
           {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
             <div data-rs-sec="skills" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
               <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</div>
-              <div>{renderBulletSkills2Col(r.skills, update, "text-[#0d9488]")}</div>
+              <div>{renderBulletSkills2Col(r.skills, update, "text-[#0d9488]", r)}</div>
             </div>
           )}
 
@@ -5406,6 +5289,28 @@ function TealDuoBannerPreview({ r, update }: { r: ResumeData; update?: UpdateFn 
                         <Editable value={e.company} onChange={update && (v => upd({ company: v }))} />, <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
                       </div>
                       <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {r.leadership && r.leadership.length > 0 && (
+            <div data-rs-sec="leadership" className="grid grid-cols-[130px_1fr] gap-4 pt-3">
+              <div data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "leadership", "Leadership Experience")}</div>
+              <div className="space-y-3">
+                {r.leadership.map((l, i) => {
+                  const upd = makeLeadershipUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="font-bold text-[10.5px] text-black">
+                        <Editable value={l.role} onChange={update && (v => upd({ role: v }))} /> {l.start || l.end ? <span className="font-normal text-slate-700">{l.start} - {l.end}</span> : null}
+                      </div>
+                      <div className="font-bold text-slate-800 text-[10px]">
+                        <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? <>, <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></> : null}
+                      </div>
+                      <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
                     </div>
                   );
                 })}
@@ -5477,7 +5382,7 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
         {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
           <div data-rs-sec="skills" className="grid grid-cols-[130px_1fr] gap-5">
             <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "skills", "SKILLS")}</div>
-            <div>{renderBulletSkills2Col(r.skills, update, "text-[#a89689]")}</div>
+            <div>{renderBulletSkills2Col(r.skills, update, "text-[#a89689]", r)}</div>
           </div>
         )}
 
@@ -5496,6 +5401,28 @@ function TaupeHeaderSplitPreview({ r, update }: { r: ResumeData; update?: Update
                       <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> - <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
                     </div>
                     <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {r.leadership && r.leadership.length > 0 && (
+          <div data-rs-sec="leadership" className="grid grid-cols-[130px_1fr] gap-5">
+            <div data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-[#a89689] text-right pr-4 border-r border-slate-300">{getSectionTitle(r, "leadership", "LEADERSHIP")}</div>
+            <div className="space-y-3">
+              {r.leadership.map((l, i) => {
+                const upd = makeLeadershipUpdater(update, r, i);
+                return (
+                  <div key={i} className="space-y-0.5">
+                    <div className="font-bold text-[10.5px] uppercase tracking-wide text-black">
+                      <Editable value={l.role} onChange={update && (v => upd({ role: v }))} /> {l.start || l.end ? <span className="font-normal text-slate-700">| {l.start} to {l.end}</span> : null}
+                    </div>
+                    <div className="font-semibold text-slate-800 text-[10px]">
+                      <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? <> - <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></> : null}
+                    </div>
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
                   </div>
                 );
               })}
@@ -5574,7 +5501,7 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
         {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
           <section data-rs-sec="skills" className="space-y-1">
             <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "skills", "Skills")}</h3>
-            {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]")}
+            {renderBulletSkills2Col(r.skills, update, "text-[#7f1d1d]", r)}
           </section>
         )}
 
@@ -5594,6 +5521,29 @@ function AmberRibbonPreview({ r, update }: { r: ResumeData; update?: UpdateFn })
                       <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> — <Editable value={e.location} onChange={update && (v => upd({ location: v }))} />
                     </div>
                     <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {r.leadership && r.leadership.length > 0 && (
+          <section data-rs-sec="leadership" className="space-y-2">
+            <h3 data-rs-head="1" className="font-bold text-xs text-[#7f1d1d] border-b border-slate-200 pb-1.5 mb-1.5">{getSectionTitle(r, "leadership", "Leadership Experience")}</h3>
+            <div className="space-y-3">
+              {r.leadership.map((l, i) => {
+                const upd = makeLeadershipUpdater(update, r, i);
+                return (
+                  <div key={i} className="space-y-0.5">
+                    <div className="flex justify-between items-center text-[10.5px]">
+                      <span className="font-bold text-black"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></span>
+                      {l.start || l.end ? <span className="text-[9.5px] text-slate-700">{l.start} to {l.end}</span> : null}
+                    </div>
+                    <div className="font-bold text-slate-900 text-[10px]">
+                      <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? <> — <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></> : null}
+                    </div>
+                    <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
                   </div>
                 );
               })}
@@ -5655,14 +5605,7 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
             {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
               <section data-rs-sec="skills" className="space-y-1.5">
                 <h3 data-rs-head="1" className="font-bold text-xs text-slate-900">{getSectionTitle(r, "skills", "Skills")}</h3>
-                <ul className="space-y-1 text-[9.5px] text-black">
-                  {(r.skills?.flatMap(s => s.items) || []).filter(Boolean).map((sk, i) => (
-                    <li key={i} className="flex items-start gap-1">
-                      <span>•</span>
-                      <span>{sk}</span>
-                    </li>
-                  ))}
-                </ul>
+                {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-slate-900" })}
               </section>
             )}
 
@@ -5724,6 +5667,29 @@ function SlateFrameSidebarPreview({ r, update }: { r: ResumeData; update?: Updat
                           <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /> • {e.start} - {e.end}
                         </div>
                         <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black mt-1" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {r.leadership && r.leadership.length > 0 && (
+              <section data-rs-sec="leadership" className="space-y-2">
+                <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "leadership", "LEADERSHIP EXPERIENCE")}</h3>
+                <div className="space-y-2.5">
+                  {r.leadership.map((l, i) => {
+                    const upd = makeLeadershipUpdater(update, r, i);
+                    return (
+                      <div key={i} className="space-y-0.5">
+                        <div className="flex justify-between items-center text-[10px]">
+                          <span className="font-bold text-black"><Editable value={l.role} onChange={update && (v => upd({ role: v }))} /></span>
+                          {l.start || l.end ? <span className="text-[8.5px] text-slate-600">{l.start} to {l.end}</span> : null}
+                        </div>
+                        <div className="text-[9.5px] text-slate-800 font-semibold">
+                          <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? <> | <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></> : null}
+                        </div>
+                        <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[9.5px] space-y-0.5 text-black" />
                       </div>
                     );
                   })}
@@ -5813,7 +5779,7 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
           {r.skills?.some(s => (s.items || []).filter(Boolean).length > 0) && (
             <section data-rs-sec="skills" className="space-y-1">
               <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "skills", "SKILLS")}</h3>
-              {renderBulletSkills2Col(r.skills, update, "text-[#6b1d1d]")}
+              {renderBulletSkills2Col(r.skills, update, "text-[#6b1d1d]", r)}
             </section>
           )}
 
@@ -5832,6 +5798,28 @@ function BurgundyBoxedMonogramPreview({ r, update }: { r: ResumeData; update?: U
                         <Editable value={e.company} onChange={update && (v => upd({ company: v }))} /> | <Editable value={e.location} onChange={update && (v => upd({ location: v }))} /> | {e.start} - {e.end}
                       </div>
                       <BulletsEditor bullets={e.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {r.leadership && r.leadership.length > 0 && (
+            <section data-rs-sec="leadership" className="space-y-2">
+              <h3 data-rs-head="1" className="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1">{getSectionTitle(r, "leadership", "LEADERSHIP EXPERIENCE")}</h3>
+              <div className="space-y-3">
+                {r.leadership.map((l, i) => {
+                  const upd = makeLeadershipUpdater(update, r, i);
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="font-bold text-[10.5px] uppercase tracking-wide text-black">
+                        <Editable value={l.role} onChange={update && (v => upd({ role: v }))} />
+                      </div>
+                      <div className="text-[9.5px] text-slate-700 italic">
+                        <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} />{l.location ? <> | <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></> : null}{l.start || l.end ? <> | {l.start} - {l.end}</> : null}
+                      </div>
+                      <BulletsEditor bullets={l.bullets || []} onChange={update && (v => upd({ bullets: v }))} className="list-disc pl-4 text-[10px] space-y-0.5 text-black" />
                     </div>
                   );
                 })}
@@ -5909,24 +5897,7 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
                 <Editable value={getSectionTitle(r, "skills", "SKILLS AND COMPETENCIES")} onChange={update && (v => updateSectionTitle(r, on, "skills", v))} />
               </h3>
-              <ul className="list-disc pl-5 space-y-1 text-[10px] text-black">
-                {r.skills.map((s, i) => {
-                  const upd = makeSkillUpdater(update, r, i);
-                  return (
-                    <li key={i} className="leading-snug">
-                      {!isGenericSkillCategory(s.category) ? (
-                        <strong className="font-bold text-black mr-1.5">
-                          <Editable value={s.category} onChange={update && (v => upd({ category: v }))} />:
-                        </strong>
-                      ) : null}
-                      <Editable
-                        value={s.items.join(", ")}
-                        onChange={update && (v => upd({ items: v.split(",").map(x => x.trim()).filter(Boolean) }))}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
+              {renderSkillsSection({ skills: r.skills, settings: r.settings, update, on, dotColor: "text-black" })}
             </section>
           );
         }
@@ -5970,12 +5941,14 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
 
       case "leadership":
         if (r.leadership && r.leadership.length > 0) {
+          const hasAnyBullets = r.leadership.some(l => l.bullets && l.bullets.length > 0);
+          const isTwoCol = !hasAnyBullets && r.leadership.length >= 2;
           return (
             <section key="leadership" data-rs-sec="leadership" className="mb-3">
               <h3 data-rs-head="1" className="text-[11.5px] font-bold uppercase tracking-wider text-black mb-1.5 font-serif">
                 <Editable value={getSectionTitle(r, "leadership", "SIGNIFICANT CONTRIBUTIONS")} onChange={update && (v => updateSectionTitle(r, on, "leadership", v))} />
               </h3>
-              <ul className="list-disc pl-5 space-y-1.5 text-[10px] text-black">
+              <ul className={`${isTwoCol ? "grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1" : "space-y-1.5"} list-disc pl-5 text-[10px] text-black`}>
                 {r.leadership.map((l, i) => {
                   const upd = makeLeadershipUpdater(update, r, i);
                   const cleanRole = (l.role || "").replace(/^[•\-\–\—\*\u2022\u25E6\u25AA▪\|\s]+/, "").trim();
@@ -5988,13 +5961,13 @@ function ChristTemplatePreview({ r, update }: { r: ResumeData; update?: UpdateFn
                         />
                       </strong>
                       {l.organization ? (
-                        <span> – <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
+                        <span> | <Editable value={l.organization} onChange={update && (v => upd({ organization: v }))} /></span>
                       ) : null}
                       {l.location ? (
                         <span>, <Editable value={l.location} onChange={update && (v => upd({ location: v }))} /></span>
                       ) : null}
                       {l.start || l.end ? (
-                        <span className="text-slate-600"> ({l.start} – {l.end})</span>
+                        <span className="text-slate-600"> ({l.start}${l.start && l.end ? " – " : ""}${l.end})</span>
                       ) : null}
                       {l.bullets && l.bullets.length > 0 ? (
                         <div className="mt-0.5 space-y-0.5 pl-2 text-[9.5px]">
@@ -6691,7 +6664,7 @@ export function TemplateMiniPreview({
 const SECTION_MATCHERS: { key: ResumeSectionKey; re: RegExp }[] = [
   { key: "summary", re: /^(summary|profile|about|professional summary)$/i },
   { key: "experience", re: /^(experience|work experience|professional experience|employment)$/i },
-  { key: "leadership", re: /^(leadership experience|leadership|volunteer experience|community leadership|extracurricular activities|activities|leadership & activities)$/i },
+  { key: "leadership", re: /^(leadership experience|leadership|volunteer experience|community leadership|extracurricular activities|activities|leadership & activities|significant contributions|key contributions|contributions|positions of responsibility|positions held|student leadership)$/i },
   { key: "education", re: /^(education|academics|education and training)$/i },
   { key: "skills", re: /^(skills|key skills.*|core skills|technical skills|skills & optimization)$/i },
   { key: "projects", re: /^(projects|selected projects|key projects)$/i },
